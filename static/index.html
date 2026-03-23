@@ -12,54 +12,32 @@
       --muted: #6b6b6b; --danger: #c0392b; --success: #2d6a4f;
       --radius: 10px; --shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg); color: var(--text);
-      min-height: 100vh; display: flex; flex-direction: column;
-      align-items: center; padding: 40px 20px 80px;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px 80px; }
     header { text-align: center; margin-bottom: 36px; }
     header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.5px; }
     header p { color: var(--muted); margin-top: 6px; font-size: 0.95rem; }
-    .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); box-shadow: var(--shadow);
-      padding: 28px 32px; width: 100%; max-width: 600px; margin-bottom: 20px;
-    }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px 32px; width: 100%; max-width: 600px; margin-bottom: 20px; }
     .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 18px; }
-    .dropzone {
-      border: 2px dashed var(--border); border-radius: var(--radius);
-      padding: 36px 20px; text-align: center; cursor: pointer;
-      transition: border-color 0.15s, background 0.15s; position: relative;
-    }
+    .dropzone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 36px 20px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative; }
     .dropzone:hover, .dropzone.drag-over { border-color: var(--accent); background: #f0faf4; }
-    .dropzone input[type="file"] {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-    }
+    .dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
     .dropzone .icon { font-size: 2rem; margin-bottom: 8px; }
     .dropzone .label { font-size: 0.95rem; color: var(--muted); }
     .dropzone .label strong { color: var(--accent); }
+    .dropzone .size-note { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
     #file-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
-    .file-item {
-      display: flex; align-items: center; gap: 10px;
-      background: #f9f9f7; border: 1px solid var(--border);
-      border-radius: 6px; padding: 8px 12px; font-size: 0.875rem;
-    }
+    .file-item { display: flex; align-items: center; gap: 10px; background: #f9f9f7; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 0.875rem; }
     .file-item .file-name { flex: 1; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-item .file-size { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
     .file-item .file-status { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
     .file-item .file-status.success { color: var(--success); font-weight: 600; }
     .file-item .file-status.error { color: var(--danger); font-weight: 600; }
+    .file-item .file-status.uploading { color: #b07d00; font-weight: 600; }
     .file-item .remove-btn { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 1rem; padding: 0 2px; line-height: 1; }
     .file-item .remove-btn:hover { color: var(--danger); }
     .field { margin-top: 18px; }
     .field label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; }
-    .field select {
-      width: 100%; padding: 9px 12px; border: 1px solid var(--border);
-      border-radius: 6px; font-size: 0.9rem; background: var(--surface);
-      color: var(--text); appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6b6b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 12px center;
-    }
+    .field select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; background: var(--surface); color: var(--text); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6b6b' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
     .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
     .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none; transition: background 0.15s, opacity 0.15s; }
     .btn-primary { background: var(--accent); color: #fff; width: 100%; justify-content: center; margin-top: 20px; padding: 12px; font-size: 1rem; }
@@ -68,6 +46,8 @@
     .btn-secondary { background: #f0faf4; color: var(--accent); border: 1px solid var(--accent); }
     .btn-secondary:hover { background: #d8f3e5; }
     #convert-status { margin-top: 14px; font-size: 0.875rem; text-align: center; color: var(--muted); min-height: 20px; }
+    .progress-bar-wrap { margin-top: 8px; background: var(--border); border-radius: 4px; height: 6px; overflow: hidden; display: none; }
+    .progress-bar { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; width: 0%; }
     .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .collapsible-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
@@ -85,12 +65,14 @@
     <h1>Affinity to Markdown Converter App</h1>
     <p>Convert Affinity Publisher files to Markdown</p>
   </header>
+
   <div class="card">
     <h2>Convert Files</h2>
     <div class="dropzone" id="dropzone">
       <input type="file" id="file-input" accept=".afpub" multiple />
       <div class="icon">📄</div>
-      <div class="label"><strong>Choose files</strong> or drag and drop here<br><span style="font-size:0.8rem">.afpub files only</span></div>
+      <div class="label"><strong>Choose files</strong> or drag and drop here</div>
+      <div class="size-note">.afpub files only &nbsp;·&nbsp; Max 500 MB per file</div>
     </div>
     <div id="file-list"></div>
     <div class="field">
@@ -99,7 +81,11 @@
     </div>
     <button class="btn btn-primary" id="convert-btn" disabled>Convert</button>
     <div id="convert-status"></div>
+    <div class="progress-bar-wrap" id="progress-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
   </div>
+
   <div class="card">
     <div class="collapsible-header" id="calib-header">
       <h2 style="margin:0">Template Calibration</h2>
@@ -116,59 +102,150 @@
       <pre id="dump-output"></pre>
     </div>
   </div>
+
   <div id="toast"></div>
+
   <script>
+    const DIRECT_LIMIT = 30 * 1024 * 1024;
+    const MAX_SIZE = 500 * 1024 * 1024;
     let selectedFiles = [], dumpFile = null;
-    function showToast(msg, d=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
+
+    function showToast(msg,d=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
+    function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
     function updateConvertBtn(){document.getElementById('convert-btn').disabled=selectedFiles.length===0||!document.getElementById('template-select').value;}
-    async function loadTemplates(){try{const r=await fetch('/api/templates');const d=await r.json();const s=document.getElementById('template-select');if(d.templates.length===0){s.innerHTML='<option value="">No templates found</option>';return;}s.innerHTML=d.templates.map(t=>`<option value="${t}">${t}</option>`).join('');updateConvertBtn();}catch{document.getElementById('template-select').innerHTML='<option value="">Error loading templates</option>';}}
-    function addFiles(fl){const ex=new Set(selectedFiles.map(f=>f.name));for(const f of fl){if(f.name.toLowerCase().endsWith('.afpub')&&!ex.has(f.name))selectedFiles.push(f);}renderFileList();updateConvertBtn();}
+
+    async function loadTemplates(){
+      try{
+        const r=await fetch('/api/templates');const d=await r.json();
+        const s=document.getElementById('template-select');
+        if(d.templates.length===0){s.innerHTML='<option value="">No templates found</option>';return;}
+        s.innerHTML=d.templates.map(t=>`<option value="${t}">${t}</option>`).join('');
+        updateConvertBtn();
+      }catch{document.getElementById('template-select').innerHTML='<option value="">Error loading templates</option>';}
+    }
+
+    function addFiles(fl){
+      const ex=new Set(selectedFiles.map(f=>f.name));
+      for(const f of fl){
+        if(!f.name.toLowerCase().endsWith('.afpub'))continue;
+        if(f.size>MAX_SIZE){showToast(`${f.name} exceeds 500 MB limit`);continue;}
+        if(!ex.has(f.name))selectedFiles.push(f);
+      }
+      renderFileList();updateConvertBtn();
+    }
     function removeFile(i){selectedFiles.splice(i,1);renderFileList();updateConvertBtn();}
-    function renderFileList(){document.getElementById('file-list').innerHTML=selectedFiles.map((f,i)=>`<div class="file-item" id="file-item-${i}"><span>📄</span><span class="file-name">${f.name}</span><span class="file-status" id="file-status-${i}">Ready</span><button class="remove-btn" onclick="removeFile(${i})" title="Remove">✕</button></div>`).join('');}
+    function renderFileList(){
+      document.getElementById('file-list').innerHTML=selectedFiles.map((f,i)=>`
+        <div class="file-item" id="file-item-${i}">
+          <span>📄</span>
+          <span class="file-name">${f.name}</span>
+          <span class="file-size">${fmtSize(f.size)}</span>
+          <span class="file-status" id="file-status-${i}">Ready</span>
+          <button class="remove-btn" onclick="removeFile(${i})" title="Remove">✕</button>
+        </div>`).join('');
+    }
+
     const dz=document.getElementById('dropzone'),fi=document.getElementById('file-input');
     fi.addEventListener('change',()=>addFiles(fi.files));
     dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
     dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
     dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');addFiles(e.dataTransfer.files);});
     document.getElementById('template-select').addEventListener('change',updateConvertBtn);
+
+    async function uploadAndConvert(f, template, statusEl, progressWrap, progressBar){
+      if(f.size<=DIRECT_LIMIT){
+        if(statusEl){statusEl.textContent='Converting…';statusEl.className='file-status';}
+        const form=new FormData();form.append('file',f);form.append('template',template);
+        const r=await fetch('/api/convert',{method:'POST',body:form});
+        if(!r.ok){const e=await r.json().catch(()=>({detail:'Unknown error'}));throw new Error(e.detail||'Conversion failed');}
+        return r.blob();
+      } else {
+        if(statusEl){statusEl.textContent='Uploading…';statusEl.className='file-status uploading';}
+        if(progressWrap)progressWrap.style.display='block';
+        return new Promise((resolve,reject)=>{
+          const xhr=new XMLHttpRequest();
+          xhr.open('POST','/api/convert-large');
+          xhr.setRequestHeader('X-Template',template);
+          xhr.setRequestHeader('X-Filename',f.name);
+          xhr.setRequestHeader('Content-Type','application/octet-stream');
+          xhr.responseType='blob';
+          xhr.upload.onprogress=e=>{
+            if(e.lengthComputable&&progressBar){
+              progressBar.style.width=Math.round(e.loaded/e.total*85)+'%';
+              if(statusEl&&e.loaded<e.total){
+                statusEl.textContent=`Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}`;
+                statusEl.className='file-status uploading';
+              } else if(statusEl){statusEl.textContent='Converting…';}
+            }
+          };
+          xhr.onload=()=>{
+            if(xhr.status===200){if(progressBar)progressBar.style.width='100%';resolve(xhr.response);}
+            else{
+              const reader=new FileReader();
+              reader.onload=()=>{try{const e=JSON.parse(reader.result);reject(new Error(e.detail||'Conversion failed'));}catch{reject(new Error('Conversion failed'));}};
+              reader.readAsText(xhr.response);
+            }
+          };
+          xhr.onerror=()=>reject(new Error('Upload failed — check your connection'));
+          xhr.send(f);
+        });
+      }
+    }
+
     document.getElementById('convert-btn').addEventListener('click',async()=>{
       const tpl=document.getElementById('template-select').value;
       if(!tpl||selectedFiles.length===0)return;
       const btn=document.getElementById('convert-btn'),status=document.getElementById('convert-status');
-      btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Converting…';status.textContent='';
+      const progressWrap=document.getElementById('progress-wrap'),progressBar=document.getElementById('progress-bar');
+      btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Converting…';
+      status.textContent='';progressBar.style.width='0%';progressWrap.style.display='none';
       let ok=0,err=0;
+
       for(let i=0;i<selectedFiles.length;i++){
         const f=selectedFiles[i],sel=document.getElementById(`file-status-${i}`);
-        if(sel){sel.textContent='Converting…';sel.className='file-status';}
+        progressBar.style.width='0%';
         try{
-          const form=new FormData();form.append('file',f);form.append('template',tpl);
-          const r=await fetch('/api/convert',{method:'POST',body:form});
-          if(!r.ok){const e=await r.json().catch(()=>({detail:'Unknown error'}));throw new Error(e.detail||'Conversion failed');}
-          const blob=await r.blob();const url=URL.createObjectURL(blob);
+          const blob=await uploadAndConvert(f,tpl,sel,progressWrap,progressBar);
+          const url=URL.createObjectURL(blob);
           const a=document.createElement('a');a.href=url;a.download=f.name.replace(/\.afpub$/i,'.md');
           document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
           if(sel){sel.textContent='✓ Downloaded';sel.className='file-status success';}ok++;
-        }catch(e){if(sel){sel.textContent='✗ '+e.message;sel.className='file-status error';}err++;}
+        }catch(e){
+          if(sel){sel.textContent='✗ '+e.message;sel.className='file-status error';}err++;
+        }
         if(i<selectedFiles.length-1)await new Promise(r=>setTimeout(r,300));
       }
+
       btn.innerHTML='Convert';btn.disabled=false;
+      progressWrap.style.display='none';
       if(err===0){status.textContent=`✓ ${ok} file${ok!==1?'s':''} converted successfully.`;status.style.color='var(--success)';}
       else{status.textContent=`${ok} succeeded, ${err} failed.`;status.style.color='var(--danger)';}
     });
-    document.getElementById('calib-header').addEventListener('click',()=>{document.getElementById('calib-header').classList.toggle('open');document.getElementById('calib-body').classList.toggle('open');});
+
+    document.getElementById('calib-header').addEventListener('click',()=>{
+      document.getElementById('calib-header').classList.toggle('open');
+      document.getElementById('calib-body').classList.toggle('open');
+    });
+
     const ddz=document.getElementById('dump-dropzone'),dfi=document.getElementById('dump-file-input');
     dfi.addEventListener('change',()=>{dumpFile=dfi.files[0]||null;if(dumpFile)ddz.querySelector('.label').innerHTML=`<strong>${dumpFile.name}</strong> selected`;document.getElementById('dump-btn').disabled=!dumpFile;});
     ddz.addEventListener('dragover',e=>{e.preventDefault();ddz.classList.add('drag-over');});
     ddz.addEventListener('dragleave',()=>ddz.classList.remove('drag-over'));
     ddz.addEventListener('drop',e=>{e.preventDefault();ddz.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f&&f.name.toLowerCase().endsWith('.afpub')){dumpFile=f;ddz.querySelector('.label').innerHTML=`<strong>${f.name}</strong> selected`;document.getElementById('dump-btn').disabled=false;}});
+
     document.getElementById('dump-btn').addEventListener('click',async()=>{
       if(!dumpFile)return;
       const btn=document.getElementById('dump-btn'),out=document.getElementById('dump-output');
       btn.disabled=true;btn.textContent='Running…';out.style.display='none';
-      try{const form=new FormData();form.append('file',dumpFile);const r=await fetch('/api/dump-styles',{method:'POST',body:form});const d=await r.json();if(!r.ok)throw new Error(d.detail||'Dump failed');out.textContent=d.output;out.style.display='block';}
-      catch(e){showToast('Error: '+e.message);}
+      try{
+        const form=new FormData();form.append('file',dumpFile);
+        const r=await fetch('/api/dump-styles',{method:'POST',body:form});
+        const d=await r.json();if(!r.ok)throw new Error(d.detail||'Dump failed');
+        out.textContent=d.output;out.style.display='block';
+      }catch(e){showToast('Error: '+e.message);}
       finally{btn.disabled=false;btn.textContent='Run Dump Styles';}
     });
+
     loadTemplates();
   </script>
 </body>
