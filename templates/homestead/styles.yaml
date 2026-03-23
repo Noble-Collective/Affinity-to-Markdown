@@ -1,0 +1,338 @@
+styles:
+  - id: 311
+    name: "Main Session Title"
+    markdown: "#"
+  - id: 55
+    name: "Main Session Title"
+    markdown: "#"
+  - id: 202
+    name: "Main Session Title"
+    markdown: "#"
+  - id: 312
+    name: "Main Session Subtitle"
+    markdown: "##"
+  - id: 175
+    name: "Main Movement Titles"
+    markdown: "###"
+  - id: 216
+    name: "Main Movement Titles"
+    markdown: "###"
+  - id: 282
+    name: "Header Level 1"
+    markdown: "####"
+  - id: 687
+    name: "Header Level 2"
+    markdown: "#####"
+  - id: 192
+    name: "Main Body Text"
+    markdown: ""
+  - id: 245
+    name: "Main Body Text (variant)"
+    markdown: ""
+  - id: 742
+    name: "Subsection Instructions"
+    markdown: "p_italic"
+  - id: 230
+    name: "Movement Introduction"
+    markdown: ""
+  - id: 286
+    name: "Opening Block Quotes"
+    markdown: ">"
+  - id: 287
+    name: "Quote Attribution Book Titles"
+    markdown: "italic"
+  - id: 672
+    name: "Liturgy Reading Body Text / Inline Bold"
+    markdown: "bold"
+  - id: 1481
+    name: "Commentary Pull Quotes (Callouts)"
+    markdown: "callout"
+  - id: 201
+    name: "Journal Page Pull Quotes"
+    markdown: ">"
+  - id: 856
+    name: "Numbered List Paragraph"
+    markdown: "1."
+  - id: 1000
+    name: "Scripture Reference (paragraph)"
+    markdown: "<<"
+  - id: 1380
+    name: "Bullet List Paragraph"
+    markdown: "-"
+  - id: 1581
+    name: "Numbered List Paragraph (variant)"
+    markdown: "1."
+  - id: 1582
+    name: "Bullet List Paragraph (variant)"
+    markdown: "-"
+  - id: 1373
+    name: "Scripture Reference Labels"
+    markdown: "bold"
+  - id: 714
+    name: "Vertical Question Subtitles"
+    markdown: "#####"
+  - id: 728
+    name: "Section Activity Headings"
+    markdown: "###"
+  - id: 1376
+    name: "Tab Navigation Labels"
+    markdown: "SKIP"
+  - id: 360
+    name: "Tab Navigation Level 2"
+    markdown: "SKIP"
+  - id: 607
+    name: "Tab Navigation Level 3"
+    markdown: "SKIP"
+  - id: 260
+    name: "Tab Section Titles"
+    markdown: "SKIP"
+  - id: 2443
+    name: "Verse Number Superscripts"
+    markdown: "SKIP"
+  - id: 2452
+    name: "Artwork References"
+    markdown: "SKIP"
+  - id: 148
+    name: "Source URL"
+    markdown: "SKIP"
+  - id: 65
+    name: "Artwork Attribution"
+    markdown: "SKIP"
+  - id: 2113
+    name: "Artwork Attribution (variant)"
+    markdown: "SKIP"
+  - id: 2114
+    name: "Artwork Title"
+    markdown: "SKIP"
+  - id: 853
+    name: "Session Summary / Reflection Prompts"
+    markdown: ""
+  - id: 969
+    name: "Pull Quote Callouts"
+    markdown: "SKIP"
+  - id: 219
+    name: "Schedule Day Labels"
+    markdown: "SKIP"
+  - id: 2779
+    name: "Schedule Labels"
+    markdown: "SKIP"
+  - id: 139
+    name: "Verse Numbers"
+    markdown: "SKIP"
+  - id: 999
+    name: "Verse Numbers"
+    markdown: "superscript"
+  - id: 231
+    name: "Passage Reference Label"
+    markdown: "SKIP"
+  - id: 247
+    name: "Song Verse Labels"
+    markdown: "SKIP"
+  - id: 759
+    name: "Song Verse Labels"
+    markdown: "######"
+  - id: 129
+    name: "Part Labels"
+    markdown: "SKIP"
+  - id: 104
+    name: "Navigation Label"
+    markdown: "SKIP"
+  - id: 26
+    name: "Spread Label"
+    markdown: "SKIP"
+  - id: 4
+    name: "Page Number / Spread"
+    markdown: "SKIP"
+  - id: 95
+    name: "Project Label"
+    markdown: "SKIP"
+  - id: 226
+    name: "URL Reference"
+    markdown: "SKIP"
+  - id: 2530
+    name: "URL Reference (variant)"
+    markdown: "SKIP"
+  - id: 2439
+    name: "Book References"
+    markdown: "SKIP"
+  - id: 2506
+    name: "Inline character override A"
+    markdown: ""
+  - id: 2507
+    name: "Inline character override B"
+    markdown: ""
+  - id: 2508
+    name: "Inline character override C"
+    markdown: ""
+  - id: 2483
+    name: "Inline character override D"
+    markdown: ""
+  - id: 2489
+    name: "Inline character override E"
+    markdown: ""
+  - id: 2504
+    name: "Inline character override F"
+    markdown: ""
+  - id: 2466
+    name: "Inline character override G"
+    markdown: ""
+  - id: 2527
+    name: "Inline character override H"
+    markdown: ""
+  - id: 2438
+    name: "Inline character override I"
+    markdown: ""
+  - id: 197
+    name: "Inline body text variant"
+    markdown: ""
+  - id: 200
+    name: "Part label inline"
+    markdown: ""
+  - id: 106
+    name: "Discussion label"
+    markdown: ""
+  - id: 154
+    name: "Inline body fragment A"
+    markdown: ""
+  - id: 160
+    name: "Inline body fragment B"
+    markdown: ""
+  - id: 166
+    name: "Inline body fragment C"
+    markdown: ""
+  - id: 171
+    name: "Inline body fragment D"
+    markdown: ""
+  - id: 193
+    name: "Prayer text variant"
+    markdown: ""
+  - id: 207
+    name: "Prayer text variant B"
+    markdown: ""
+  - id: 212
+    name: "Body text variant C"
+    markdown: ""
+  - id: 1130
+    name: "Reflection subheading"
+    markdown: "bold"
+  - id: 2458
+    name: "Inline char override J"
+    markdown: ""
+  - id: 2459
+    name: "Inline body fragment E"
+    markdown: ""
+  - id: 2460
+    name: "Inline body fragment F"
+    markdown: ""
+  - id: 2461
+    name: "Inline body fragment G"
+    markdown: ""
+  - id: 2462
+    name: "Inline body fragment H"
+    markdown: ""
+  - id: 2463
+    name: "Inline body fragment I"
+    markdown: ""
+  - id: 2464
+    name: "Inline body fragment K"
+    markdown: ""
+  - id: 2470
+    name: "Inline body fragment L"
+    markdown: ""
+  - id: 2471
+    name: "Inline body fragment M"
+    markdown: ""
+  - id: 2472
+    name: "Inline body fragment N"
+    markdown: ""
+  - id: 2475
+    name: "Inline body fragment O"
+    markdown: ""
+  - id: 2497
+    name: "Body text variant D"
+    markdown: ""
+  - id: 2511
+    name: "Inline body fragment P"
+    markdown: ""
+  - id: 2516
+    name: "Inline body fragment Q"
+    markdown: ""
+  - id: 12
+    name: "Empty structural style A"
+    markdown: "SKIP"
+  - id: 44
+    name: "Empty structural style B"
+    markdown: "SKIP"
+  - id: 81
+    name: "Empty structural style C"
+    markdown: "SKIP"
+  - id: 93
+    name: "Empty structural style D"
+    markdown: "SKIP"
+  - id: 96
+    name: "Empty structural style E"
+    markdown: "SKIP"
+  - id: 105
+    name: "Empty structural style F"
+    markdown: "SKIP"
+  - id: 134
+    name: "Empty structural style G"
+    markdown: "SKIP"
+  - id: 162
+    name: "Empty structural style H"
+    markdown: "SKIP"
+  - id: 179
+    name: "Empty structural style I"
+    markdown: "SKIP"
+  - id: 184
+    name: "Empty structural style J"
+    markdown: "SKIP"
+  - id: 223
+    name: "Empty structural style K"
+    markdown: "SKIP"
+  - id: 234
+    name: "Empty structural style L"
+    markdown: "SKIP"
+  - id: 288
+    name: "Inline italic body text"
+    markdown: "italic"
+  - id: 1377
+    name: "Empty structural style N"
+    markdown: "SKIP"
+  - id: 2484
+    name: "Empty structural style O"
+    markdown: "SKIP"
+  - id: 2488
+    name: "Empty structural style P"
+    markdown: "SKIP"
+  - id: 2538
+    name: "Empty structural style Q"
+    markdown: "SKIP"
+  - id: 849
+    name: "Empty structural style R"
+    markdown: "SKIP"
+  - id: 1385
+    name: "Empty structural style S"
+    markdown: "SKIP"
+  - id: 1580
+    name: "Next Steps Heading"
+    markdown: "####"
+  - id: 1711
+    name: "Inline char override R"
+    markdown: ""
+  - id: 2945
+    name: "Part One label"
+    markdown: "SKIP"
+  - id: 3013
+    name: "Inline body fragment R"
+    markdown: ""
+  - id: 3084
+    name: "Empty structural style U"
+    markdown: "SKIP"
+  - id: 2768
+    name: "Part One label variant"
+    markdown: "SKIP"
+  - id: 3014
+    name: "Inline body fragment S"
+    markdown: ""
+fallback: "warn"
