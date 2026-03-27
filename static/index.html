@@ -32,7 +32,6 @@
     .file-item .file-status { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
     .file-item .file-status.success { color: var(--success); font-weight: 600; }
     .file-item .file-status.error { color: var(--danger); font-weight: 600; }
-    .file-item .file-status.uploading { color: #b07d00; font-weight: 600; }
     .file-item .remove-btn { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 1rem; padding: 0 2px; line-height: 1; }
     .file-item .remove-btn:hover { color: var(--danger); }
     .field { margin-top: 18px; }
@@ -131,26 +130,25 @@
   </div>
 
   <script>
-    const DIRECT_LIMIT = 30 * 1024 * 1024;
     const MAX_SIZE = 500 * 1024 * 1024;
     let selectedFiles = [], dumpFile = null;
 
     function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
     function updateConvertBtn(){document.getElementById('convert-btn').disabled=selectedFiles.length===0||!document.getElementById('template-select').value;}
 
-    function showError(panelId, textId, msg) {
-      document.getElementById(textId).textContent = msg;
-      const p = document.getElementById(panelId); p.style.display = 'block';
+    function showError(panelId, textId, msg){
+      document.getElementById(textId).textContent=msg;
+      const p=document.getElementById(panelId);p.style.display='block';
       p.scrollIntoView({behavior:'smooth',block:'nearest'});
     }
     function hideError(panelId){document.getElementById(panelId).style.display='none';}
-    function setupErrorPanel(panelId, textId, copyId, dismissId) {
-      document.getElementById(copyId).addEventListener('click', () => {
+    function setupErrorPanel(panelId,textId,copyId,dismissId){
+      document.getElementById(copyId).addEventListener('click',()=>{
         navigator.clipboard.writeText(document.getElementById(textId).textContent)
-          .then(() => { const b=document.getElementById(copyId); const o=b.textContent; b.textContent='Copied!'; setTimeout(()=>b.textContent=o,1500); })
-          .catch(() => alert('Copy failed — select the text manually'));
+          .then(()=>{const b=document.getElementById(copyId);const o=b.textContent;b.textContent='Copied!';setTimeout(()=>b.textContent=o,1500);})
+          .catch(()=>alert('Copy failed — select the text manually'));
       });
-      document.getElementById(dismissId).addEventListener('click', () => hideError(panelId));
+      document.getElementById(dismissId).addEventListener('click',()=>hideError(panelId));
     }
     setupErrorPanel('convert-error-panel','convert-error-text','convert-error-copy','convert-error-dismiss');
     setupErrorPanel('dump-error-panel','dump-error-text','dump-error-copy','dump-error-dismiss');
@@ -191,80 +189,34 @@
     dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');addFiles(e.dataTransfer.files);});
     document.getElementById('template-select').addEventListener('change',updateConvertBtn);
 
-    // GCS resumable upload - browser PUTs directly to GCS, Cloud Run never sees the body
-    async function gcsUpload(file, onProgress) {
-      const initRes = await fetch('/api/initiate-upload', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({filename: file.name, file_size: file.size})
-      });
-      if (!initRes.ok) {
-        const e = await initRes.json().catch(()=>({detail:'Initiate upload failed'}));
-        throw new Error(e.detail || 'Failed to initiate upload');
-      }
-      const {session_uri, object_name} = await initRes.json();
-      await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('PUT', session_uri);
-        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-        if (onProgress) xhr.upload.onprogress = onProgress;
-        xhr.onload = () => (xhr.status === 200 || xhr.status === 201) ? resolve() : reject(new Error(`GCS upload failed: HTTP ${xhr.status}`));
-        xhr.onerror = () => reject(new Error('Network error during upload'));
-        xhr.send(file);
-      });
-      return object_name;
-    }
-
-    async function uploadAndConvert(f, template, statusEl, progressWrap, progressBar) {
-      if (f.size <= DIRECT_LIMIT) {
-        if (statusEl) {statusEl.textContent='Converting…';statusEl.className='file-status';}
-        const form = new FormData(); form.append('file',f); form.append('template',template);
-        const r = await fetch('/api/convert',{method:'POST',body:form});
-        if (!r.ok){const e=await r.json().catch(()=>({detail:'Unknown error'}));throw new Error(e.detail||'Conversion failed');}
-        return r.blob();
-      }
-      if (statusEl){statusEl.textContent='Requesting upload session…';statusEl.className='file-status uploading';}
-      if (progressWrap) progressWrap.style.display='block';
-      const objectName = await gcsUpload(f, e => {
-        if (!e.lengthComputable) return;
-        if (progressBar) progressBar.style.width = Math.round(e.loaded/e.total*80)+'%';
-        if (statusEl) { statusEl.textContent = `Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}`; statusEl.className = 'file-status uploading'; }
-      });
-      if (statusEl){statusEl.textContent='Converting…';statusEl.className='file-status';}
-      if (progressBar) progressBar.style.width='90%';
-      const r = await fetch('/api/convert-from-gcs', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({object_name: objectName, filename: f.name, template})
-      });
-      if (!r.ok){const e=await r.json().catch(()=>({detail:'Conversion failed'}));throw new Error(e.detail||'Conversion failed');}
-      return r.blob();
-    }
-
-    document.getElementById('convert-btn').addEventListener('click', async () => {
+    document.getElementById('convert-btn').addEventListener('click',async()=>{
       const tpl=document.getElementById('template-select').value;
-      if (!tpl||selectedFiles.length===0) return;
+      if(!tpl||selectedFiles.length===0)return;
       hideError('convert-error-panel');
       const btn=document.getElementById('convert-btn'),status=document.getElementById('convert-status');
       const progressWrap=document.getElementById('progress-wrap'),progressBar=document.getElementById('progress-bar');
-      btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Converting…';
-      status.textContent=''; progressBar.style.width='0%'; progressWrap.style.display='none';
-      let ok=0, err=0;
-      for (let i=0;i<selectedFiles.length;i++) {
+      btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Converting…';
+      status.textContent='';progressBar.style.width='0%';progressWrap.style.display='none';
+      let ok=0,err=0;
+      for(let i=0;i<selectedFiles.length;i++){
         const f=selectedFiles[i],sel=document.getElementById(`file-status-${i}`);
-        progressBar.style.width='0%';
-        try {
-          const blob=await uploadAndConvert(f,tpl,sel,progressWrap,progressBar);
+        if(sel){sel.textContent='Converting…';sel.className='file-status';}
+        try{
+          const form=new FormData();form.append('file',f);form.append('template',tpl);
+          const r=await fetch('/api/convert',{method:'POST',body:form});
+          if(!r.ok){const e=await r.json().catch(()=>({detail:'Unknown error'}));throw new Error(e.detail||'Conversion failed');}
+          const blob=await r.blob();
           const url=URL.createObjectURL(blob);
           const a=document.createElement('a');a.href=url;a.download=f.name.replace(/\.afpub$/i,'.md');
           document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-          if(sel){sel.textContent='✓ Downloaded';sel.className='file-status success';} ok++;
-        } catch(e) {
-          if(sel){sel.textContent='✗ Error';sel.className='file-status error';} err++;
+          if(sel){sel.textContent='✓ Downloaded';sel.className='file-status success';}ok++;
+        }catch(e){
+          if(sel){sel.textContent='✗ Error';sel.className='file-status error';}err++;
           showError('convert-error-panel','convert-error-text',`Failed: ${f.name}\n\n${e.message}`);
         }
-        if(i<selectedFiles.length-1) await new Promise(r=>setTimeout(r,300));
+        if(i<selectedFiles.length-1)await new Promise(r=>setTimeout(r,300));
       }
-      btn.innerHTML='Convert'; btn.disabled=false; progressWrap.style.display='none';
+      btn.innerHTML='Convert';btn.disabled=false;progressWrap.style.display='none';
       if(err===0){status.textContent=`✓ ${ok} file${ok!==1?'s':''} converted successfully.`;status.style.color='var(--success)';}
       else{status.textContent=`${ok} succeeded, ${err} failed.`;status.style.color='var(--danger)';}
     });
@@ -286,34 +238,25 @@
     ddz.addEventListener('dragleave',()=>ddz.classList.remove('drag-over'));
     ddz.addEventListener('drop',e=>{e.preventDefault();ddz.classList.remove('drag-over');setDumpFile(e.dataTransfer.files[0]);});
 
-    document.getElementById('dump-btn').addEventListener('click', async () => {
-      if (!dumpFile) return;
+    document.getElementById('dump-btn').addEventListener('click',async()=>{
+      if(!dumpFile)return;
       hideError('dump-error-panel');
       const btn=document.getElementById('dump-btn'),out=document.getElementById('dump-output');
       const copyBtn=document.getElementById('dump-copy-btn'),prog=document.getElementById('dump-progress');
-      btn.disabled=true; btn.textContent='Starting…'; out.style.display='none'; copyBtn.style.display='none'; prog.textContent='';
-      try {
-        prog.textContent = 'Requesting upload session…';
-        const objectName = await gcsUpload(dumpFile, e => {
-          if (e.lengthComputable) prog.textContent = `Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}…`;
-        });
-        prog.textContent = 'Analyzing styles…'; btn.textContent = 'Analyzing…';
-        const r = await fetch('/api/dump-from-gcs', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({object_name: objectName, filename: dumpFile.name})
-        });
-        if (!r.ok) {
-          const txt = await r.text(); let msg = 'Dump failed';
-          try { msg = JSON.parse(txt).detail || msg; } catch { msg = txt || msg; }
-          throw new Error(msg);
-        }
-        const text = await r.text();
-        out.textContent = text; out.style.display = 'block';
-        copyBtn.style.display = 'inline-flex'; prog.textContent = '✓ Done';
-      } catch(e) {
-        showError('dump-error-panel','dump-error-text', e.message);
-        prog.textContent = '';
-      } finally { btn.disabled=false; btn.textContent='Run Dump Styles'; }
+      btn.disabled=true;btn.textContent='Uploading…';out.style.display='none';copyBtn.style.display='none';
+      prog.textContent=`Uploading ${fmtSize(dumpFile.size)}…`;
+      try{
+        const form=new FormData();form.append('file',dumpFile);
+        prog.textContent='Analyzing styles…';btn.textContent='Analyzing…';
+        const r=await fetch('/api/dump-styles',{method:'POST',body:form});
+        if(!r.ok){const txt=await r.text();let msg='Dump failed';try{msg=JSON.parse(txt).detail||msg;}catch{msg=txt||msg;}throw new Error(msg);}
+        const text=await r.text();
+        out.textContent=text;out.style.display='block';
+        copyBtn.style.display='inline-flex';prog.textContent='✓ Done';
+      }catch(e){
+        showError('dump-error-panel','dump-error-text',e.message);
+        prog.textContent='';
+      }finally{btn.disabled=false;btn.textContent='Run Dump Styles';}
     });
 
     document.getElementById('dump-copy-btn').addEventListener('click',()=>{
