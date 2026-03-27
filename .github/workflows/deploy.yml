@@ -24,3 +24,5 @@ jobs:
           service: afpub-converter
           region: us-east1
           source: .
+          env_vars: |
+            GCP_SA_KEY=${{ secrets.GCP_SA_KEY }}

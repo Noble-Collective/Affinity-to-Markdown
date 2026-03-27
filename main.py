@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import sys
 import tempfile
@@ -39,6 +40,7 @@ if _ZSTD is None:
 
 GCS_BUCKET = os.environ.get('GCS_BUCKET', 'affinity-markdown-uploads')
 _gcs_client = None
+_signing_credentials = None
 
 
 def _get_gcs():
@@ -47,15 +49,11 @@ def _get_gcs():
         try:
             from google.cloud import storage
             _gcs_client = storage.Client()
-            # Set CORS on the bucket so browsers can PUT directly
             bucket = _gcs_client.bucket(GCS_BUCKET)
             bucket.cors = [{
                 'origin': ['*'],
-                'method': ['PUT', 'GET', 'HEAD', 'OPTIONS', 'POST'],
-                'responseHeader': [
-                    'Content-Type', 'Content-Length', 'Content-Range',
-                    'x-goog-resumable', 'x-goog-stored-content-length',
-                ],
+                'method': ['PUT', 'GET', 'HEAD', 'OPTIONS'],
+                'responseHeader': ['Content-Type', 'Content-Length', 'ETag'],
                 'maxAgeSeconds': 3600,
             }]
             bucket.patch()
@@ -65,53 +63,46 @@ def _get_gcs():
     return _gcs_client
 
 
-def _get_token() -> str:
+def _get_signing_credentials():
     """
-    Get a bearer token using the storage client's own credentials.
-    These are already properly scoped for GCS operations — unlike calling
-    google.auth.default() directly, which on Compute Engine returns an
-    ambient token that ignores any requested scopes.
+    Return service account credentials that can sign URLs.
+    Uses GCP_SA_KEY env var (the JSON key injected by GitHub Actions).
+    Signed URLs are the only CORS-safe way for browsers to PUT directly
+    to GCS — resumable session URLs don't respect bucket CORS policies.
     """
-    import google.auth.transport.requests
-    gcs = _get_gcs()
-    if gcs is None:
-        raise RuntimeError('GCS client not available')
-    creds = gcs._credentials
-    creds.refresh(google.auth.transport.requests.Request())
-    return creds.token
-
-
-def _create_resumable_session(object_name: str, file_size: int = 0) -> str:
-    """
-    Create a GCS resumable upload session using the XML API.
-
-    IMPORTANT: Use the XML API (storage.googleapis.com/BUCKET/OBJECT?uploads),
-    NOT the JSON API (/upload/storage/v1/b/...). The XML API endpoint honours
-    the bucket CORS policy so browsers can PUT directly to the returned URL.
-    The JSON API endpoint does NOT honour bucket CORS and will be blocked.
-    """
-    import requests as req
-    token = _get_token()
-
-    # XML API: POST to bucket/object?uploads to initiate resumable session
-    url = f'https://storage.googleapis.com/{GCS_BUCKET}/{object_name}?uploads'
-    headers = {
-        'Authorization': f'Bearer {token}',
-        'Content-Type': 'application/octet-stream',
-        'x-goog-resumable': 'start',
-    }
-    if file_size:
-        headers['x-upload-content-length'] = str(file_size)
-
-    resp = req.post(url, headers=headers, timeout=15)
-    if not resp.ok:
-        raise RuntimeError(
-            f'GCS resumable init failed: {resp.status_code} {resp.text[:300]}'
+    global _signing_credentials
+    if _signing_credentials is None:
+        sa_key_json = os.environ.get('GCP_SA_KEY', '')
+        if not sa_key_json:
+            raise RuntimeError('GCP_SA_KEY env var not set')
+        import google.oauth2.service_account as sa
+        info = json.loads(sa_key_json)
+        _signing_credentials = sa.Credentials.from_service_account_info(
+            info,
+            scopes=['https://www.googleapis.com/auth/devstorage.read_write'],
         )
-    location = resp.headers.get('Location')
-    if not location:
-        raise RuntimeError('GCS did not return a Location header')
-    return location
+    return _signing_credentials
+
+
+def _make_signed_upload_url(object_name: str) -> str:
+    """
+    Generate a V4 signed URL for a browser PUT.
+    Signed URLs are CORS-safe: the auth is baked in, no session handshake needed.
+    Expires in 1 hour (plenty for any upload).
+    """
+    import datetime
+    from google.cloud import storage
+    creds = _get_signing_credentials()
+    client = storage.Client(credentials=creds)
+    bucket = client.bucket(GCS_BUCKET)
+    blob = bucket.blob(object_name)
+    url = blob.generate_signed_url(
+        version='v4',
+        expiration=datetime.timedelta(hours=1),
+        method='PUT',
+        content_type='application/octet-stream',
+    )
+    return url
 
 
 app = FastAPI(title='Affinity to Markdown Converter App')
@@ -120,7 +111,7 @@ app.mount('/static', StaticFiles(directory=str(STATIC_DIR)), name='static')
 
 @app.on_event('startup')
 async def startup():
-    _get_gcs()  # init GCS client + configure CORS at startup
+    _get_gcs()
 
 
 @app.get('/', response_class=HTMLResponse)
@@ -172,24 +163,21 @@ async def convert(file: UploadFile = File(...), template: str = Form(...)):
 @app.post('/api/initiate-upload')
 async def initiate_upload(request: Request):
     """
-    Create a GCS resumable upload session and return the session URL.
-    Uses XML API so the returned URL is CORS-compatible for browser PUTs.
+    Return a V4 signed URL for the browser to PUT to directly.
+    Signed URLs are CORS-safe; resumable session URLs are not.
     """
     body = await request.json()
     filename = body.get('filename', 'upload.afpub')
-    file_size = int(body.get('file_size', 0))
-
     if not filename.lower().endswith('.afpub'):
         raise HTTPException(status_code=400, detail='File must be a .afpub file.')
 
-    _get_gcs()  # ensure CORS is set
     object_name = f'uploads/{uuid.uuid4().hex}/{filename}'
     try:
-        session_uri = _create_resumable_session(object_name, file_size)
+        signed_url = _make_signed_upload_url(object_name)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f'Upload initiation failed: {exc}')
 
-    return JSONResponse({'session_uri': session_uri, 'object_name': object_name})
+    return JSONResponse({'session_uri': signed_url, 'object_name': object_name})
 
 
 @app.post('/api/convert-from-gcs')
