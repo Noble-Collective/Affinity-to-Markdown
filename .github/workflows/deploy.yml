@@ -18,6 +18,10 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+      - name: Encode SA key for Cloud Run env var
+        id: encode_key
+        run: echo "b64=$(echo '${{ secrets.GCP_SA_KEY }}' | base64 -w 0)" >> $GITHUB_OUTPUT
+
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
@@ -25,4 +29,4 @@ jobs:
           region: us-east1
           source: .
           env_vars: |
-            GCP_SA_KEY_B64=${{ secrets.GCP_SA_KEY_B64 }}
+            GCP_SA_KEY_B64=${{ steps.encode_key.outputs.b64 }}
