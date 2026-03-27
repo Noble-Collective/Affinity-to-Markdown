@@ -66,11 +66,17 @@ def _get_gcs():
 
 
 def _get_token() -> str:
-    import google.auth
+    """
+    Get a bearer token using the storage client's own credentials.
+    These are already properly scoped for GCS operations — unlike calling
+    google.auth.default() directly, which on Compute Engine returns an
+    ambient token that ignores any requested scopes.
+    """
     import google.auth.transport.requests
-    creds, _ = google.auth.default(
-        scopes=['https://www.googleapis.com/auth/devstorage.read_write']
-    )
+    gcs = _get_gcs()
+    if gcs is None:
+        raise RuntimeError('GCS client not available')
+    creds = gcs._credentials
     creds.refresh(google.auth.transport.requests.Request())
     return creds.token
 
