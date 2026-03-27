@@ -25,4 +25,4 @@ jobs:
           region: us-east1
           source: .
           env_vars: |
-            GCP_SA_KEY=${{ secrets.GCP_SA_KEY }}
+            GCP_SA_KEY_B64=${{ toJSON(secrets.GCP_SA_KEY) | base64 }}

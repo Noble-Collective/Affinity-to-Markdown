@@ -1,3 +1,4 @@
+import base64
 import io
 import json
 import os
@@ -65,18 +66,17 @@ def _get_gcs():
 
 def _get_signing_credentials():
     """
-    Return service account credentials that can sign URLs.
-    Uses GCP_SA_KEY env var (the JSON key injected by GitHub Actions).
-    Signed URLs are the only CORS-safe way for browsers to PUT directly
-    to GCS — resumable session URLs don't respect bucket CORS policies.
+    Load service account credentials for signing URLs.
+    The SA key JSON is stored base64-encoded in GCP_SA_KEY_B64 env var,
+    set by the GitHub Actions workflow at deploy time.
     """
     global _signing_credentials
     if _signing_credentials is None:
-        sa_key_json = os.environ.get('GCP_SA_KEY', '')
-        if not sa_key_json:
-            raise RuntimeError('GCP_SA_KEY env var not set')
+        raw = os.environ.get('GCP_SA_KEY_B64', '')
+        if not raw:
+            raise RuntimeError('GCP_SA_KEY_B64 env var not set — deploy via GitHub Actions')
         import google.oauth2.service_account as sa
-        info = json.loads(sa_key_json)
+        info = json.loads(base64.b64decode(raw).decode('utf-8'))
         _signing_credentials = sa.Credentials.from_service_account_info(
             info,
             scopes=['https://www.googleapis.com/auth/devstorage.read_write'],
@@ -87,22 +87,19 @@ def _get_signing_credentials():
 def _make_signed_upload_url(object_name: str) -> str:
     """
     Generate a V4 signed URL for a browser PUT.
-    Signed URLs are CORS-safe: the auth is baked in, no session handshake needed.
-    Expires in 1 hour (plenty for any upload).
+    Signed URLs are CORS-safe: auth is baked into the URL itself.
     """
     import datetime
     from google.cloud import storage
     creds = _get_signing_credentials()
     client = storage.Client(credentials=creds)
-    bucket = client.bucket(GCS_BUCKET)
-    blob = bucket.blob(object_name)
-    url = blob.generate_signed_url(
+    blob = client.bucket(GCS_BUCKET).blob(object_name)
+    return blob.generate_signed_url(
         version='v4',
         expiration=datetime.timedelta(hours=1),
         method='PUT',
         content_type='application/octet-stream',
     )
-    return url
 
 
 app = FastAPI(title='Affinity to Markdown Converter App')
@@ -162,21 +159,16 @@ async def convert(file: UploadFile = File(...), template: str = Form(...)):
 
 @app.post('/api/initiate-upload')
 async def initiate_upload(request: Request):
-    """
-    Return a V4 signed URL for the browser to PUT to directly.
-    Signed URLs are CORS-safe; resumable session URLs are not.
-    """
+    """Return a V4 signed URL for the browser to PUT the file directly to GCS."""
     body = await request.json()
     filename = body.get('filename', 'upload.afpub')
     if not filename.lower().endswith('.afpub'):
         raise HTTPException(status_code=400, detail='File must be a .afpub file.')
-
     object_name = f'uploads/{uuid.uuid4().hex}/{filename}'
     try:
         signed_url = _make_signed_upload_url(object_name)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f'Upload initiation failed: {exc}')
-
     return JSONResponse({'session_uri': signed_url, 'object_name': object_name})
 
 
