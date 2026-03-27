@@ -4,10 +4,11 @@ import sys
 import tempfile
 import uuid
 from pathlib import Path
+from urllib.parse import quote
 
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 
@@ -52,6 +53,16 @@ def _get_gcs():
     return _gcs_client
 
 
+def _get_bearer_token():
+    """Get a bearer token from the compute engine identity. No private key needed."""
+    import google.auth
+    import google.auth.transport.requests
+    credentials, _ = google.auth.default()
+    auth_req = google.auth.transport.requests.Request()
+    credentials.refresh(auth_req)
+    return credentials.token
+
+
 app = FastAPI(title='Affinity to Markdown Converter App')
 app.mount('/static', StaticFiles(directory=str(STATIC_DIR)), name='static')
 
@@ -77,7 +88,7 @@ async def convert(
     file: UploadFile = File(...),
     template: str = Form(...),
 ):
-    """Direct upload endpoint for files under 30 MB."""
+    """Direct upload for files under ~30 MB."""
     if not file.filename or not file.filename.lower().endswith('.afpub'):
         raise HTTPException(status_code=400, detail='File must be a .afpub file.')
     styles_path = TEMPLATES_DIR / template / 'styles.yaml'
@@ -85,9 +96,8 @@ async def convert(
         raise HTTPException(status_code=400, detail=f"Template '{template}' not found.")
     style_map, fallback = _load_styles_yaml(styles_path)
     with tempfile.TemporaryDirectory() as tmp:
-        tmp_path = Path(tmp)
-        input_path = tmp_path / file.filename
-        output_path = tmp_path / (Path(file.filename).stem + '.md')
+        input_path = Path(tmp) / file.filename
+        output_path = Path(tmp) / (Path(file.filename).stem + '.md')
         input_path.write_bytes(await file.read())
         try:
             _convert(input_path, output_path, style_map, fallback, _ZSTD)
@@ -107,15 +117,68 @@ async def convert(
     )
 
 
-@app.post('/api/convert-large')
-async def convert_large(request: Request):
+@app.post('/api/initiate-upload')
+async def initiate_upload(request: Request):
     """
-    Large file upload endpoint. Streams file bytes directly from the browser,
-    writes to disk, converts, and returns the result.
-    Files over 256 MB are buffered via GCS.
+    Create a GCS resumable upload session and return the session URI.
+    The browser PUTs the file directly to GCS - Cloud Run never sees the large body.
+    Uses bearer token auth (compute engine identity). No private key needed.
     """
-    template = request.headers.get('X-Template', '')
-    filename = request.headers.get('X-Filename', 'upload.afpub')
+    body = await request.json()
+    filename = body.get('filename', 'upload.afpub')
+    file_size = body.get('file_size', 0)
+
+    if not filename.lower().endswith('.afpub'):
+        raise HTTPException(status_code=400, detail='File must be a .afpub file.')
+
+    gcs = _get_gcs()
+    if gcs is None:
+        raise HTTPException(status_code=500, detail='Cloud Storage not available.')
+
+    # Ensure CORS is configured so the browser can PUT directly
+    try:
+        bucket = gcs.bucket(GCS_BUCKET)
+        bucket.cors = [{
+            'origin': ['*'],
+            'method': ['PUT', 'GET', 'OPTIONS'],
+            'responseHeader': ['Content-Type', 'Content-Length'],
+            'maxAgeSeconds': 3600,
+        }]
+        bucket.patch()
+    except Exception:
+        pass  # Non-fatal
+
+    try:
+        import requests as req_lib
+        token = _get_bearer_token()
+        object_name = f'uploads/{uuid.uuid4().hex}/{filename}'
+        encoded_name = quote(object_name, safe='')
+        init_url = (
+            f'https://storage.googleapis.com/upload/storage/v1/b/'
+            f'{GCS_BUCKET}/o?uploadType=resumable&name={encoded_name}'
+        )
+        headers = {
+            'Authorization': f'Bearer {token}',
+            'Content-Type': 'application/json',
+            'X-Upload-Content-Type': 'application/octet-stream',
+            'X-Upload-Content-Length': str(file_size),
+        }
+        resp = req_lib.post(init_url, headers=headers, json={'name': object_name})
+        if resp.status_code != 200:
+            raise Exception(f'GCS initiation failed: {resp.status_code} {resp.text}')
+        session_uri = resp.headers.get('Location')
+        return JSONResponse({'session_uri': session_uri, 'object_name': object_name})
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f'Upload initiation failed: {exc}')
+
+
+@app.post('/api/convert-from-gcs')
+async def convert_from_gcs(request: Request):
+    """Convert a file already uploaded to GCS by the browser."""
+    body = await request.json()
+    object_name = body.get('object_name', '')
+    filename = body.get('filename', 'upload.afpub')
+    template = body.get('template', '')
 
     if not filename.lower().endswith('.afpub'):
         raise HTTPException(status_code=400, detail='File must be a .afpub file.')
@@ -124,41 +187,26 @@ async def convert_large(request: Request):
         raise HTTPException(status_code=400, detail=f"Template '{template}' not found.")
     style_map, fallback = _load_styles_yaml(styles_path)
 
+    gcs = _get_gcs()
+    if gcs is None:
+        raise HTTPException(status_code=500, detail='GCS not available.')
+
     with tempfile.TemporaryDirectory() as tmp:
-        tmp_path = Path(tmp)
-        input_path = tmp_path / filename
-        output_path = tmp_path / (Path(filename).stem + '.md')
-
-        content_length = int(request.headers.get('Content-Length', 0))
-        STREAM_TO_GCS_THRESHOLD = 256 * 1024 * 1024
-        gcs = _get_gcs()
-
-        if gcs and content_length > STREAM_TO_GCS_THRESHOLD:
-            object_name = f'uploads/{uuid.uuid4().hex}/{filename}'
-            bucket = gcs.bucket(GCS_BUCKET)
-            blob = bucket.blob(object_name)
-            with open(input_path, 'wb') as f:
-                async for chunk in request.stream():
-                    f.write(chunk)
-            blob.upload_from_filename(str(input_path))
-            blob.download_to_filename(str(input_path))
-            try:
-                blob.delete()
-            except Exception:
-                pass
-        else:
-            with open(input_path, 'wb') as f:
-                async for chunk in request.stream():
-                    f.write(chunk)
-
+        input_path = Path(tmp) / filename
+        output_path = Path(tmp) / (Path(filename).stem + '.md')
+        try:
+            gcs.bucket(GCS_BUCKET).blob(object_name).download_to_filename(str(input_path))
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f'GCS download failed: {exc}')
         try:
             _convert(input_path, output_path, style_map, fallback, _ZSTD)
         except Exception as exc:
             raise HTTPException(status_code=500, detail=f'Conversion failed: {exc}')
-
+        finally:
+            try: gcs.bucket(GCS_BUCKET).blob(object_name).delete()
+            except Exception: pass
         if not output_path.exists():
             raise HTTPException(status_code=500, detail='Conversion produced no output.')
-
         md_content = output_path.read_text(encoding='utf-8')
 
     tmp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False, encoding='utf-8')
@@ -172,22 +220,39 @@ async def convert_large(request: Request):
     )
 
 
-@app.post('/api/dump-styles')
-async def dump_styles(file: UploadFile = File(...)):
-    if not file.filename or not file.filename.lower().endswith('.afpub'):
+@app.post('/api/dump-from-gcs')
+async def dump_from_gcs(request: Request):
+    """Run dump-styles on a file already in GCS. Returns plain text."""
+    body = await request.json()
+    object_name = body.get('object_name', '')
+    filename = body.get('filename', 'upload.afpub')
+
+    if not filename.lower().endswith('.afpub'):
         raise HTTPException(status_code=400, detail='File must be a .afpub file.')
+
+    gcs = _get_gcs()
+    if gcs is None:
+        raise HTTPException(status_code=500, detail='GCS not available.')
+
     with tempfile.TemporaryDirectory() as tmp:
-        input_path = Path(tmp) / file.filename
-        input_path.write_bytes(await file.read())
-        from contextlib import redirect_stdout
+        input_path = Path(tmp) / filename
+        try:
+            gcs.bucket(GCS_BUCKET).blob(object_name).download_to_filename(str(input_path))
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f'GCS download failed: {exc}')
         buf = io.StringIO()
         try:
+            from contextlib import redirect_stdout
             data = _decompress_afpub(input_path, _ZSTD)
             with redirect_stdout(buf):
                 _dump_styles(data)
         except Exception as exc:
             raise HTTPException(status_code=500, detail=f'Dump failed: {exc}')
-    return JSONResponse({'output': buf.getvalue()})
+        finally:
+            try: gcs.bucket(GCS_BUCKET).blob(object_name).delete()
+            except Exception: pass
+
+    return PlainTextResponse(buf.getvalue())
 
 
 HOST = '0.0.0.0'
