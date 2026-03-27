@@ -38,7 +38,6 @@
     .field { margin-top: 18px; }
     .field label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; }
     .field select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; background: var(--surface); color: var(--text); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6b6b' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
-    .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
     .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none; transition: background 0.15s, opacity 0.15s; }
     .btn-primary { background: var(--accent); color: #fff; width: 100%; justify-content: center; margin-top: 20px; padding: 12px; font-size: 1rem; }
     .btn-primary:hover:not(:disabled) { background: var(--accent-h); }
@@ -50,14 +49,19 @@
     .progress-bar { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; width: 0%; }
     .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .error-panel { margin-top: 14px; background: #fff5f5; border: 1px solid #f5c6cb; border-radius: 6px; padding: 12px 14px; display: none; }
+    .error-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .error-panel-title { font-size: 0.8rem; font-weight: 700; color: var(--danger); text-transform: uppercase; letter-spacing: 0.04em; }
+    .error-panel-actions { display: flex; gap: 6px; }
+    .error-panel-btn { font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; border: 1px solid #f5c6cb; background: #fff; color: var(--danger); cursor: pointer; }
+    .error-panel-btn:hover { background: #f5c6cb; }
+    .error-panel pre { font-family: "Cascadia Code", "Fira Code", monospace; font-size: 0.78rem; color: #6b1a1a; white-space: pre-wrap; word-break: break-word; user-select: text; margin: 0; }
     .collapsible-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
     .collapsible-header .chevron { font-size: 0.75rem; color: var(--muted); transition: transform 0.2s; }
     .collapsible-header.open .chevron { transform: rotate(180deg); }
     .collapsible-body { display: none; margin-top: 18px; }
     .collapsible-body.open { display: block; }
     #dump-output { margin-top: 14px; background: #1a1a1a; color: #d4f1c4; font-family: "Cascadia Code", "Fira Code", monospace; font-size: 0.78rem; padding: 16px; border-radius: 6px; white-space: pre; overflow-x: auto; max-height: 400px; overflow-y: auto; display: none; }
-    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px); background: #1a1a1a; color: #fff; padding: 10px 20px; border-radius: 6px; font-size: 0.875rem; transition: transform 0.25s ease; pointer-events: none; z-index: 999; }
-    #toast.show { transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
@@ -72,7 +76,7 @@
       <input type="file" id="file-input" accept=".afpub" multiple />
       <div class="icon">📄</div>
       <div class="label"><strong>Choose files</strong> or drag and drop here</div>
-      <div class="size-note">.afpub files only &nbsp;·&nbsp; Max 500 MB per file</div>
+      <div class="size-note">.afpub files only · Max 500 MB per file</div>
     </div>
     <div id="file-list"></div>
     <div class="field">
@@ -81,8 +85,16 @@
     </div>
     <button class="btn btn-primary" id="convert-btn" disabled>Convert</button>
     <div id="convert-status"></div>
-    <div class="progress-bar-wrap" id="progress-wrap">
-      <div class="progress-bar" id="progress-bar"></div>
+    <div class="progress-bar-wrap" id="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    <div class="error-panel" id="convert-error-panel">
+      <div class="error-panel-header">
+        <span class="error-panel-title">⚠ Error</span>
+        <div class="error-panel-actions">
+          <button class="error-panel-btn" id="convert-error-copy">Copy</button>
+          <button class="error-panel-btn" id="convert-error-dismiss">× Dismiss</button>
+        </div>
+      </div>
+      <pre id="convert-error-text"></pre>
     </div>
   </div>
 
@@ -92,27 +104,56 @@
       <span class="chevron">▼</span>
     </div>
     <div class="collapsible-body" id="calib-body">
-      <p style="font-size:0.875rem; color:var(--muted); margin-bottom:16px;">Upload a <code>.afpub</code> file to extract all style IDs and build a <code>styles.yaml</code> for a new book template.</p>
+      <p style="font-size:0.875rem;color:var(--muted);margin-bottom:16px;">Upload a <code>.afpub</code> file to extract all style IDs. Works with any file size.</p>
       <div class="dropzone" id="dump-dropzone" style="padding:20px">
         <input type="file" id="dump-file-input" accept=".afpub" />
         <div class="icon" style="font-size:1.4rem">🔍</div>
         <div class="label"><strong>Choose a .afpub file</strong> for style dump</div>
+        <div class="size-note">.afpub files only · Any size</div>
       </div>
-      <button class="btn btn-secondary" id="dump-btn" disabled style="margin-top:14px">Run Dump Styles</button>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-secondary" id="dump-btn" disabled>Run Dump Styles</button>
+        <button class="btn btn-secondary" id="dump-copy-btn" style="display:none">Copy Results</button>
+        <span id="dump-progress" style="font-size:0.8rem;color:var(--muted)"></span>
+      </div>
+      <div class="error-panel" id="dump-error-panel" style="margin-top:12px">
+        <div class="error-panel-header">
+          <span class="error-panel-title">⚠ Error</span>
+          <div class="error-panel-actions">
+            <button class="error-panel-btn" id="dump-error-copy">Copy</button>
+            <button class="error-panel-btn" id="dump-error-dismiss">× Dismiss</button>
+          </div>
+        </div>
+        <pre id="dump-error-text"></pre>
+      </div>
       <pre id="dump-output"></pre>
     </div>
   </div>
-
-  <div id="toast"></div>
 
   <script>
     const DIRECT_LIMIT = 30 * 1024 * 1024;
     const MAX_SIZE = 500 * 1024 * 1024;
     let selectedFiles = [], dumpFile = null;
 
-    function showToast(msg,d=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
     function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
     function updateConvertBtn(){document.getElementById('convert-btn').disabled=selectedFiles.length===0||!document.getElementById('template-select').value;}
+
+    function showError(panelId, textId, msg) {
+      document.getElementById(textId).textContent = msg;
+      const p = document.getElementById(panelId); p.style.display = 'block';
+      p.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+    function hideError(panelId){document.getElementById(panelId).style.display='none';}
+    function setupErrorPanel(panelId, textId, copyId, dismissId) {
+      document.getElementById(copyId).addEventListener('click', () => {
+        navigator.clipboard.writeText(document.getElementById(textId).textContent)
+          .then(() => { const b=document.getElementById(copyId); const o=b.textContent; b.textContent='Copied!'; setTimeout(()=>b.textContent=o,1500); })
+          .catch(() => alert('Copy failed — select the text manually'));
+      });
+      document.getElementById(dismissId).addEventListener('click', () => hideError(panelId));
+    }
+    setupErrorPanel('convert-error-panel','convert-error-text','convert-error-copy','convert-error-dismiss');
+    setupErrorPanel('dump-error-panel','dump-error-text','dump-error-copy','dump-error-dismiss');
 
     async function loadTemplates(){
       try{
@@ -121,14 +162,14 @@
         if(d.templates.length===0){s.innerHTML='<option value="">No templates found</option>';return;}
         s.innerHTML=d.templates.map(t=>`<option value="${t}">${t}</option>`).join('');
         updateConvertBtn();
-      }catch{document.getElementById('template-select').innerHTML='<option value="">Error loading templates</option>';}
+      }catch(e){document.getElementById('template-select').innerHTML='<option value="">Error loading templates</option>';}
     }
 
     function addFiles(fl){
       const ex=new Set(selectedFiles.map(f=>f.name));
       for(const f of fl){
         if(!f.name.toLowerCase().endsWith('.afpub'))continue;
-        if(f.size>MAX_SIZE){showToast(`${f.name} exceeds 500 MB limit`);continue;}
+        if(f.size>MAX_SIZE){showError('convert-error-panel','convert-error-text',`${f.name} exceeds the 500 MB size limit.`);continue;}
         if(!ex.has(f.name))selectedFiles.push(f);
       }
       renderFileList();updateConvertBtn();
@@ -137,14 +178,12 @@
     function renderFileList(){
       document.getElementById('file-list').innerHTML=selectedFiles.map((f,i)=>`
         <div class="file-item" id="file-item-${i}">
-          <span>📄</span>
-          <span class="file-name">${f.name}</span>
+          <span>📄</span><span class="file-name">${f.name}</span>
           <span class="file-size">${fmtSize(f.size)}</span>
           <span class="file-status" id="file-status-${i}">Ready</span>
           <button class="remove-btn" onclick="removeFile(${i})" title="Remove">✕</button>
         </div>`).join('');
     }
-
     const dz=document.getElementById('dropzone'),fi=document.getElementById('file-input');
     fi.addEventListener('change',()=>addFiles(fi.files));
     dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
@@ -152,72 +191,80 @@
     dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');addFiles(e.dataTransfer.files);});
     document.getElementById('template-select').addEventListener('change',updateConvertBtn);
 
-    async function uploadAndConvert(f, template, statusEl, progressWrap, progressBar){
-      if(f.size<=DIRECT_LIMIT){
-        if(statusEl){statusEl.textContent='Converting…';statusEl.className='file-status';}
-        const form=new FormData();form.append('file',f);form.append('template',template);
-        const r=await fetch('/api/convert',{method:'POST',body:form});
-        if(!r.ok){const e=await r.json().catch(()=>({detail:'Unknown error'}));throw new Error(e.detail||'Conversion failed');}
-        return r.blob();
-      } else {
-        if(statusEl){statusEl.textContent='Uploading…';statusEl.className='file-status uploading';}
-        if(progressWrap)progressWrap.style.display='block';
-        return new Promise((resolve,reject)=>{
-          const xhr=new XMLHttpRequest();
-          xhr.open('POST','/api/convert-large');
-          xhr.setRequestHeader('X-Template',template);
-          xhr.setRequestHeader('X-Filename',f.name);
-          xhr.setRequestHeader('Content-Type','application/octet-stream');
-          xhr.responseType='blob';
-          xhr.upload.onprogress=e=>{
-            if(e.lengthComputable&&progressBar){
-              progressBar.style.width=Math.round(e.loaded/e.total*85)+'%';
-              if(statusEl&&e.loaded<e.total){
-                statusEl.textContent=`Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}`;
-                statusEl.className='file-status uploading';
-              } else if(statusEl){statusEl.textContent='Converting…';}
-            }
-          };
-          xhr.onload=()=>{
-            if(xhr.status===200){if(progressBar)progressBar.style.width='100%';resolve(xhr.response);}
-            else{
-              const reader=new FileReader();
-              reader.onload=()=>{try{const e=JSON.parse(reader.result);reject(new Error(e.detail||'Conversion failed'));}catch{reject(new Error('Conversion failed'));}};
-              reader.readAsText(xhr.response);
-            }
-          };
-          xhr.onerror=()=>reject(new Error('Upload failed — check your connection'));
-          xhr.send(f);
-        });
+    // GCS resumable upload - browser PUTs directly to GCS, Cloud Run never sees the body
+    async function gcsUpload(file, onProgress) {
+      const initRes = await fetch('/api/initiate-upload', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({filename: file.name, file_size: file.size})
+      });
+      if (!initRes.ok) {
+        const e = await initRes.json().catch(()=>({detail:'Initiate upload failed'}));
+        throw new Error(e.detail || 'Failed to initiate upload');
       }
+      const {session_uri, object_name} = await initRes.json();
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', session_uri);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+        if (onProgress) xhr.upload.onprogress = onProgress;
+        xhr.onload = () => (xhr.status === 200 || xhr.status === 201) ? resolve() : reject(new Error(`GCS upload failed: HTTP ${xhr.status}`));
+        xhr.onerror = () => reject(new Error('Network error during upload'));
+        xhr.send(file);
+      });
+      return object_name;
     }
 
-    document.getElementById('convert-btn').addEventListener('click',async()=>{
+    async function uploadAndConvert(f, template, statusEl, progressWrap, progressBar) {
+      if (f.size <= DIRECT_LIMIT) {
+        if (statusEl) {statusEl.textContent='Converting…';statusEl.className='file-status';}
+        const form = new FormData(); form.append('file',f); form.append('template',template);
+        const r = await fetch('/api/convert',{method:'POST',body:form});
+        if (!r.ok){const e=await r.json().catch(()=>({detail:'Unknown error'}));throw new Error(e.detail||'Conversion failed');}
+        return r.blob();
+      }
+      if (statusEl){statusEl.textContent='Requesting upload session…';statusEl.className='file-status uploading';}
+      if (progressWrap) progressWrap.style.display='block';
+      const objectName = await gcsUpload(f, e => {
+        if (!e.lengthComputable) return;
+        if (progressBar) progressBar.style.width = Math.round(e.loaded/e.total*80)+'%';
+        if (statusEl) { statusEl.textContent = `Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}`; statusEl.className = 'file-status uploading'; }
+      });
+      if (statusEl){statusEl.textContent='Converting…';statusEl.className='file-status';}
+      if (progressBar) progressBar.style.width='90%';
+      const r = await fetch('/api/convert-from-gcs', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({object_name: objectName, filename: f.name, template})
+      });
+      if (!r.ok){const e=await r.json().catch(()=>({detail:'Conversion failed'}));throw new Error(e.detail||'Conversion failed');}
+      return r.blob();
+    }
+
+    document.getElementById('convert-btn').addEventListener('click', async () => {
       const tpl=document.getElementById('template-select').value;
-      if(!tpl||selectedFiles.length===0)return;
+      if (!tpl||selectedFiles.length===0) return;
+      hideError('convert-error-panel');
       const btn=document.getElementById('convert-btn'),status=document.getElementById('convert-status');
       const progressWrap=document.getElementById('progress-wrap'),progressBar=document.getElementById('progress-bar');
-      btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Converting…';
-      status.textContent='';progressBar.style.width='0%';progressWrap.style.display='none';
-      let ok=0,err=0;
-
-      for(let i=0;i<selectedFiles.length;i++){
+      btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Converting…';
+      status.textContent=''; progressBar.style.width='0%'; progressWrap.style.display='none';
+      let ok=0, err=0;
+      for (let i=0;i<selectedFiles.length;i++) {
         const f=selectedFiles[i],sel=document.getElementById(`file-status-${i}`);
         progressBar.style.width='0%';
-        try{
+        try {
           const blob=await uploadAndConvert(f,tpl,sel,progressWrap,progressBar);
           const url=URL.createObjectURL(blob);
           const a=document.createElement('a');a.href=url;a.download=f.name.replace(/\.afpub$/i,'.md');
           document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-          if(sel){sel.textContent='✓ Downloaded';sel.className='file-status success';}ok++;
-        }catch(e){
-          if(sel){sel.textContent='✗ '+e.message;sel.className='file-status error';}err++;
+          if(sel){sel.textContent='✓ Downloaded';sel.className='file-status success';} ok++;
+        } catch(e) {
+          if(sel){sel.textContent='✗ Error';sel.className='file-status error';} err++;
+          showError('convert-error-panel','convert-error-text',`Failed: ${f.name}\n\n${e.message}`);
         }
-        if(i<selectedFiles.length-1)await new Promise(r=>setTimeout(r,300));
+        if(i<selectedFiles.length-1) await new Promise(r=>setTimeout(r,300));
       }
-
-      btn.innerHTML='Convert';btn.disabled=false;
-      progressWrap.style.display='none';
+      btn.innerHTML='Convert'; btn.disabled=false; progressWrap.style.display='none';
       if(err===0){status.textContent=`✓ ${ok} file${ok!==1?'s':''} converted successfully.`;status.style.color='var(--success)';}
       else{status.textContent=`${ok} succeeded, ${err} failed.`;status.style.color='var(--danger)';}
     });
@@ -228,22 +275,51 @@
     });
 
     const ddz=document.getElementById('dump-dropzone'),dfi=document.getElementById('dump-file-input');
-    dfi.addEventListener('change',()=>{dumpFile=dfi.files[0]||null;if(dumpFile)ddz.querySelector('.label').innerHTML=`<strong>${dumpFile.name}</strong> selected`;document.getElementById('dump-btn').disabled=!dumpFile;});
+    function setDumpFile(f){
+      if(!f||!f.name.toLowerCase().endsWith('.afpub'))return;
+      dumpFile=f;
+      ddz.querySelector('.label').innerHTML=`<strong>${f.name}</strong> (${fmtSize(f.size)})`;
+      document.getElementById('dump-btn').disabled=false;
+    }
+    dfi.addEventListener('change',()=>setDumpFile(dfi.files[0]));
     ddz.addEventListener('dragover',e=>{e.preventDefault();ddz.classList.add('drag-over');});
     ddz.addEventListener('dragleave',()=>ddz.classList.remove('drag-over'));
-    ddz.addEventListener('drop',e=>{e.preventDefault();ddz.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f&&f.name.toLowerCase().endsWith('.afpub')){dumpFile=f;ddz.querySelector('.label').innerHTML=`<strong>${f.name}</strong> selected`;document.getElementById('dump-btn').disabled=false;}});
+    ddz.addEventListener('drop',e=>{e.preventDefault();ddz.classList.remove('drag-over');setDumpFile(e.dataTransfer.files[0]);});
 
-    document.getElementById('dump-btn').addEventListener('click',async()=>{
-      if(!dumpFile)return;
+    document.getElementById('dump-btn').addEventListener('click', async () => {
+      if (!dumpFile) return;
+      hideError('dump-error-panel');
       const btn=document.getElementById('dump-btn'),out=document.getElementById('dump-output');
-      btn.disabled=true;btn.textContent='Running…';out.style.display='none';
-      try{
-        const form=new FormData();form.append('file',dumpFile);
-        const r=await fetch('/api/dump-styles',{method:'POST',body:form});
-        const d=await r.json();if(!r.ok)throw new Error(d.detail||'Dump failed');
-        out.textContent=d.output;out.style.display='block';
-      }catch(e){showToast('Error: '+e.message);}
-      finally{btn.disabled=false;btn.textContent='Run Dump Styles';}
+      const copyBtn=document.getElementById('dump-copy-btn'),prog=document.getElementById('dump-progress');
+      btn.disabled=true; btn.textContent='Starting…'; out.style.display='none'; copyBtn.style.display='none'; prog.textContent='';
+      try {
+        prog.textContent = 'Requesting upload session…';
+        const objectName = await gcsUpload(dumpFile, e => {
+          if (e.lengthComputable) prog.textContent = `Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}…`;
+        });
+        prog.textContent = 'Analyzing styles…'; btn.textContent = 'Analyzing…';
+        const r = await fetch('/api/dump-from-gcs', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({object_name: objectName, filename: dumpFile.name})
+        });
+        if (!r.ok) {
+          const txt = await r.text(); let msg = 'Dump failed';
+          try { msg = JSON.parse(txt).detail || msg; } catch { msg = txt || msg; }
+          throw new Error(msg);
+        }
+        const text = await r.text();
+        out.textContent = text; out.style.display = 'block';
+        copyBtn.style.display = 'inline-flex'; prog.textContent = '✓ Done';
+      } catch(e) {
+        showError('dump-error-panel','dump-error-text', e.message);
+        prog.textContent = '';
+      } finally { btn.disabled=false; btn.textContent='Run Dump Styles'; }
+    });
+
+    document.getElementById('dump-copy-btn').addEventListener('click',()=>{
+      navigator.clipboard.writeText(document.getElementById('dump-output').textContent)
+        .then(()=>{const b=document.getElementById('dump-copy-btn');const o=b.textContent;b.textContent='Copied!';setTimeout(()=>b.textContent=o,1500);})
+        .catch(()=>alert('Copy failed — select text manually'));
     });
 
     loadTemplates();
