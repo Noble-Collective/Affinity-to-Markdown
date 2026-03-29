@@ -1,4 +1,7 @@
 styles:
+
+  # ── Session 1 test file styles (original mappings) ─────────────────────────
+
   - id: 311
     name: "Main Session Title"
     markdown: "#"
@@ -74,6 +77,276 @@ styles:
   - id: 728
     name: "Section Activity Headings"
     markdown: "###"
+  - id: 999
+    name: "Verse Numbers"
+    markdown: "superscript"
+  - id: 759
+    name: "Song Verse Labels"
+    markdown: "######"
+  - id: 853
+    name: "Session Summary / Reflection Prompts"
+    markdown: ""
+  - id: 1130
+    name: "Reflection subheading"
+    markdown: "bold"
+  - id: 288
+    name: "Inline italic body text"
+    markdown: "italic"
+  - id: 1580
+    name: "Next Steps Heading"
+    markdown: "####"
+
+  # ── Full book styles (from dump of HomeStead-Interior-Affinity-Design-v1.0) ─
+
+  - id: 1222
+    name: "Main Body Text (full book)"
+    markdown: ""
+    note: "2044 runs — primary body text throughout full book"
+  - id: 1973
+    name: "Body Text (preface/commentary)"
+    markdown: ""
+    note: "323 runs"
+  - id: 1994
+    name: "Body Text (topic overview)"
+    markdown: ""
+    note: "634 runs"
+  - id: 4253
+    name: "Body Text (commentary)"
+    markdown: ""
+    note: "50 runs"
+  - id: 2613
+    name: "Responsive Reading / Bold inline"
+    markdown: "bold"
+    note: "621 runs — e.g. 'All', responsive reading labels"
+  - id: 1330
+    name: "Book Title (H1)"
+    markdown: "#"
+    note: "56 runs — e.g. HomeStead: A Rite of Passage..."
+  - id: 1249
+    name: "Series Title (H2)"
+    markdown: "##"
+    note: "40 runs — e.g. Passage: Crossing Thresholds..."
+  - id: 1250
+    name: "Series Title variant (H2)"
+    markdown: "##"
+    note: "36 runs"
+  - id: 1687
+    name: "Part Label (H2)"
+    markdown: "##"
+    note: "4 runs — e.g. Part One"
+  - id: 1692
+    name: "Part Subtitle (H2)"
+    markdown: "##"
+    note: "4 runs — e.g. Preparation"
+  - id: 2551
+    name: "Part Two Label (H2)"
+    markdown: "##"
+    note: "3 runs"
+  - id: 2718
+    name: "Session Title (H3)"
+    markdown: "###"
+    note: "31 runs — e.g. Session One: Under God's Fatherly Care"
+  - id: 2760
+    name: "Movement Title (H3)"
+    markdown: "###"
+    note: "34 runs — e.g. Tuning Our Hearts to the Lord"
+  - id: 1894
+    name: "Section Heading (H4)"
+    markdown: "####"
+    note: "32 runs — e.g. Preface"
+  - id: 2252
+    name: "Section Heading variant (H4)"
+    markdown: "####"
+    note: "19 runs — e.g. Introduction"
+  - id: 4341
+    name: "Next Steps Heading (H4)"
+    markdown: "####"
+    note: "7 runs"
+  - id: 9169
+    name: "Art Observation Heading (H4)"
+    markdown: "####"
+    note: "4 runs"
+  - id: 9176
+    name: "Art Observation Body"
+    markdown: ""
+    note: "4 runs"
+  - id: 2819
+    name: "Hymn Verse Label (H6)"
+    markdown: "######"
+    note: "31 runs — e.g. Verse 1"
+  - id: 2788
+    name: "Subsection Instructions"
+    markdown: "p_italic"
+    note: "174 runs — italic instructional paragraphs"
+  - id: 2975
+    name: "Discussion Questions"
+    markdown: ""
+    note: "10 runs — discussion question body text"
+  - id: 3163
+    name: "Scripture Pull Quote"
+    markdown: ">"
+    note: "20 runs — e.g. ...so the Lord has compassion..."
+  - id: 4100
+    name: "Verse Reference Label"
+    markdown: "bold"
+    note: "102 runs — e.g. Exodus 4:22-23"
+  - id: 3600
+    name: "Discussion Sub-label"
+    markdown: "bold"
+    note: "8 runs — e.g. Family Worship"
+  - id: 4555
+    name: "Scripture Body"
+    markdown: ">"
+    note: "11 runs — scripture verse body text"
+  - id: 4601
+    name: "Prayer Text"
+    markdown: ""
+    note: "5 runs — prayer body text"
+  - id: 4943
+    name: "Community Study Heading"
+    markdown: "###"
+    note: "17 runs — e.g. Session 2 Community Study"
+  - id: 5459
+    name: "Scripture Passage Body"
+    markdown: ">"
+    note: "30 runs — scripture passage text"
+  - id: 5464
+    name: "Scripture Passage variant"
+    markdown: ">"
+    note: "1 run"
+  - id: 9290
+    name: "Discussion Topic Label"
+    markdown: "####"
+    note: "10 runs — e.g. Family Values"
+
+  # ── Inline fragments (split character styles from full book) ────────────────
+
+  - id: 5287
+    name: "Inline fragment"
+    markdown: ""
+  - id: 5307
+    name: "Inline fragment"
+    markdown: ""
+  - id: 5308
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7497
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7498
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7501
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7514
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7515
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7516
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7517
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7518
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7524
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7525
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7526
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7529
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7536
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7541
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7555
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7557
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7558
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7559
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7562
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7567
+    name: "Inline fragment"
+    markdown: ""
+  - id: 7580
+    name: "URL / source reference"
+    markdown: "SKIP"
+
+  # ── Skip entirely ───────────────────────────────────────────────────────────
+
+  - id: 1245
+    name: "Series Titles label"
+    markdown: "SKIP"
+  - id: 1283
+    name: "Author names (cover)"
+    markdown: "SKIP"
+  - id: 1311
+    name: "Author names variant"
+    markdown: "SKIP"
+  - id: 1331
+    name: "Copyright / series info"
+    markdown: "SKIP"
+  - id: 1332
+    name: "Publisher URL"
+    markdown: "SKIP"
+  - id: 1664
+    name: "Single char label"
+    markdown: "SKIP"
+  - id: 1703
+    name: "Table of Contents entries"
+    markdown: "SKIP"
+  - id: 1713
+    name: "TOC section labels"
+    markdown: "SKIP"
+  - id: 1757
+    name: "Table of Contents heading"
+    markdown: "SKIP"
+  - id: 1992
+    name: "TOC session title"
+    markdown: "SKIP"
+  - id: 1993
+    name: "TOC session title variant"
+    markdown: "SKIP"
+  - id: 2070
+    name: "Intro body (TOC area)"
+    markdown: "SKIP"
+  - id: 7031
+    name: "Artwork attribution"
+    markdown: "SKIP"
+  - id: 7032
+    name: "Artwork title"
+    markdown: "SKIP"
+  - id: 8099
+    name: "Schedule day labels"
+    markdown: "SKIP"
+  - id: 52823
+    name: "Extra Content label"
+    markdown: "SKIP"
+
+  # ── Original skip/structural styles ────────────────────────────────────────
+
   - id: 1376
     name: "Tab Navigation Labels"
     markdown: "SKIP"
@@ -104,9 +377,6 @@ styles:
   - id: 2114
     name: "Artwork Title"
     markdown: "SKIP"
-  - id: 853
-    name: "Session Summary / Reflection Prompts"
-    markdown: ""
   - id: 969
     name: "Pull Quote Callouts"
     markdown: "SKIP"
@@ -119,18 +389,12 @@ styles:
   - id: 139
     name: "Verse Numbers"
     markdown: "SKIP"
-  - id: 999
-    name: "Verse Numbers"
-    markdown: "superscript"
   - id: 231
     name: "Passage Reference Label"
     markdown: "SKIP"
   - id: 247
     name: "Song Verse Labels"
     markdown: "SKIP"
-  - id: 759
-    name: "Song Verse Labels"
-    markdown: "######"
   - id: 129
     name: "Part Labels"
     markdown: "SKIP"
@@ -155,184 +419,179 @@ styles:
   - id: 2439
     name: "Book References"
     markdown: "SKIP"
-  - id: 2506
-    name: "Inline character override A"
-    markdown: ""
-  - id: 2507
-    name: "Inline character override B"
-    markdown: ""
-  - id: 2508
-    name: "Inline character override C"
-    markdown: ""
-  - id: 2483
-    name: "Inline character override D"
-    markdown: ""
-  - id: 2489
-    name: "Inline character override E"
-    markdown: ""
-  - id: 2504
-    name: "Inline character override F"
-    markdown: ""
-  - id: 2466
-    name: "Inline character override G"
-    markdown: ""
-  - id: 2527
-    name: "Inline character override H"
-    markdown: ""
-  - id: 2438
-    name: "Inline character override I"
-    markdown: ""
-  - id: 197
-    name: "Inline body text variant"
-    markdown: ""
-  - id: 200
-    name: "Part label inline"
-    markdown: ""
-  - id: 106
-    name: "Discussion label"
-    markdown: ""
-  - id: 154
-    name: "Inline body fragment A"
-    markdown: ""
-  - id: 160
-    name: "Inline body fragment B"
-    markdown: ""
-  - id: 166
-    name: "Inline body fragment C"
-    markdown: ""
-  - id: 171
-    name: "Inline body fragment D"
-    markdown: ""
-  - id: 193
-    name: "Prayer text variant"
-    markdown: ""
-  - id: 207
-    name: "Prayer text variant B"
-    markdown: ""
-  - id: 212
-    name: "Body text variant C"
-    markdown: ""
-  - id: 1130
-    name: "Reflection subheading"
-    markdown: "bold"
-  - id: 2458
-    name: "Inline char override J"
-    markdown: ""
-  - id: 2459
-    name: "Inline body fragment E"
-    markdown: ""
-  - id: 2460
-    name: "Inline body fragment F"
-    markdown: ""
-  - id: 2461
-    name: "Inline body fragment G"
-    markdown: ""
-  - id: 2462
-    name: "Inline body fragment H"
-    markdown: ""
-  - id: 2463
-    name: "Inline body fragment I"
-    markdown: ""
-  - id: 2464
-    name: "Inline body fragment K"
-    markdown: ""
-  - id: 2470
-    name: "Inline body fragment L"
-    markdown: ""
-  - id: 2471
-    name: "Inline body fragment M"
-    markdown: ""
-  - id: 2472
-    name: "Inline body fragment N"
-    markdown: ""
-  - id: 2475
-    name: "Inline body fragment O"
-    markdown: ""
-  - id: 2497
-    name: "Body text variant D"
-    markdown: ""
-  - id: 2511
-    name: "Inline body fragment P"
-    markdown: ""
-  - id: 2516
-    name: "Inline body fragment Q"
-    markdown: ""
   - id: 12
-    name: "Empty structural style A"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 44
-    name: "Empty structural style B"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 81
-    name: "Empty structural style C"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 93
-    name: "Empty structural style D"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 96
-    name: "Empty structural style E"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 105
-    name: "Empty structural style F"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 134
-    name: "Empty structural style G"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 162
-    name: "Empty structural style H"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 179
-    name: "Empty structural style I"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 184
-    name: "Empty structural style J"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 223
-    name: "Empty structural style K"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 234
-    name: "Empty structural style L"
+    name: "Empty structural style"
     markdown: "SKIP"
-  - id: 288
-    name: "Inline italic body text"
-    markdown: "italic"
   - id: 1377
-    name: "Empty structural style N"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 2484
-    name: "Empty structural style O"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 2488
-    name: "Empty structural style P"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 2538
-    name: "Empty structural style Q"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 849
-    name: "Empty structural style R"
+    name: "Empty structural style"
     markdown: "SKIP"
   - id: 1385
-    name: "Empty structural style S"
+    name: "Empty structural style"
     markdown: "SKIP"
-  - id: 1580
-    name: "Next Steps Heading"
-    markdown: "####"
-  - id: 1711
-    name: "Inline char override R"
-    markdown: ""
+  - id: 3084
+    name: "Empty structural style"
+    markdown: "SKIP"
   - id: 2945
     name: "Part One label"
-    markdown: "SKIP"
-  - id: 3013
-    name: "Inline body fragment R"
-    markdown: ""
-  - id: 3084
-    name: "Empty structural style U"
     markdown: "SKIP"
   - id: 2768
     name: "Part One label variant"
     markdown: "SKIP"
-  - id: 3014
-    name: "Inline body fragment S"
+
+  # ── Inline body fragments (original) ───────────────────────────────────────
+
+  - id: 2506
+    name: "Inline fragment"
     markdown: ""
+  - id: 2507
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2508
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2483
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2489
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2504
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2466
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2527
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2438
+    name: "Inline fragment"
+    markdown: ""
+  - id: 197
+    name: "Inline fragment"
+    markdown: ""
+  - id: 200
+    name: "Inline fragment"
+    markdown: ""
+  - id: 106
+    name: "Inline fragment"
+    markdown: ""
+  - id: 154
+    name: "Inline fragment"
+    markdown: ""
+  - id: 160
+    name: "Inline fragment"
+    markdown: ""
+  - id: 166
+    name: "Inline fragment"
+    markdown: ""
+  - id: 171
+    name: "Inline fragment"
+    markdown: ""
+  - id: 193
+    name: "Inline fragment"
+    markdown: ""
+  - id: 207
+    name: "Inline fragment"
+    markdown: ""
+  - id: 212
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2458
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2459
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2460
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2461
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2462
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2463
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2464
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2470
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2471
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2472
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2475
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2497
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2511
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2516
+    name: "Inline fragment"
+    markdown: ""
+  - id: 1711
+    name: "Inline fragment"
+    markdown: ""
+  - id: 3013
+    name: "Inline fragment"
+    markdown: ""
+  - id: 3014
+    name: "Inline fragment"
+    markdown: ""
+
 fallback: "warn"
