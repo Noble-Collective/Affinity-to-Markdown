@@ -32,6 +32,7 @@
     .file-item .file-status { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
     .file-item .file-status.success { color: var(--success); font-weight: 600; }
     .file-item .file-status.error { color: var(--danger); font-weight: 600; }
+    .file-item .file-status.uploading { color: #b07d00; font-weight: 600; }
     .file-item .remove-btn { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 1rem; padding: 0 2px; line-height: 1; }
     .file-item .remove-btn:hover { color: var(--danger); }
     .field { margin-top: 18px; }
@@ -130,6 +131,7 @@
   </div>
 
   <script>
+    const DIRECT_LIMIT = 30 * 1024 * 1024;
     const MAX_SIZE = 500 * 1024 * 1024;
     let selectedFiles = [], dumpFile = null;
 
@@ -189,6 +191,30 @@
     dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');addFiles(e.dataTransfer.files);});
     document.getElementById('template-select').addEventListener('change',updateConvertBtn);
 
+    // Upload large file to GCS via signed URL, then trigger server-side processing
+    async function gcsSignedUpload(file, onProgress) {
+      const res = await fetch('/api/request-upload', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({filename: file.name})
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(()=>({detail:'Failed to get upload URL'}));
+        throw new Error(e.detail || 'Failed to get upload URL');
+      }
+      const {upload_url, object_name} = await res.json();
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', upload_url);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+        if (onProgress) xhr.upload.onprogress = onProgress;
+        xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error(`Upload failed: HTTP ${xhr.status}`));
+        xhr.onerror = () => reject(new Error('Upload failed — network error'));
+        xhr.send(file);
+      });
+      return object_name;
+    }
+
     document.getElementById('convert-btn').addEventListener('click',async()=>{
       const tpl=document.getElementById('template-select').value;
       if(!tpl||selectedFiles.length===0)return;
@@ -200,28 +226,30 @@
       let ok=0,err=0;
       for(let i=0;i<selectedFiles.length;i++){
         const f=selectedFiles[i],sel=document.getElementById(`file-status-${i}`);
-        if(sel){sel.textContent='Uploading…';sel.className='file-status';}
+        progressBar.style.width='0%';
         try{
-          const form=new FormData();form.append('file',f);form.append('template',tpl);
-          progressWrap.style.display='block';
-          const xhr=new XMLHttpRequest();
-          const blob=await new Promise((resolve,reject)=>{
-            xhr.open('POST','/api/convert');
-            xhr.responseType='blob';
-            xhr.upload.onprogress=e=>{
+          let blob;
+          if (f.size <= DIRECT_LIMIT) {
+            if(sel){sel.textContent='Converting…';sel.className='file-status';}
+            const form=new FormData();form.append('file',f);form.append('template',tpl);
+            const r=await fetch('/api/convert',{method:'POST',body:form});
+            if(!r.ok){const e=await r.json().catch(()=>({detail:'Conversion failed'}));throw new Error(e.detail||'Conversion failed');}
+            blob=await r.blob();
+          } else {
+            if(sel){sel.textContent='Uploading…';sel.className='file-status uploading';}
+            progressWrap.style.display='block';
+            const objectName = await gcsSignedUpload(f, e=>{
               if(!e.lengthComputable)return;
               progressBar.style.width=Math.round(e.loaded/e.total*80)+'%';
               if(sel)sel.textContent=`Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}`;
-            };
-            xhr.onload=()=>{
-              if(xhr.status>=200&&xhr.status<300){resolve(xhr.response);}
-              else{xhr.response.text().then(t=>{try{reject(new Error(JSON.parse(t).detail||'Conversion failed'));}catch{reject(new Error(t||'Conversion failed'))}});}
-            };
-            xhr.onerror=()=>reject(new Error('Network error'));
-            xhr.send(form);
-          });
+            });
+            if(sel){sel.textContent='Converting…';sel.className='file-status';}
+            progressBar.style.width='90%';
+            const r=await fetch('/api/convert-from-gcs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({object_name:objectName,template:tpl})});
+            if(!r.ok){const e=await r.json().catch(()=>({detail:'Conversion failed'}));throw new Error(e.detail||'Conversion failed');}
+            blob=await r.blob();
+          }
           progressBar.style.width='100%';
-          if(sel){sel.textContent='Converting…';sel.className='file-status';}
           const url=URL.createObjectURL(blob);
           const a=document.createElement('a');a.href=url;a.download=f.name.replace(/\.afpub$/i,'.md');
           document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
@@ -260,24 +288,23 @@
       hideError('dump-error-panel');
       const btn=document.getElementById('dump-btn'),out=document.getElementById('dump-output');
       const copyBtn=document.getElementById('dump-copy-btn'),prog=document.getElementById('dump-progress');
-      btn.disabled=true;btn.textContent='Uploading…';out.style.display='none';copyBtn.style.display='none';
-      prog.textContent=`Uploading ${fmtSize(dumpFile.size)}…`;
+      btn.disabled=true;btn.textContent='Working…';out.style.display='none';copyBtn.style.display='none';prog.textContent='';
       try{
-        const form=new FormData();form.append('file',dumpFile);
-        const text=await new Promise((resolve,reject)=>{
-          const xhr=new XMLHttpRequest();
-          xhr.open('POST','/api/dump-styles');
-          xhr.upload.onprogress=e=>{
+        let r;
+        if (dumpFile.size <= DIRECT_LIMIT) {
+          prog.textContent='Analyzing…';
+          const form=new FormData();form.append('file',dumpFile);
+          r=await fetch('/api/dump-styles',{method:'POST',body:form});
+        } else {
+          prog.textContent=`Uploading ${fmtSize(dumpFile.size)}…`;
+          const objectName = await gcsSignedUpload(dumpFile, e=>{
             if(e.lengthComputable)prog.textContent=`Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}…`;
-          };
-          xhr.onload=()=>{
-            if(xhr.status>=200&&xhr.status<300){resolve(xhr.responseText);}
-            else{try{reject(new Error(JSON.parse(xhr.responseText).detail||'Dump failed'));}catch{reject(new Error(xhr.responseText||'Dump failed'));}}
-          };
-          xhr.onerror=()=>reject(new Error('Network error'));
-          xhr.send(form);
-        });
-        prog.textContent='Analyzing…';
+          });
+          prog.textContent='Analyzing styles…';
+          r=await fetch('/api/dump-from-gcs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({object_name:objectName})});
+        }
+        if(!r.ok){const txt=await r.text();let msg='Dump failed';try{msg=JSON.parse(txt).detail||msg;}catch{msg=txt||msg;}throw new Error(msg);}
+        const text=await r.text();
         out.textContent=text;out.style.display='block';
         copyBtn.style.display='inline-flex';prog.textContent='✓ Done';
       }catch(e){
