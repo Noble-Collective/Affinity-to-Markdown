@@ -95,6 +95,18 @@ def _signed_upload_url(object_name: str) -> str:
     )
 
 
+def _signed_download_url(object_name: str) -> str:
+    from google.cloud import storage
+    creds = _get_sa_credentials()
+    client = storage.Client(credentials=creds)
+    blob = client.bucket(GCS_BUCKET).blob(object_name)
+    return blob.generate_signed_url(
+        version='v4',
+        expiration=datetime.timedelta(hours=1),
+        method='GET',
+    )
+
+
 app = FastAPI(title='Affinity to Markdown Converter App')
 app.mount('/static', StaticFiles(directory=str(STATIC_DIR)), name='static')
 
@@ -180,6 +192,21 @@ async def request_upload(request: Request):
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f'Could not generate upload URL: {exc}')
     return JSONResponse({'upload_url': url, 'object_name': object_name})
+
+
+@app.post('/api/dev/signed-download')
+async def dev_signed_download(request: Request):
+    """Generate a signed download URL for a file in the dev/ folder.
+    Only works for objects under the dev/ prefix."""
+    body = await request.json()
+    object_name = body.get('object_name', '')
+    if not object_name.startswith('dev/'):
+        raise HTTPException(status_code=400, detail='Only dev/ objects are accessible via this endpoint.')
+    try:
+        url = _signed_download_url(object_name)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f'Could not generate download URL: {exc}')
+    return JSONResponse({'download_url': url})
 
 
 @app.post('/api/convert-from-gcs')
