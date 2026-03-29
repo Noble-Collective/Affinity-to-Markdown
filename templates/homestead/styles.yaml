@@ -96,7 +96,7 @@ styles:
     name: "Next Steps Heading"
     markdown: "####"
 
-  # Full book styles
+  # Full book character styles
 
   - id: 1222
     name: "Main Body Text (full book)"
@@ -178,7 +178,7 @@ styles:
     markdown: ""
   - id: 4943
     name: "Community Study Heading"
-    markdown: "###"
+    markdown: "####"
   - id: 5459
     name: "Scripture Passage Body"
     markdown: ">"
@@ -188,6 +188,51 @@ styles:
   - id: 9290
     name: "Discussion Topic Label"
     markdown: "####"
+
+  # Full book paragraph styles (2ttAP)
+
+  - id: 1340
+    name: "Scripture Blockquote (paragraph)"
+    markdown: ">"
+  - id: 1341
+    name: "Scripture Citation (paragraph)"
+    markdown: "<<"
+  - id: 2645
+    name: "Scripture Citation variant (paragraph)"
+    markdown: "<<"
+  - id: 2976
+    name: "Numbered List - Discussion Questions"
+    markdown: "1."
+  - id: 4342
+    name: "Numbered List - Final Review"
+    markdown: "1."
+  - id: 4104
+    name: "Bullet List - Next Steps / Final Review"
+    markdown: "-"
+  - id: 4121
+    name: "Bullet List - Verse Collection / Parenting Project"
+    markdown: "-"
+
+  # New character style IDs from full book dump
+
+  - id: 1282
+    name: "Empty structural style"
+    markdown: "SKIP"
+  - id: 2971
+    name: "Scripture Pull Quote"
+    markdown: ">"
+  - id: 3017
+    name: "Scripture Body"
+    markdown: ">"
+  - id: 3241
+    name: "Verse Number Superscripts (full book)"
+    markdown: "superscript"
+  - id: 4103
+    name: "Body Text (Final Review)"
+    markdown: ""
+  - id: 12094
+    name: "Discussion Question Body"
+    markdown: ""
 
   # Inline fragments (full book)
 

@@ -519,7 +519,15 @@ def _block_to_md(text, runs, para_runs, style_map, fallback, warnings, callout_t
                 _para_char_offset += len(raw_para) + 1
                 continue
             effective_role = role if (role.startswith("#") and len(para) > 3) else (role if not role.startswith("#") else "")
-            if effective_role.startswith("#") and para.startswith("Session") and ":" in para:
+            if sid == 714 and effective_role.startswith("#") and para.startswith("Session") and ":" in para:
+                continue
+            # Headings split by U+2028: join continuation parts onto the same line
+            if (effective_role.startswith("#") and not first_para
+                    and lines and lines[-1].lstrip().startswith(effective_role + " ")):
+                lines[-1] = lines[-1].rstrip() + " " + para
+                first_para = False
+                is_first_split = False
+                _para_char_offset += len(raw_para) + 1
                 continue
             if effective_role == ">" and len(para) < _CITE_THRESHOLD and prev_para_len >= _CITE_THRESHOLD:
                 effective_role = "<<"
@@ -624,7 +632,7 @@ def _dump_styles(data):
                     if len(info["samples"]) < 2:
                         info["samples"].append(clean[:70])
     print(f"\n{'ID':>6}  {'Runs':>5}  Sample text")
-    print("─" * 82)
+    print("\u2500" * 82)
     for sid in sorted(id_info.keys()):
         info   = id_info[sid]
         sample = info["samples"][0] if info["samples"] else "(empty)"
@@ -645,6 +653,9 @@ def _convert(afpub_path, output_path, style_map, fallback, zstd_lib):
     md_chunks = []
     processed_blocks = 0
     skipped_master   = 0
+    # Session titles that appear only in a navigation cluster on one spread,
+    # to be injected before the matching short-form block on its own spread.
+    pending_session_injections = {}
     callout_texts = []
     for sp_start, sp_end in boundaries:
         all_blocks = _extract_blocks_in_region(data, sp_start, sp_end)
@@ -674,7 +685,56 @@ def _convert(afpub_path, output_path, style_map, fallback, zstd_lib):
             if existing is None or len(runs) > len(existing[2]):
                 best_block[key] = (offset, text, runs, para_runs)
         sorted_blocks = _sort_spread_blocks(list(best_block.values()), style_map)
-        for offset, text, runs, para_runs in sorted_blocks:
+
+        # Detect navigation clusters: consecutive heading-only blocks (e.g. session
+        # tab labels stored on every spread). Skip them WITHOUT registering in
+        # _SeenTexts so the actual session title on its own spread is not deduped away.
+        def _heading_only(runs):
+            if not runs:
+                return False
+            return all(
+                (style_map.get(sid) or {}).get("markdown", "").startswith("#")
+                for _, sid in runs
+            )
+
+        nav_skip = set()
+        prev_was_heading = False
+        cluster_style = frozenset()
+        for blk_idx, (_, blk_text, blk_runs, _) in enumerate(sorted_blocks):
+            is_h = _heading_only(blk_runs)
+            cur_styles = frozenset(sid for _, sid in blk_runs) if blk_runs else frozenset()
+            if is_h:
+                if prev_was_heading and cluster_style and cur_styles == cluster_style:
+                    # Same style as nav cluster — skip and defer
+                    nav_skip.add(blk_idx)
+                    full = blk_text.replace(_LINE_SEP, " ").strip().rstrip("\x00")
+                    short = full.split(":")[0].strip() if ":" in full else full.strip()
+                    # Only defer "Session X: Subtitle" titles — targeted enough
+                    # to not false-match other headings throughout the book.
+                    if short and short.startswith("Session ") and ":" in full:
+                        new_val = "### " + full
+                        if len(new_val) > len(pending_session_injections.get(short, "")):
+                            pending_session_injections[short] = new_val
+                else:
+                    cluster_style = cur_styles  # start / restart cluster
+            else:
+                cluster_style = frozenset()
+            prev_was_heading = is_h
+
+        for blk_idx, (offset, text, runs, para_runs) in enumerate(sorted_blocks):
+            if blk_idx in nav_skip:
+                continue  # drop without touching _SeenTexts
+
+            # Inject a pending session title if this block is its short-form trigger
+            clean_trigger = text.replace(_LINE_SEP, " ").strip().rstrip("\x00")
+            if clean_trigger in pending_session_injections:
+                injection = pending_session_injections.pop(clean_trigger)
+                md_chunks.append(injection)
+                md_chunks.append("")
+                processed_blocks += 1
+                seen.is_new(text)  # register so trigger block is not re-emitted elsewhere
+                continue  # skip the trigger block itself (title already injected)
+
             if not seen.is_new(text):
                 continue
             paras = _block_to_md(text, runs, para_runs, style_map, fallback, warnings, callout_texts)
@@ -704,7 +764,7 @@ def _convert(afpub_path, output_path, style_map, fallback, zstd_lib):
         unique_warns = [(k, msg) for k, msg in warnings if k not in seen_keys and not seen_keys.add(k)]
         print(f"\n  {len(unique_warns)} style warning(s):")
         for _, msg in unique_warns:
-            print(f"  ⚠  {msg}")
+            print(f"  \u26a0  {msg}")
         print("\n  Run --dump-styles to list all IDs, then update styles.yaml.")
 
 
