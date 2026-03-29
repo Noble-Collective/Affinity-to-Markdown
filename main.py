@@ -46,7 +46,6 @@ _gcs_client = None
 
 
 def _get_sa_credentials():
-    """Load service account credentials from GCP_SA_KEY_B64 env var."""
     global _sa_credentials
     if _sa_credentials is None:
         raw = os.environ.get('GCP_SA_KEY_B64', '')
@@ -62,7 +61,6 @@ def _get_sa_credentials():
 
 
 def _get_gcs():
-    """GCS client using service account credentials."""
     global _gcs_client
     if _gcs_client is None:
         try:
@@ -74,8 +72,17 @@ def _get_gcs():
     return _gcs_client
 
 
+def _maybe_delete(gcs, object_name: str):
+    """Delete a GCS object unless it lives in the dev/ folder."""
+    if object_name.startswith('dev/'):
+        return
+    try:
+        gcs.bucket(GCS_BUCKET).blob(object_name).delete()
+    except Exception:
+        pass
+
+
 def _signed_upload_url(object_name: str) -> str:
-    """Generate a V4 signed URL for a browser PUT — CORS-safe, no session needed."""
     from google.cloud import storage
     creds = _get_sa_credentials()
     client = storage.Client(credentials=creds)
@@ -115,7 +122,6 @@ async def list_templates():
 
 @app.post('/api/convert')
 async def convert(file: UploadFile = File(...), template: str = Form(...)):
-    """Direct upload for files under 30 MB."""
     if not file.filename or not file.filename.lower().endswith('.afpub'):
         raise HTTPException(status_code=400, detail='File must be a .afpub file.')
     styles_path = TEMPLATES_DIR / template / 'styles.yaml'
@@ -146,7 +152,6 @@ async def convert(file: UploadFile = File(...), template: str = Form(...)):
 
 @app.post('/api/dump-styles')
 async def dump_styles_direct(file: UploadFile = File(...)):
-    """Direct upload dump-styles for files under 30 MB."""
     if not file.filename or not file.filename.lower().endswith('.afpub'):
         raise HTTPException(status_code=400, detail='File must be a .afpub file.')
     with tempfile.TemporaryDirectory() as tmp:
@@ -165,7 +170,6 @@ async def dump_styles_direct(file: UploadFile = File(...)):
 
 @app.post('/api/request-upload')
 async def request_upload(request: Request):
-    """Return a V4 signed URL for the browser to PUT a large file directly to GCS."""
     body = await request.json()
     filename = body.get('filename', 'upload.afpub')
     if not filename.lower().endswith('.afpub'):
@@ -180,7 +184,6 @@ async def request_upload(request: Request):
 
 @app.post('/api/convert-from-gcs')
 async def convert_from_gcs(request: Request):
-    """Convert a large file already uploaded to GCS by the browser."""
     body = await request.json()
     object_name = body.get('object_name', '')
     filename = object_name.split('/')[-1]
@@ -206,8 +209,7 @@ async def convert_from_gcs(request: Request):
         except Exception as exc:
             raise HTTPException(status_code=500, detail=f'Conversion failed: {exc}')
         finally:
-            try: gcs.bucket(GCS_BUCKET).blob(object_name).delete()
-            except Exception: pass
+            _maybe_delete(gcs, object_name)
         if not output_path.exists():
             raise HTTPException(status_code=500, detail='Conversion produced no output.')
         md_content = output_path.read_text(encoding='utf-8')
@@ -224,7 +226,6 @@ async def convert_from_gcs(request: Request):
 
 @app.post('/api/dump-from-gcs')
 async def dump_from_gcs(request: Request):
-    """Dump styles for a large file already uploaded to GCS by the browser."""
     body = await request.json()
     object_name = body.get('object_name', '')
     filename = object_name.split('/')[-1]
@@ -248,8 +249,7 @@ async def dump_from_gcs(request: Request):
         except Exception as exc:
             raise HTTPException(status_code=500, detail=f'Dump failed: {exc}')
         finally:
-            try: gcs.bucket(GCS_BUCKET).blob(object_name).delete()
-            except Exception: pass
+            _maybe_delete(gcs, object_name)
     return PlainTextResponse(buf.getvalue())
 
 
