@@ -234,6 +234,222 @@ styles:
     name: "Discussion Question Body"
     markdown: ""
 
+  # Session_1_Homestead_TEST_Qs.afpub character styles
+
+  - id: 241
+    name: "Body Text (Qs variant)"
+    markdown: ""
+  - id: 254
+    name: "Session nav label"
+    markdown: "SKIP"
+  - id: 274
+    name: "Overview heading"
+    markdown: "####"
+  - id: 278
+    name: "Block Quotes (Qs)"
+    markdown: ">"
+  - id: 279
+    name: "Book Title Attribution (Qs)"
+    markdown: "italic"
+  - id: 280
+    name: "Inline italic (Qs)"
+    markdown: "italic"
+  - id: 299
+    name: "Session Title H1 (Qs)"
+    markdown: "#"
+  - id: 300
+    name: "Session Subtitle H2 (Qs)"
+    markdown: "##"
+  - id: 344
+    name: "Section Heading H4 (Qs)"
+    markdown: "####"
+  - id: 586
+    name: "Session nav label 2"
+    markdown: "SKIP"
+  - id: 651
+    name: "Responsive Reading Bold (Qs)"
+    markdown: "bold"
+  - id: 666
+    name: "Song Title H5 (Qs)"
+    markdown: "#####"
+  - id: 693
+    name: "Session Title H3 (Qs)"
+    markdown: "###"
+  - id: 707
+    name: "Movement Title H3 (Qs)"
+    markdown: "###"
+  - id: 721
+    name: "Subsection Instructions (Qs)"
+    markdown: "p_italic"
+  - id: 738
+    name: "Hymn Verse Label H6 (Qs)"
+    markdown: "######"
+  - id: 828
+    name: "Empty structural"
+    markdown: "SKIP"
+  - id: 832
+    name: "Discussion Question Body (Qs)"
+    markdown: ""
+  - id: 948
+    name: "Scripture Quote (Qs)"
+    markdown: ">"
+  - id: 978
+    name: "Verse Number Superscripts (Qs)"
+    markdown: "superscript"
+  - id: 1090
+    name: "Template placeholder"
+    markdown: "SKIP"
+  - id: 1112
+    name: "Discussion Sub-label (Qs)"
+    markdown: "bold"
+  - id: 1359
+    name: "Verse Reference Label (Qs)"
+    markdown: "bold"
+  - id: 1362
+    name: "Body Text variant (Qs)"
+    markdown: ""
+  - id: 1407
+    name: "Callout Pull Quotes (Qs)"
+    markdown: "callout"
+  - id: 1506
+    name: "Next Steps Heading (Qs)"
+    markdown: "####"
+  - id: 1637
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2039
+    name: "Artwork attribution (Qs)"
+    markdown: "SKIP"
+  - id: 2040
+    name: "Artwork title (Qs)"
+    markdown: "SKIP"
+  - id: 2364
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2365
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2369
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2378
+    name: "URL reference"
+    markdown: "SKIP"
+  - id: 2384
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2385
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2386
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2387
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2388
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2389
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2390
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2396
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2397
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2398
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2401
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2409
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2410
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2415
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2423
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2430
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2432
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2433
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2434
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2437
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2442
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2456
+    name: "URL reference (Qs)"
+    markdown: "SKIP"
+  - id: 2694
+    name: "Part label (Qs)"
+    markdown: "SKIP"
+  - id: 2705
+    name: "Schedule label (Qs)"
+    markdown: "SKIP"
+  - id: 2871
+    name: "Part One label (Qs)"
+    markdown: "SKIP"
+  - id: 2939
+    name: "Inline fragment"
+    markdown: ""
+  - id: 2940
+    name: "Inline fragment"
+    markdown: ""
+  - id: 1363
+    name: "Empty structural"
+    markdown: "SKIP"
+  - id: 3010
+    name: "Empty structural"
+    markdown: "SKIP"
+
+  # Session_1_Homestead_TEST_Qs.afpub paragraph styles
+
+  - id: 652
+    name: "Scripture blockquote paragraph (Qs)"
+    markdown: ">"
+  - id: 1743
+    name: "Scripture body paragraph (Qs)"
+    markdown: ">"
+  - id: 833
+    name: "Citation paragraph (Qs)"
+    markdown: "<<"
+  - id: 979
+    name: "Scripture citation paragraph (Qs)"
+    markdown: "<<"
+  - id: 1741
+    name: "Citation paragraph variant (Qs)"
+    markdown: "<<"
+  - id: 835
+    name: "Numbered List (Qs)"
+    markdown: "1."
+  - id: 221
+    name: "Bullet List - Next Steps (Qs)"
+    markdown: "-"
+  - id: 1366
+    name: "Bullet List - Session Summary (Qs)"
+    markdown: "-"
+
   # Inline fragments (full book)
 
   - id: 5287
