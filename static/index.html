@@ -32,7 +32,6 @@
     .file-item .file-status { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
     .file-item .file-status.success { color: var(--success); font-weight: 600; }
     .file-item .file-status.error { color: var(--danger); font-weight: 600; }
-    .file-item .file-status.uploading { color: #b07d00; font-weight: 600; }
     .file-item .remove-btn { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 1rem; padding: 0 2px; line-height: 1; }
     .file-item .remove-btn:hover { color: var(--danger); }
     .field { margin-top: 18px; }
@@ -104,7 +103,7 @@
       <span class="chevron">▼</span>
     </div>
     <div class="collapsible-body" id="calib-body">
-      <p style="font-size:0.875rem;color:var(--muted);margin-bottom:16px;">Upload a <code>.afpub</code> file to extract all style IDs. Files under 30 MB upload directly; larger files go via cloud storage.</p>
+      <p style="font-size:0.875rem;color:var(--muted);margin-bottom:16px;">Upload a <code>.afpub</code> file to extract all style IDs. Any file size supported.</p>
       <div class="dropzone" id="dump-dropzone" style="padding:20px">
         <input type="file" id="dump-file-input" accept=".afpub" />
         <div class="icon" style="font-size:1.4rem">🔍</div>
@@ -131,7 +130,6 @@
   </div>
 
   <script>
-    const DIRECT_LIMIT = 30 * 1024 * 1024; // 30 MB — Cloud Run hard limit is 32 MB
     const MAX_SIZE = 500 * 1024 * 1024;
     let selectedFiles = [], dumpFile = null;
 
@@ -191,57 +189,6 @@
     dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');addFiles(e.dataTransfer.files);});
     document.getElementById('template-select').addEventListener('change',updateConvertBtn);
 
-    // For files over 30 MB, upload to GCS first then trigger server-side conversion
-    async function gcsUpload(file, onProgress) {
-      const initRes = await fetch('/api/initiate-upload', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({filename: file.name, file_size: file.size})
-      });
-      if (!initRes.ok) {
-        const e = await initRes.json().catch(()=>({detail:'Initiate upload failed'}));
-        throw new Error(e.detail || 'Failed to initiate upload');
-      }
-      const {session_uri, object_name} = await initRes.json();
-      await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('PUT', session_uri);
-        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-        if (onProgress) xhr.upload.onprogress = onProgress;
-        xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error(`Upload failed: HTTP ${xhr.status}`));
-        xhr.onerror = () => reject(new Error('Upload blocked — check browser console for CORS details'));
-        xhr.send(file);
-      });
-      return object_name;
-    }
-
-    async function convertFile(f, template, statusEl, progressWrap, progressBar) {
-      if (f.size <= DIRECT_LIMIT) {
-        // Small file: direct POST to Cloud Run
-        if (statusEl){statusEl.textContent='Converting…';statusEl.className='file-status';}
-        const form = new FormData(); form.append('file', f); form.append('template', template);
-        const r = await fetch('/api/convert', {method:'POST', body:form});
-        if (!r.ok){const e=await r.json().catch(()=>({detail:'Unknown error'}));throw new Error(e.detail||'Conversion failed');}
-        return r.blob();
-      }
-      // Large file: upload to GCS, then convert server-side
-      if (statusEl){statusEl.textContent='Uploading…';statusEl.className='file-status uploading';}
-      if (progressWrap) progressWrap.style.display='block';
-      const objectName = await gcsUpload(f, e => {
-        if (!e.lengthComputable) return;
-        if (progressBar) progressBar.style.width = Math.round(e.loaded/e.total*80)+'%';
-        if (statusEl) statusEl.textContent = `Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}`;
-      });
-      if (statusEl){statusEl.textContent='Converting…';statusEl.className='file-status';}
-      if (progressBar) progressBar.style.width='90%';
-      const r = await fetch('/api/convert-from-gcs', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({object_name: objectName, filename: f.name, template})
-      });
-      if (!r.ok){const e=await r.json().catch(()=>({detail:'Conversion failed'}));throw new Error(e.detail||'Conversion failed');}
-      return r.blob();
-    }
-
     document.getElementById('convert-btn').addEventListener('click',async()=>{
       const tpl=document.getElementById('template-select').value;
       if(!tpl||selectedFiles.length===0)return;
@@ -253,9 +200,28 @@
       let ok=0,err=0;
       for(let i=0;i<selectedFiles.length;i++){
         const f=selectedFiles[i],sel=document.getElementById(`file-status-${i}`);
-        progressBar.style.width='0%';
+        if(sel){sel.textContent='Uploading…';sel.className='file-status';}
         try{
-          const blob=await convertFile(f,tpl,sel,progressWrap,progressBar);
+          const form=new FormData();form.append('file',f);form.append('template',tpl);
+          progressWrap.style.display='block';
+          const xhr=new XMLHttpRequest();
+          const blob=await new Promise((resolve,reject)=>{
+            xhr.open('POST','/api/convert');
+            xhr.responseType='blob';
+            xhr.upload.onprogress=e=>{
+              if(!e.lengthComputable)return;
+              progressBar.style.width=Math.round(e.loaded/e.total*80)+'%';
+              if(sel)sel.textContent=`Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}`;
+            };
+            xhr.onload=()=>{
+              if(xhr.status>=200&&xhr.status<300){resolve(xhr.response);}
+              else{xhr.response.text().then(t=>{try{reject(new Error(JSON.parse(t).detail||'Conversion failed'));}catch{reject(new Error(t||'Conversion failed'))}});}
+            };
+            xhr.onerror=()=>reject(new Error('Network error'));
+            xhr.send(form);
+          });
+          progressBar.style.width='100%';
+          if(sel){sel.textContent='Converting…';sel.className='file-status';}
           const url=URL.createObjectURL(blob);
           const a=document.createElement('a');a.href=url;a.download=f.name.replace(/\.afpub$/i,'.md');
           document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
@@ -264,9 +230,10 @@
           if(sel){sel.textContent='✗ Error';sel.className='file-status error';}err++;
           showError('convert-error-panel','convert-error-text',`Failed: ${f.name}\n\n${e.message}`);
         }
+        progressWrap.style.display='none';progressBar.style.width='0%';
         if(i<selectedFiles.length-1)await new Promise(r=>setTimeout(r,300));
       }
-      btn.innerHTML='Convert';btn.disabled=false;progressWrap.style.display='none';
+      btn.innerHTML='Convert';btn.disabled=false;
       if(err===0){status.textContent=`✓ ${ok} file${ok!==1?'s':''} converted successfully.`;status.style.color='var(--success)';}
       else{status.textContent=`${ok} succeeded, ${err} failed.`;status.style.color='var(--danger)';}
     });
@@ -293,25 +260,24 @@
       hideError('dump-error-panel');
       const btn=document.getElementById('dump-btn'),out=document.getElementById('dump-output');
       const copyBtn=document.getElementById('dump-copy-btn'),prog=document.getElementById('dump-progress');
-      btn.disabled=true;btn.textContent='Working…';out.style.display='none';copyBtn.style.display='none';prog.textContent='';
+      btn.disabled=true;btn.textContent='Uploading…';out.style.display='none';copyBtn.style.display='none';
+      prog.textContent=`Uploading ${fmtSize(dumpFile.size)}…`;
       try{
-        let r;
-        if (dumpFile.size <= DIRECT_LIMIT) {
-          // Small file: direct POST
-          prog.textContent='Analyzing…';
-          const form=new FormData();form.append('file',dumpFile);
-          r=await fetch('/api/dump-styles',{method:'POST',body:form});
-        } else {
-          // Large file: GCS upload then server-side dump
-          prog.textContent=`Uploading ${fmtSize(dumpFile.size)}…`;
-          const objectName = await gcsUpload(dumpFile, e=>{
-            if(e.lengthComputable) prog.textContent=`Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}…`;
-          });
-          prog.textContent='Analyzing styles…';btn.textContent='Analyzing…';
-          r=await fetch('/api/dump-from-gcs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({object_name:objectName,filename:dumpFile.name})});
-        }
-        if(!r.ok){const txt=await r.text();let msg='Dump failed';try{msg=JSON.parse(txt).detail||msg;}catch{msg=txt||msg;}throw new Error(msg);}
-        const text=await r.text();
+        const form=new FormData();form.append('file',dumpFile);
+        const text=await new Promise((resolve,reject)=>{
+          const xhr=new XMLHttpRequest();
+          xhr.open('POST','/api/dump-styles');
+          xhr.upload.onprogress=e=>{
+            if(e.lengthComputable)prog.textContent=`Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}…`;
+          };
+          xhr.onload=()=>{
+            if(xhr.status>=200&&xhr.status<300){resolve(xhr.responseText);}
+            else{try{reject(new Error(JSON.parse(xhr.responseText).detail||'Dump failed'));}catch{reject(new Error(xhr.responseText||'Dump failed'));}}
+          };
+          xhr.onerror=()=>reject(new Error('Network error'));
+          xhr.send(form);
+        });
+        prog.textContent='Analyzing…';
         out.textContent=text;out.style.display='block';
         copyBtn.style.display='inline-flex';prog.textContent='✓ Done';
       }catch(e){

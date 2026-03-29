@@ -28,4 +28,4 @@ jobs:
           service: afpub-converter
           region: us-east1
           source: .
-          flags: --memory=2Gi --timeout=300
+          flags: --memory=2Gi --timeout=300 --execution-environment=gen2
