@@ -28,9 +28,9 @@ if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 from afpub_to_markdown import (
+    _analyze_styles,
     _convert,
     _decompress_afpub,
-    _dump_styles,
     _load_styles_yaml,
     _load_zstd,
 )
@@ -107,6 +107,21 @@ def _signed_download_url(object_name: str) -> str:
     )
 
 
+def _run_analyze(input_path: Path, template: str | None) -> str:
+    """Run _analyze_styles and return the output as a string."""
+    # Load styles.yaml if a template is specified, otherwise pass empty map
+    if template:
+        styles_path = TEMPLATES_DIR / template / 'styles.yaml'
+        style_map, _ = _load_styles_yaml(styles_path) if styles_path.exists() else ({}, 'warn')
+    else:
+        style_map = {}
+    buf = io.StringIO()
+    from contextlib import redirect_stdout
+    with redirect_stdout(buf):
+        _analyze_styles(input_path, style_map, _ZSTD)
+    return buf.getvalue()
+
+
 app = FastAPI(title='Affinity to Markdown Converter App')
 app.mount('/static', StaticFiles(directory=str(STATIC_DIR)), name='static')
 
@@ -162,22 +177,18 @@ async def convert(file: UploadFile = File(...), template: str = Form(...)):
     )
 
 
-@app.post('/api/dump-styles')
-async def dump_styles_direct(file: UploadFile = File(...)):
+@app.post('/api/analyze-styles')
+async def analyze_styles_direct(file: UploadFile = File(...), template: str = Form(default='')):
     if not file.filename or not file.filename.lower().endswith('.afpub'):
         raise HTTPException(status_code=400, detail='File must be a .afpub file.')
     with tempfile.TemporaryDirectory() as tmp:
         input_path = Path(tmp) / file.filename
         input_path.write_bytes(await file.read())
-        buf = io.StringIO()
         try:
-            from contextlib import redirect_stdout
-            data = _decompress_afpub(input_path, _ZSTD)
-            with redirect_stdout(buf):
-                _dump_styles(data)
+            result = _run_analyze(input_path, template or None)
         except Exception as exc:
-            raise HTTPException(status_code=500, detail=f'Dump failed: {exc}')
-    return PlainTextResponse(buf.getvalue())
+            raise HTTPException(status_code=500, detail=f'Analysis failed: {exc}')
+    return PlainTextResponse(result)
 
 
 @app.post('/api/request-upload')
@@ -196,8 +207,7 @@ async def request_upload(request: Request):
 
 @app.post('/api/dev/signed-download')
 async def dev_signed_download(request: Request):
-    """Generate a signed download URL for a file in the dev/ folder.
-    Only works for objects under the dev/ prefix."""
+    """Generate a signed download URL for a file in the dev/ folder."""
     body = await request.json()
     object_name = body.get('object_name', '')
     if not object_name.startswith('dev/'):
@@ -251,11 +261,12 @@ async def convert_from_gcs(request: Request):
     )
 
 
-@app.post('/api/dump-from-gcs')
-async def dump_from_gcs(request: Request):
+@app.post('/api/analyze-from-gcs')
+async def analyze_from_gcs(request: Request):
     body = await request.json()
     object_name = body.get('object_name', '')
     filename = object_name.split('/')[-1]
+    template = body.get('template', '')
     if not filename.lower().endswith('.afpub'):
         raise HTTPException(status_code=400, detail='File must be a .afpub file.')
     gcs = _get_gcs()
@@ -267,17 +278,13 @@ async def dump_from_gcs(request: Request):
             gcs.bucket(GCS_BUCKET).blob(object_name).download_to_filename(str(input_path))
         except Exception as exc:
             raise HTTPException(status_code=500, detail=f'GCS download failed: {exc}')
-        buf = io.StringIO()
         try:
-            from contextlib import redirect_stdout
-            data = _decompress_afpub(input_path, _ZSTD)
-            with redirect_stdout(buf):
-                _dump_styles(data)
+            result = _run_analyze(input_path, template or None)
         except Exception as exc:
-            raise HTTPException(status_code=500, detail=f'Dump failed: {exc}')
+            raise HTTPException(status_code=500, detail=f'Analysis failed: {exc}')
         finally:
             _maybe_delete(gcs, object_name)
-    return PlainTextResponse(buf.getvalue())
+    return PlainTextResponse(result)
 
 
 HOST = '0.0.0.0'

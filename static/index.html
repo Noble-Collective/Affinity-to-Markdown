@@ -61,7 +61,7 @@
     .collapsible-header.open .chevron { transform: rotate(180deg); }
     .collapsible-body { display: none; margin-top: 18px; }
     .collapsible-body.open { display: block; }
-    #dump-output { margin-top: 14px; background: #1a1a1a; color: #d4f1c4; font-family: "Cascadia Code", "Fira Code", monospace; font-size: 0.78rem; padding: 16px; border-radius: 6px; white-space: pre; overflow-x: auto; max-height: 400px; overflow-y: auto; display: none; }
+    #analyze-output { margin-top: 14px; background: #1a1a1a; color: #d4f1c4; font-family: "Cascadia Code", "Fira Code", monospace; font-size: 0.78rem; padding: 16px; border-radius: 6px; white-space: pre; overflow-x: auto; max-height: 400px; overflow-y: auto; display: none; }
   </style>
 </head>
 <body>
@@ -104,36 +104,40 @@
       <span class="chevron">▼</span>
     </div>
     <div class="collapsible-body" id="calib-body">
-      <p style="font-size:0.875rem;color:var(--muted);margin-bottom:16px;">Upload a <code>.afpub</code> file to extract all style IDs. Any file size supported.</p>
-      <div class="dropzone" id="dump-dropzone" style="padding:20px">
-        <input type="file" id="dump-file-input" accept=".afpub" />
+      <p style="font-size:0.875rem;color:var(--muted);margin-bottom:16px;">Upload a <code>.afpub</code> file to generate a style analysis report. Paste the output into Claude to map styles for a new template.</p>
+      <div class="dropzone" id="analyze-dropzone" style="padding:20px">
+        <input type="file" id="analyze-file-input" accept=".afpub" />
         <div class="icon" style="font-size:1.4rem">🔍</div>
-        <div class="label"><strong>Choose a .afpub file</strong> for style dump</div>
+        <div class="label"><strong>Choose a .afpub file</strong> to analyze</div>
         <div class="size-note">.afpub files only · Any size</div>
       </div>
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <button class="btn btn-secondary" id="dump-btn" disabled>Run Dump Styles</button>
-        <button class="btn btn-secondary" id="dump-copy-btn" style="display:none">Copy Results</button>
-        <span id="dump-progress" style="font-size:0.8rem;color:var(--muted)"></span>
+      <div class="field" style="margin-top:14px">
+        <label for="analyze-template-select">Compare against template (optional)</label>
+        <select id="analyze-template-select"><option value="">None — show all IDs as new</option></select>
       </div>
-      <div class="error-panel" id="dump-error-panel" style="margin-top:12px">
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-secondary" id="analyze-btn" disabled>Analyze Styles</button>
+        <button class="btn btn-secondary" id="analyze-copy-btn" style="display:none">Copy Report</button>
+        <span id="analyze-progress" style="font-size:0.8rem;color:var(--muted)"></span>
+      </div>
+      <div class="error-panel" id="analyze-error-panel" style="margin-top:12px">
         <div class="error-panel-header">
           <span class="error-panel-title">⚠ Error</span>
           <div class="error-panel-actions">
-            <button class="error-panel-btn" id="dump-error-copy">Copy</button>
-            <button class="error-panel-btn" id="dump-error-dismiss">× Dismiss</button>
+            <button class="error-panel-btn" id="analyze-error-copy">Copy</button>
+            <button class="error-panel-btn" id="analyze-error-dismiss">× Dismiss</button>
           </div>
         </div>
-        <pre id="dump-error-text"></pre>
+        <pre id="analyze-error-text"></pre>
       </div>
-      <pre id="dump-output"></pre>
+      <pre id="analyze-output"></pre>
     </div>
   </div>
 
   <script>
     const DIRECT_LIMIT = 30 * 1024 * 1024;
     const MAX_SIZE = 500 * 1024 * 1024;
-    let selectedFiles = [], dumpFile = null;
+    let selectedFiles = [], analyzeFile = null;
 
     function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
     function updateConvertBtn(){document.getElementById('convert-btn').disabled=selectedFiles.length===0||!document.getElementById('template-select').value;}
@@ -153,16 +157,23 @@
       document.getElementById(dismissId).addEventListener('click',()=>hideError(panelId));
     }
     setupErrorPanel('convert-error-panel','convert-error-text','convert-error-copy','convert-error-dismiss');
-    setupErrorPanel('dump-error-panel','dump-error-text','dump-error-copy','dump-error-dismiss');
+    setupErrorPanel('analyze-error-panel','analyze-error-text','analyze-error-copy','analyze-error-dismiss');
 
     async function loadTemplates(){
       try{
         const r=await fetch('/api/templates');const d=await r.json();
         const s=document.getElementById('template-select');
-        if(d.templates.length===0){s.innerHTML='<option value="">No templates found</option>';return;}
+        const sa=document.getElementById('analyze-template-select');
+        if(d.templates.length===0){
+          s.innerHTML='<option value="">No templates found</option>';
+          return;
+        }
         s.innerHTML=d.templates.map(t=>`<option value="${t}">${t}</option>`).join('');
+        sa.innerHTML='<option value="">None — show all IDs as new</option>'+d.templates.map(t=>`<option value="${t}">${t}</option>`).join('');
         updateConvertBtn();
-      }catch(e){document.getElementById('template-select').innerHTML='<option value="">Error loading templates</option>';}
+      }catch(e){
+        document.getElementById('template-select').innerHTML='<option value="">Error loading templates</option>';
+      }
     }
 
     function addFiles(fl){
@@ -191,7 +202,6 @@
     dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');addFiles(e.dataTransfer.files);});
     document.getElementById('template-select').addEventListener('change',updateConvertBtn);
 
-    // Upload large file to GCS via signed URL, then trigger server-side processing
     async function gcsSignedUpload(file, onProgress) {
       const res = await fetch('/api/request-upload', {
         method: 'POST',
@@ -271,51 +281,54 @@
       document.getElementById('calib-body').classList.toggle('open');
     });
 
-    const ddz=document.getElementById('dump-dropzone'),dfi=document.getElementById('dump-file-input');
-    function setDumpFile(f){
+    const adz=document.getElementById('analyze-dropzone'),afi=document.getElementById('analyze-file-input');
+    function setAnalyzeFile(f){
       if(!f||!f.name.toLowerCase().endsWith('.afpub'))return;
-      dumpFile=f;
-      ddz.querySelector('.label').innerHTML=`<strong>${f.name}</strong> (${fmtSize(f.size)})`;
-      document.getElementById('dump-btn').disabled=false;
+      analyzeFile=f;
+      adz.querySelector('.label').innerHTML=`<strong>${f.name}</strong> (${fmtSize(f.size)})`;
+      document.getElementById('analyze-btn').disabled=false;
     }
-    dfi.addEventListener('change',()=>setDumpFile(dfi.files[0]));
-    ddz.addEventListener('dragover',e=>{e.preventDefault();ddz.classList.add('drag-over');});
-    ddz.addEventListener('dragleave',()=>ddz.classList.remove('drag-over'));
-    ddz.addEventListener('drop',e=>{e.preventDefault();ddz.classList.remove('drag-over');setDumpFile(e.dataTransfer.files[0]);});
+    afi.addEventListener('change',()=>setAnalyzeFile(afi.files[0]));
+    adz.addEventListener('dragover',e=>{e.preventDefault();adz.classList.add('drag-over');});
+    adz.addEventListener('dragleave',()=>adz.classList.remove('drag-over'));
+    adz.addEventListener('drop',e=>{e.preventDefault();adz.classList.remove('drag-over');setAnalyzeFile(e.dataTransfer.files[0]);});
 
-    document.getElementById('dump-btn').addEventListener('click',async()=>{
-      if(!dumpFile)return;
-      hideError('dump-error-panel');
-      const btn=document.getElementById('dump-btn'),out=document.getElementById('dump-output');
-      const copyBtn=document.getElementById('dump-copy-btn'),prog=document.getElementById('dump-progress');
-      btn.disabled=true;btn.textContent='Working…';out.style.display='none';copyBtn.style.display='none';prog.textContent='';
+    document.getElementById('analyze-btn').addEventListener('click',async()=>{
+      if(!analyzeFile)return;
+      hideError('analyze-error-panel');
+      const btn=document.getElementById('analyze-btn'),out=document.getElementById('analyze-output');
+      const copyBtn=document.getElementById('analyze-copy-btn'),prog=document.getElementById('analyze-progress');
+      const tpl=document.getElementById('analyze-template-select').value;
+      btn.disabled=true;btn.textContent='Analyzing…';out.style.display='none';copyBtn.style.display='none';prog.textContent='';
       try{
         let r;
-        if (dumpFile.size <= DIRECT_LIMIT) {
+        if (analyzeFile.size <= DIRECT_LIMIT) {
           prog.textContent='Analyzing…';
-          const form=new FormData();form.append('file',dumpFile);
-          r=await fetch('/api/dump-styles',{method:'POST',body:form});
+          const form=new FormData();
+          form.append('file',analyzeFile);
+          if(tpl)form.append('template',tpl);
+          r=await fetch('/api/analyze-styles',{method:'POST',body:form});
         } else {
-          prog.textContent=`Uploading ${fmtSize(dumpFile.size)}…`;
-          const objectName = await gcsSignedUpload(dumpFile, e=>{
+          prog.textContent=`Uploading ${fmtSize(analyzeFile.size)}…`;
+          const objectName = await gcsSignedUpload(analyzeFile, e=>{
             if(e.lengthComputable)prog.textContent=`Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}…`;
           });
           prog.textContent='Analyzing styles…';
-          r=await fetch('/api/dump-from-gcs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({object_name:objectName})});
+          r=await fetch('/api/analyze-from-gcs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({object_name:objectName,template:tpl})});
         }
-        if(!r.ok){const txt=await r.text();let msg='Dump failed';try{msg=JSON.parse(txt).detail||msg;}catch{msg=txt||msg;}throw new Error(msg);}
+        if(!r.ok){const txt=await r.text();let msg='Analysis failed';try{msg=JSON.parse(txt).detail||msg;}catch{msg=txt||msg;}throw new Error(msg);}
         const text=await r.text();
         out.textContent=text;out.style.display='block';
         copyBtn.style.display='inline-flex';prog.textContent='✓ Done';
       }catch(e){
-        showError('dump-error-panel','dump-error-text',e.message);
+        showError('analyze-error-panel','analyze-error-text',e.message);
         prog.textContent='';
-      }finally{btn.disabled=false;btn.textContent='Run Dump Styles';}
+      }finally{btn.disabled=false;btn.textContent='Analyze Styles';}
     });
 
-    document.getElementById('dump-copy-btn').addEventListener('click',()=>{
-      navigator.clipboard.writeText(document.getElementById('dump-output').textContent)
-        .then(()=>{const b=document.getElementById('dump-copy-btn');const o=b.textContent;b.textContent='Copied!';setTimeout(()=>b.textContent=o,1500);})
+    document.getElementById('analyze-copy-btn').addEventListener('click',()=>{
+      navigator.clipboard.writeText(document.getElementById('analyze-output').textContent)
+        .then(()=>{const b=document.getElementById('analyze-copy-btn');const o=b.textContent;b.textContent='Copied!';setTimeout(()=>b.textContent=o,1500);})
         .catch(()=>alert('Copy failed — select text manually'));
     });
 
