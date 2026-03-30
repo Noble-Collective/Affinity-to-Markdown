@@ -96,7 +96,7 @@ styles:
     name: "Next Steps Heading"
     markdown: "####"
 
-  # Full book character styles
+  # Full book character styles (v1.0)
 
   - id: 1222
     name: "Main Body Text (full book)"
@@ -189,7 +189,7 @@ styles:
     name: "Discussion Topic Label"
     markdown: "####"
 
-  # Full book paragraph styles (2ttAP)
+  # Full book paragraph styles (v1.0, 2ttAP)
 
   - id: 1340
     name: "Scripture Blockquote (paragraph)"
@@ -213,7 +213,7 @@ styles:
     name: "Bullet List - Verse Collection / Parenting Project"
     markdown: "-"
 
-  # New character style IDs from full book dump
+  # Additional character styles from v1.0 dump
 
   - id: 1282
     name: "Empty structural style"
@@ -233,6 +233,162 @@ styles:
   - id: 12094
     name: "Discussion Question Body"
     markdown: ""
+
+  # ── v1.001 character styles ──────────────────────────────────────────────
+
+  - id: 1107
+    name: "Main Body Text (v1.001)"
+    markdown: ""
+  - id: 1856
+    name: "Body Text (preface/commentary v1.001)"
+    markdown: ""
+  - id: 2852
+    name: "Responsive Reading / Bold inline (v1.001)"
+    markdown: "bold"
+  - id: 3031
+    name: "Subsection Instructions (v1.001)"
+    markdown: "p_italic"
+  - id: 1214
+    name: "Copyright / series info (v1.001)"
+    markdown: "SKIP"
+  - id: 4349
+    name: "Scripture Reference Labels (v1.001)"
+    markdown: "bold"
+  - id: 6665
+    name: "Schedule day labels (v1.001)"
+    markdown: "SKIP"
+  - id: 1135
+    name: "Series Title body text (v1.001)"
+    markdown: ""
+  - id: 4502
+    name: "Body Text (commentary v1.001)"
+    markdown: ""
+  - id: 1195
+    name: "Author names (v1.001)"
+    markdown: "SKIP"
+  - id: 1213
+    name: "Book/Quote Title body text (v1.001)"
+    markdown: ""
+  - id: 3003
+    name: "Movement Title H3 (v1.001)"
+    markdown: "###"
+  - id: 2961
+    name: "Session Title H3 (v1.001)"
+    markdown: "###"
+  - id: 3062
+    name: "Hymn Verse Label H6 (v1.001)"
+    markdown: "######"
+  - id: 1777
+    name: "Section Heading H4 (v1.001)"
+    markdown: "####"
+  - id: 2627
+    name: "Session Title in Circle (decorative, SKIP)"
+    markdown: "SKIP"
+  - id: 2628
+    name: "Community Study Heading (v1.001)"
+    markdown: "####"
+  - id: 3412
+    name: "Scripture Pull Quote (v1.001)"
+    markdown: ">"
+  - id: 1188
+    name: "Session nav label (v1.001)"
+    markdown: "SKIP"
+  - id: 2139
+    name: "Section Heading H4 variant (v1.001)"
+    markdown: "####"
+  - id: 1875
+    name: "TOC session title (v1.001)"
+    markdown: "SKIP"
+  - id: 1876
+    name: "TOC session title variant (v1.001)"
+    markdown: "SKIP"
+  - id: 1877
+    name: "Section Heading H4 b (v1.001)"
+    markdown: "####"
+  - id: 1586
+    name: "Table of Contents entries (v1.001)"
+    markdown: "SKIP"
+  - id: 3221
+    name: "Discussion Questions (v1.001)"
+    markdown: ""
+  - id: 3849
+    name: "Discussion Sub-label bold (v1.001)"
+    markdown: "bold"
+  - id: 6018
+    name: "Artwork attribution (v1.001)"
+    markdown: "SKIP"
+  - id: 4590
+    name: "Next Steps Heading H4 (v1.001)"
+    markdown: "####"
+  - id: 1570
+    name: "Part Label H2 (v1.001)"
+    markdown: "##"
+  - id: 1575
+    name: "Part Subtitle H2 (v1.001)"
+    markdown: "##"
+  - id: 1640
+    name: "Table of Contents heading (v1.001)"
+    markdown: "SKIP"
+  - id: 2444
+    name: "Part Two Label H2 (v1.001)"
+    markdown: "##"
+  - id: 1167
+    name: "Author name (v1.001)"
+    markdown: "SKIP"
+  - id: 6019
+    name: "Artwork title (v1.001)"
+    markdown: "SKIP"
+  - id: 38659
+    name: "Extra Content label (v1.001)"
+    markdown: "SKIP"
+  - id: 1134
+    name: "Series Title body (v1.001)"
+    markdown: ""
+  - id: 1215
+    name: "Publisher URL (v1.001)"
+    markdown: "SKIP"
+  - id: 1547
+    name: "Single char label (v1.001)"
+    markdown: "SKIP"
+  - id: 1596
+    name: "TOC section labels (v1.001)"
+    markdown: "SKIP"
+  - id: 1920
+    name: "Intro body text (v1.001)"
+    markdown: ""
+  - id: 5404
+    name: "Inline body fragment (v1.001)"
+    markdown: ""
+  - id: 5405
+    name: "Inline body fragment b (v1.001)"
+    markdown: ""
+  - id: 12099
+    name: "Section Heading H4 (outdoor/camp v1.001)"
+    markdown: "####"
+
+  # ── v1.001 paragraph styles (2ttAP) ─────────────────────────────────────
+
+  - id: 1223
+    name: "Scripture Blockquote paragraph (v1.001)"
+    markdown: ">"
+  - id: 1224
+    name: "Scripture Citation paragraph (v1.001)"
+    markdown: "<<"
+  - id: 2854
+    name: "Scripture Citation paragraph b (v1.001)"
+    markdown: "<<"
+  - id: 3222
+    name: "Numbered List - Discussion Questions (v1.001)"
+    markdown: "1."
+  - id: 4354
+    name: "Bullet List - Next Steps (v1.001)"
+    markdown: "-"
+  - id: 4368
+    name: "Bullet List - Next Steps b (v1.001)"
+    markdown: "-"
+  - id: 4591
+    name: "Numbered List - Final Review (v1.001)"
+    markdown: "1."
 
   # Session_1_Homestead_TEST_Qs.afpub character styles
 
