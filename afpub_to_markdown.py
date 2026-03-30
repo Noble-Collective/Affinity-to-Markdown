@@ -214,15 +214,18 @@ def _zstd_decompress(compressed: bytes, lib) -> bytes:
 # ─────────────────────────────────────────────────────────────────────────────
 
 _ZSTD_MAGIC = bytes([0x28, 0xB5, 0x2F, 0xFD])
-_LINE_SEP   = "\u2028"
-_PARA_SEP   = "\u2029"
+_LINE_SEP   = "\u2028"   # Affinity line separator — normalised to this
+_PARA_SEP   = "\u2029"   # Affinity paragraph separator
 
+# Heading style IDs in this document — used for within-spread sort priority.
+# Lower number = higher heading level = sorts first.
+# Updated via styles.yaml; the extractor reads this dynamically from the map.
 _HEADING_SORT_ORDER = {
-    "#":     0,
-    "##":    1,
-    "###":   2,
-    "####":  3,
-    "#####": 4,
+    "#":     0,   # H1
+    "##":    1,   # H2
+    "###":   2,   # H3
+    "####":  3,   # H4
+    "#####": 4,   # H5
 }
 
 
@@ -239,6 +242,10 @@ def _decompress_afpub(path: Path, zstd_lib) -> bytes:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _find_spread_boundaries(data: bytes) -> list[tuple[int, int]]:
+    """
+    Return a list of (start, end) byte ranges, one per content spread,
+    in document order.
+    """
     _SPREAD_TAG = b'drpS'
     _UTF8_TAGS  = (b'+8ftU', b'gUtf8+')
 
@@ -257,6 +264,8 @@ def _find_spread_boundaries(data: bytes) -> list[tuple[int, int]]:
     boundaries: list[tuple[int, int]] = []
     for i, sp_start in enumerate(positions):
         sp_end = positions[i + 1] if i + 1 < len(positions) else len(data)
+
+        # Check whether this spread region contains any text content.
         scan_end = min(sp_end, sp_start + 1_000_000)
         has_text = any(
             data.find(tag, sp_start, scan_end) != -1
@@ -269,10 +278,13 @@ def _find_spread_boundaries(data: bytes) -> list[tuple[int, int]]:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Run-list parser
+# Run-list parser (paragraph style IDs per character range)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _parse_run_list(data: bytes, pos: int, run_count: int) -> list[tuple[int, int]]:
+    """
+    Returns [(char_end_index, style_id), ...] for up to run_count runs.
+    """
     runs: list[tuple[int, int]] = []
     for _ in range(run_count):
         if pos + 4 <= len(data) and data[pos:pos+4] == b'RAlG':
@@ -319,6 +331,10 @@ def _extract_blocks_in_region(
     region_start: int,
     region_end: int,
 ) -> list[tuple[int, str, list, list]]:
+    """
+    Scan the byte range [region_start, region_end) for text blocks.
+    Returns [(binary_offset, text, runs, para_runs), ...] in binary order.
+    """
     _UTF8_TAGS = (b'+8ftU', b'gUtf8+')
     _ATTR_TAG  = b'2ttAG'
     results: list[tuple[int, str, list, list]] = []
@@ -412,6 +428,9 @@ def _extract_blocks_in_region(
 def _join_linked_frames(
     blocks: list[tuple[int, str, list, list]],
 ) -> list[tuple[int, str, list, list]]:
+    """
+    Detect and join linked text frame chains.
+    """
     if len(blocks) < 2:
         return blocks
 
@@ -528,6 +547,7 @@ def _sort_spread_blocks(
 # ─────────────────────────────────────────────────────────────────────────────
 
 class _SeenTexts:
+    """Track text blocks we have already emitted to avoid duplicates."""
     def __init__(self) -> None:
         self._seen: set[str] = set()
 
@@ -544,6 +564,7 @@ class _SeenTexts:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _is_content(text: str) -> bool:
+    """Return True if the text contains at least one alphabetic character."""
     return any(c.isalpha() for c in text)
 
 
@@ -642,7 +663,7 @@ def _block_to_md(
         if not (1 <= len(trailing_stripped) <= 3 and trailing_stripped[0].isupper()):
             continue
         next_start = seg_b.lstrip('\x00')
-        if not next_start or not next_start[0].islower():
+        if not next_start or not next_start[0].islower():\
             continue
         resolved[idx] = (seg_a[:sep_pos + 1], role_a, off_a)
         resolved[idx + 1] = (trailing_stripped + seg_b, role_b, off_b)
@@ -938,7 +959,7 @@ def _dump_styles(data: bytes) -> None:
                         info["samples"].append(clean[:70])
 
     print(f"\n{'ID':>6}  {'Runs':>5}  Sample text")
-    print("\u2500" * 82)
+    print("─" * 82)
     for sid in sorted(id_info.keys()):
         info   = id_info[sid]
         sample = info["samples"][0] if info["samples"] else "(empty)"
@@ -958,8 +979,6 @@ def _dump_styles(data: bytes) -> None:
 def _get_template_style_names(data: bytes) -> list[str]:
     """
     Extract all style names stored in the Affinity template's irtS blocks.
-    These are the canonical human-readable names Affinity assigned to each style.
-    Returns deduplicated names in document order.
     """
     _IRTS = b'\xab\x69\x72\x74\x53'
     names: list[str] = []
@@ -985,10 +1004,6 @@ def _get_template_style_names(data: bytes) -> list[str]:
 def _auto_resolve_style_ids(data: bytes) -> dict[str, int]:
     """
     Use back-reference correlation to auto-resolve style names to run IDs.
-    Each style definition contains xdnI/1metI entries referencing specific
-    para-run boundaries in text blocks. By finding the char_run that contains
-    the start of the referenced para-run, we identify the style's run ID.
-    Returns {name: run_id} for high-confidence matches (>=2 corroborating refs).
     """
     _IRTS = b'\xab\x69\x72\x74\x53'
     _BJSB = b'\xb1sjb'
@@ -1095,24 +1110,11 @@ def _resolve_names_to_ids(
     data: bytes,
     name_map: dict[str, str],
 ) -> dict[int, dict]:
-    """
-    Resolve a {name -> markdown_role} map to {run_id -> entry} for this file.
-
-    Tier 1 - Back-reference correlation: reliable for heading styles.
-    Tier 2 - Frequency heuristics: body text (most frequent ID), p_italic
-              (second-most with long samples), bold (short samples).
-
-    Returns entries to merge into the main style_map before conversion.
-    Role-priority ordering ensures that when two names resolve to the same ID
-    (shared para boundary), the more semantically important role wins
-    (e.g. ">" beats "italic").
-    """
     if not name_map:
         return {}
 
     auto = _auto_resolve_style_ids(data)
 
-    # Collect char-run frequency + samples for Tier 2
     bounds = _find_spread_boundaries(data)
     char_freq: dict[int, int] = {}
     char_samples: dict[int, list] = {}
@@ -1135,9 +1137,6 @@ def _resolve_names_to_ids(
     resolved: dict[int, dict] = {}
     claimed: set[int] = set()
 
-    # Tier 1: auto-resolved (back-reference, high confidence)
-    # Process in role-priority order so that when two names resolve to the
-    # same ID (they share a para boundary), the more important role wins.
     _ROLE_PRIORITY = {
         "#": 0, "##": 1, "###": 2, "####": 3, "#####": 4, "######": 5,
         ">": 6, "callout": 7, "superscript": 8,
@@ -1157,7 +1156,6 @@ def _resolve_names_to_ids(
 
     unresolved = {n: r for n, r in name_map.items() if n not in auto}
 
-    # Tier 2a: body text = most frequent unclaimed ID
     body_names = [n for n, r in unresolved.items() if r == ""]
     if body_names:
         for cid, _ in sorted(char_freq.items(), key=lambda x: -x[1]):
@@ -1166,7 +1164,6 @@ def _resolve_names_to_ids(
                 claimed.add(cid)
                 break
 
-    # Tier 2b: p_italic = 2nd-most-freq unclaimed with long samples (instruction text)
     pitalic_names = [n for n, r in unresolved.items() if r == "p_italic"]
     if pitalic_names:
         for cid, _ in sorted(char_freq.items(), key=lambda x: -x[1]):
@@ -1178,14 +1175,12 @@ def _resolve_names_to_ids(
                 claimed.add(cid)
                 break
 
-    # Tier 2c: bold = unclaimed ID with very short samples (responsive reading labels)
     bold_names = [n for n, r in unresolved.items() if r == "bold"]
     if bold_names:
         for cid, cnt in sorted(char_freq.items(), key=lambda x: -x[1]):
             if cid in claimed:
                 continue
             samples = char_samples.get(cid, [])
-            # Responsive reading labels are always short (1-4 words)
             if samples and all(len(s.split()) <= 5 for s in samples) and cnt >= 5:
                 resolved[cid] = {"markdown": "bold", "name": bold_names[0]}
                 claimed.add(cid)
@@ -1200,16 +1195,7 @@ def _analyze_styles(
     name_map: dict,
     zstd_lib,
 ) -> None:
-    """
-    Produce a comprehensive style analysis report optimised for copy-pasting
-    to an AI assistant to update styles.yaml for a new book or template.
-
-    Usage:
-        python afpub_to_markdown.py --analyze-styles book.afpub
-    """
     data = _decompress_afpub(afpub_path, zstd_lib)
-    # Merge name-resolved IDs so analysis reflects accurate YAML status.
-    # Only add IDs not already covered by id-keyed entries.
     if name_map:
         resolved = _resolve_names_to_ids(data, name_map)
         new_entries = {rid: e for rid, e in resolved.items() if rid not in style_map}
@@ -1406,6 +1392,7 @@ def _convert(
     processed_blocks = 0
     skipped_master = 0
 
+    # ── Pre-scan: collect callout texts ───────────────────────────────────
     callout_texts: list[str] = []
     for sp_start, sp_end in boundaries:
         all_blocks = _extract_blocks_in_region(data, sp_start, sp_end)
@@ -1434,6 +1421,33 @@ def _convert(
             skipped_master += 1
             continue
 
+        # Hub spread detection: Affinity stores template copies of recurring
+        # section elements (Community Confessions, Final Review, Prepare Your
+        # Heart, etc.) in single "hub" spreads — once per session.  When all
+        # copies of a block are textually identical (same first 300 chars),
+        # keep only the first occurrence and discard the rest.  Blocks with
+        # unique content (hymns, verse collections, session scripture) are
+        # kept as-is since they differ per session.
+        _hub_key_counts: dict[str, int] = {}
+        for _, t, _, _ in raw_blocks:
+            _hk = t.strip()[:300]
+            if len(_hk) > 40 and _is_content(_hk):
+                _hub_key_counts[_hk] = _hub_key_counts.get(_hk, 0) + 1
+        if max(_hub_key_counts.values(), default=0) >= 3:
+            _seen_hub: set[str] = set()
+            _deduped: list = []
+            for _blk in raw_blocks:
+                _hk = _blk[1].strip()[:300]
+                if (_hub_key_counts.get(_hk, 0) >= 3
+                        and len(_hk) > 40 and _is_content(_hk)):
+                    if _hk not in _seen_hub:
+                        _seen_hub.add(_hk)
+                        _deduped.append(_blk)
+                    # else: drop this duplicate copy
+                else:
+                    _deduped.append(_blk)
+            raw_blocks = _deduped
+
         best_block: dict[str, tuple[int, str, list, list]] = {}
         for offset, text, runs, para_runs in raw_blocks:
             key = text.strip()[:80]
@@ -1456,6 +1470,7 @@ def _convert(
                 md_chunks.append("")
                 processed_blocks += 1
 
+    # Collapse multiple consecutive blank lines to one
     final: list[str] = []
     blank_streak = 0
     for line in md_chunks:
@@ -1485,7 +1500,7 @@ def _convert(
         ]
         print(f"\n  {len(unique_warns)} style warning(s):")
         for _, msg in unique_warns:
-            print(f"  \u26a0  {msg}")
+            print(f"  ⚠  {msg}")
         print(
             "\n  Run --analyze-styles for a full report, "
             "then update styles.yaml."
