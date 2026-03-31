@@ -1,16 +1,11 @@
 """
 model_loader.py — Thread-safe singleton for Marker/Surya model loading.
 
-Only loads the models actually needed for our trimmed processor list:
-  - layout_model:    Required by LayoutBuilder (core layout detection)
-  - detection_model: Required by LineBuilder (text line detection)
+Loads all models via create_model_dict() then immediately frees the three
+we don't need (recognition, table_rec, ocr_error) to stay within 8 GB RAM.
 
-Skipped (not needed with disable_ocr=True and no table/equation processors):
-  - recognition_model: OCR text recognition (we use embedded PDF text)
-  - table_rec_model:   Table structure (TableProcessor removed)
-  - ocr_error_model:   OCR error correction (OCR disabled)
-
-This cuts peak RAM from ~10 GB down to ~4 GB, fitting within 8 GB Cloud Run.
+With disable_ocr=True and TableProcessor removed, only layout_model and
+detection_model are actually used during conversion.
 """
 import logging
 import threading
@@ -42,53 +37,33 @@ def get_models() -> dict:
     return _models
 
 
-def _load_minimal_models() -> dict:
-    """
-    Load only the two models needed for layout + line detection.
-    Skips OCR, table, and error-correction models.
-    """
-    import torch
-    from surya.layout import LayoutPredictor
-    from surya.detection import DetectionPredictor
-    from surya.common.surya.schema import TaskNames
-    from surya.common.predictor import FoundationPredictor
-    from surya.settings import settings as surya_settings
-
-    device = "cpu"
-    dtype = torch.float32
-
-    logger.info("Loading layout_model...")
-    layout_model = LayoutPredictor(
-        FoundationPredictor(
-            checkpoint=surya_settings.LAYOUT_MODEL_CHECKPOINT,
-            device=device,
-            dtype=dtype,
-        )
-    )
-
-    logger.info("Loading detection_model...")
-    detection_model = DetectionPredictor(device=device, dtype=dtype)
-
-    return {
-        "layout_model": layout_model,
-        "detection_model": detection_model,
-        # These keys must exist in the dict even if unused,
-        # because PdfConverter checks for them by name.
-        "recognition_model": None,
-        "table_rec_model": None,
-        "ocr_error_model": None,
-    }
-
-
 def _do_load() -> None:
     global _models, _load_error, _loading
     try:
-        logger.info("Loading minimal model set (layout + detection only)...")
-        models = _load_minimal_models()
+        import torch
+        from marker.models import create_model_dict
+
+        logger.info("Loading models via create_model_dict() ...")
+        models = create_model_dict(device="cpu", dtype=torch.float32)
+        logger.info(f"All models loaded: {list(models.keys())}")
+
+        # Free the three models we don't use:
+        #   recognition_model: OCR text recognition  (disable_ocr=True)
+        #   table_rec_model:   Table structure        (TableProcessor removed)
+        #   ocr_error_model:   OCR error correction   (OCR disabled)
+        # Setting to None releases the PyTorch tensors and frees RAM.
+        for unused in ("recognition_model", "table_rec_model", "ocr_error_model"):
+            if unused in models:
+                logger.info(f"Freeing unused model: {unused}")
+                models[unused] = None
+
         with _lock:
             _models = models
             _loading = False
-        logger.info(f"Models ready: {[k for k, v in models.items() if v is not None]}")
+
+        active = [k for k, v in models.items() if v is not None]
+        logger.info(f"Models ready (active): {active}")
+
     except Exception as e:
         msg = f"Model loading failed: {e}"
         logger.error(msg, exc_info=True)
