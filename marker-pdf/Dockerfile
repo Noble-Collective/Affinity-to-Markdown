@@ -1,8 +1,4 @@
 # ── Marker PDF → Markdown conversion service ────────────────────────────────
-# Models are NOT baked into the image (too large for Cloud Build timeout).
-# Instead, models download to /app/models on first container startup and are
-# then held in memory for the lifetime of the instance.
-
 FROM python:3.11-slim
 
 # System libraries required by Surya (image processing, PDF rendering)
@@ -18,14 +14,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# ── Python dependencies ──────────────────────────────────────────────────────
+# ── Install CPU-only PyTorch first ─────────────────────────────────────────
+# The default PyPI torch includes CUDA binaries (~2 GB download).
+# The CPU-only build is ~200 MB — same functionality, no GPU needed.
+# pip won't re-download torch when marker-pdf is installed next because
+# the already-installed version satisfies marker's version constraint.
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+
+# ── Install remaining dependencies ────────────────────────────────────────
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ── Application code ─────────────────────────────────────────────────────────
 COPY . .
 
-# Model cache lives here at runtime (ephemeral, re-downloaded on cold start)
+# Model cache at runtime (ephemeral, re-downloaded on cold start)
 ENV HF_HOME=/app/models
 ENV TORCH_HOME=/app/models/torch
 ENV TRANSFORMERS_CACHE=/app/models/transformers

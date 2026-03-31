@@ -41,6 +41,5 @@ jobs:
             --min-instances=0
             --max-instances=3
             --cpu-boost
-            --build-timeout=1800
             --set-env-vars=GCS_BUCKET=affinity-markdown-uploads
           secrets: GCP_SA_KEY_B64=GCP_SA_KEY_B64:latest
