@@ -1,37 +1,23 @@
 # ── Marker PDF → Markdown conversion service ────────────────────────────────
-FROM python:3.11-slim
+# Builds on the pre-built base image which contains:
+#   - system libraries
+#   - all pip dependencies (torch CPU, marker-pdf, fastapi, etc.)
+#   - Surya model weights (~3 GB) baked in at /root/.cache/datalab/models/
+#
+# The base image is built ONCE manually via:
+#   gcloud builds submit marker-pdf \
+#     --config marker-pdf/cloudbuild-base.yaml \
+#     --project affinity-markdown-converter --timeout 3600
+#
+# Rebuild the base only when: upgrading marker-pdf, adding packages,
+# or updating Surya models.
 
-# System libraries required by Surya (image processing, PDF rendering)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        libgl1 \
-        libglib2.0-0 \
-        libgomp1 \
-        libsm6 \
-        libxext6 \
-        libxrender-dev \
-        poppler-utils \
-    && rm -rf /var/lib/apt/lists/*
+FROM us-east1-docker.pkg.dev/affinity-markdown-converter/cloud-run-source-deploy/marker-pdf-base:latest
+
+# Application code only — no pip install, no model download
+COPY . /app/
 
 WORKDIR /app
-
-# ── Install CPU-only PyTorch first ─────────────────────────────────────────
-# The default PyPI torch includes CUDA binaries (~2 GB download).
-# The CPU-only build is ~200 MB — same functionality, no GPU needed.
-# pip won't re-download torch when marker-pdf is installed next because
-# the already-installed version satisfies marker's version constraint.
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
-
-# ── Install remaining dependencies ────────────────────────────────────────
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# ── Application code ─────────────────────────────────────────────────────────
-COPY . .
-
-# Model cache at runtime (ephemeral, re-downloaded on cold start)
-ENV HF_HOME=/app/models
-ENV TORCH_HOME=/app/models/torch
-ENV TRANSFORMERS_CACHE=/app/models/transformers
 
 ENV PORT=8080
 EXPOSE 8080
