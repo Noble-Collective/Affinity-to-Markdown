@@ -1,0 +1,7 @@
+# Marker PDF → Markdown conversion service
+fastapi==0.111.0
+uvicorn==0.30.1
+python-multipart==0.0.9
+marker-pdf==1.10.2
+google-cloud-storage==2.16.0
+google-auth==2.29.0

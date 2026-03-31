@@ -1,0 +1,45 @@
+name: Deploy Marker PDF Service
+
+# Only runs when marker-pdf/ files change — completely independent of
+# the existing afpub-converter deploy workflow.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'marker-pdf/**'
+      - '.github/workflows/deploy-marker.yml'
+
+concurrency:
+  group: deploy-marker
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: marker-pdf-converter
+          region: us-east1
+          source: ./marker-pdf
+          flags: >
+            --memory=8Gi
+            --cpu=4
+            --timeout=600
+            --execution-environment=gen2
+            --concurrency=2
+            --min-instances=0
+            --max-instances=3
+            --set-env-vars=GCS_BUCKET=affinity-markdown-uploads
+          secrets: GCP_SA_KEY_B64=GCP_SA_KEY_B64:latest
