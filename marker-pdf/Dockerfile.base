@@ -38,11 +38,6 @@ RUN pip install --no-cache-dir \
         uvicorn==0.30.1 \
         python-multipart==0.0.9
 
-# Download Surya models into /app/models so they are baked into this layer
-RUN python -c "
-import torch
-from marker.models import create_model_dict
-print('Downloading Surya models...')
-models = create_model_dict(device='cpu', dtype=torch.float32)
-print('Done:', list(models.keys()))
-"
+# Download Surya models into /app/models so they are baked into this layer.
+# Single-line python -c to avoid Docker misinterpreting 'import' as an instruction.
+RUN python -c "import torch; from marker.models import create_model_dict; models = create_model_dict(device='cpu', dtype=torch.float32); print('Models ready:', list(models.keys()))"
