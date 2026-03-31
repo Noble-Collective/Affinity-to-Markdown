@@ -1,15 +1,18 @@
 """
 model_loader.py — Thread-safe singleton for Marker/Surya model loading.
 
-On startup, the loading sequence is:
-  1. Check if models already exist locally (warm instance reuse).
-  2. If not: try GCS cache (fast, ~1-2 min same-region download).
-  3. If no GCS cache: let Surya download from HuggingFace (~10-15 min).
-  4. After a HuggingFace download: save models to GCS for next time.
-  5. Load models into memory via create_model_dict().
+Only loads the models actually needed for our trimmed processor list:
+  - layout_model:    Required by LayoutBuilder (core layout detection)
+  - detection_model: Required by LineBuilder (text line detection)
+
+Skipped (not needed with disable_ocr=True and no table/equation processors):
+  - recognition_model: OCR text recognition (we use embedded PDF text)
+  - table_rec_model:   Table structure (TableProcessor removed)
+  - ocr_error_model:   OCR error correction (OCR disabled)
+
+This cuts peak RAM from ~10 GB down to ~4 GB, fitting within 8 GB Cloud Run.
 """
 import logging
-import os
 import threading
 from typing import Optional
 
@@ -39,41 +42,53 @@ def get_models() -> dict:
     return _models
 
 
+def _load_minimal_models() -> dict:
+    """
+    Load only the two models needed for layout + line detection.
+    Skips OCR, table, and error-correction models.
+    """
+    import torch
+    from surya.layout import LayoutPredictor
+    from surya.detection import DetectionPredictor
+    from surya.common.surya.schema import TaskNames
+    from surya.common.predictor import FoundationPredictor
+    from surya.settings import settings as surya_settings
+
+    device = "cpu"
+    dtype = torch.float32
+
+    logger.info("Loading layout_model...")
+    layout_model = LayoutPredictor(
+        FoundationPredictor(
+            checkpoint=surya_settings.LAYOUT_MODEL_CHECKPOINT,
+            device=device,
+            dtype=dtype,
+        )
+    )
+
+    logger.info("Loading detection_model...")
+    detection_model = DetectionPredictor(device=device, dtype=dtype)
+
+    return {
+        "layout_model": layout_model,
+        "detection_model": detection_model,
+        # These keys must exist in the dict even if unused,
+        # because PdfConverter checks for them by name.
+        "recognition_model": None,
+        "table_rec_model": None,
+        "ocr_error_model": None,
+    }
+
+
 def _do_load() -> None:
     global _models, _load_error, _loading
     try:
-        import torch
-        from marker.models import create_model_dict
-        import model_cache
-
-        bucket = os.environ.get("GCS_BUCKET", "")
-        used_gcs_cache = False
-
-        if model_cache.models_exist_locally():
-            logger.info("Models already on disk (warm instance)")
-        elif bucket:
-            used_gcs_cache = model_cache.restore_from_gcs(bucket)
-            if not used_gcs_cache:
-                logger.info("Downloading models from HuggingFace (first cold start)...")
-        else:
-            logger.info("No GCS bucket configured, downloading from HuggingFace...")
-
-        logger.info("Loading models into memory...")
-        models = create_model_dict(device="cpu", dtype=torch.float32)
-
+        logger.info("Loading minimal model set (layout + detection only)...")
+        models = _load_minimal_models()
         with _lock:
             _models = models
             _loading = False
-        logger.info(f"Models ready: {list(models.keys())}")
-
-        # Save to GCS after a fresh HuggingFace download
-        if bucket and not used_gcs_cache and not model_cache.models_exist_locally():
-            # models_exist_locally() would now return True, so check differently
-            pass  # save_to_gcs is called below
-        if bucket and not used_gcs_cache:
-            logger.info("Saving models to GCS cache for future cold starts...")
-            model_cache.save_to_gcs(bucket)
-
+        logger.info(f"Models ready: {[k for k, v in models.items() if v is not None]}")
     except Exception as e:
         msg = f"Model loading failed: {e}"
         logger.error(msg, exc_info=True)
