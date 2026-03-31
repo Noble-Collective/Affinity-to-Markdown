@@ -217,15 +217,12 @@ _ZSTD_MAGIC = bytes([0x28, 0xB5, 0x2F, 0xFD])
 _LINE_SEP   = "\u2028"   # Affinity line separator — normalised to this
 _PARA_SEP   = "\u2029"   # Affinity paragraph separator
 
-# Heading style IDs in this document — used for within-spread sort priority.
-# Lower number = higher heading level = sorts first.
-# Updated via styles.yaml; the extractor reads this dynamically from the map.
 _HEADING_SORT_ORDER = {
-    "#":     0,   # H1
-    "##":    1,   # H2
-    "###":   2,   # H3
-    "####":  3,   # H4
-    "#####": 4,   # H5
+    "#":     0,
+    "##":    1,
+    "###":   2,
+    "####":  3,
+    "#####": 4,
 }
 
 
@@ -264,8 +261,6 @@ def _find_spread_boundaries(data: bytes) -> list[tuple[int, int]]:
     boundaries: list[tuple[int, int]] = []
     for i, sp_start in enumerate(positions):
         sp_end = positions[i + 1] if i + 1 < len(positions) else len(data)
-
-        # Check whether this spread region contains any text content.
         scan_end = min(sp_end, sp_start + 1_000_000)
         has_text = any(
             data.find(tag, sp_start, scan_end) != -1
@@ -278,7 +273,7 @@ def _find_spread_boundaries(data: bytes) -> list[tuple[int, int]]:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Run-list parser (paragraph style IDs per character range)
+# Run-list parser
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _parse_run_list(data: bytes, pos: int, run_count: int) -> list[tuple[int, int]]:
@@ -333,7 +328,7 @@ def _extract_blocks_in_region(
 ) -> list[tuple[int, str, list, list]]:
     """
     Scan the byte range [region_start, region_end) for text blocks.
-    Returns [(binary_offset, text, runs, para_runs), ...] in binary order.
+    Returns [(binary_offset, text, char_runs, para_runs), ...] in binary order.
     """
     _UTF8_TAGS = (b'+8ftU', b'gUtf8+')
     _ATTR_TAG  = b'2ttAG'
@@ -428,9 +423,7 @@ def _extract_blocks_in_region(
 def _join_linked_frames(
     blocks: list[tuple[int, str, list, list]],
 ) -> list[tuple[int, str, list, list]]:
-    """
-    Detect and join linked text frame chains.
-    """
+    """Detect and join linked text frame chains."""
     if len(blocks) < 2:
         return blocks
 
@@ -663,7 +656,7 @@ def _block_to_md(
         if not (1 <= len(trailing_stripped) <= 3 and trailing_stripped[0].isupper()):
             continue
         next_start = seg_b.lstrip('\x00')
-        if not next_start or not next_start[0].islower():\
+        if not next_start or not next_start[0].islower():
             continue
         resolved[idx] = (seg_a[:sep_pos + 1], role_a, off_a)
         resolved[idx + 1] = (trailing_stripped + seg_b, role_b, off_b)
@@ -820,9 +813,6 @@ def _block_to_md(
 
             if _para_md == "<<" and not effective_role.startswith('#'):
                 effective_role = "<<"
-            # Paragraph-level blockquote override: scripture passages in verse
-            # collections use a body-text character style but a blockquote
-            # paragraph style — honour the para style when char style is plain.
             if _para_md == ">" and effective_role == "":
                 effective_role = ">"
 
@@ -977,9 +967,7 @@ def _dump_styles(data: bytes) -> None:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _get_template_style_names(data: bytes) -> list[str]:
-    """
-    Extract all style names stored in the Affinity template's irtS blocks.
-    """
+    """Extract all style names stored in the Affinity template's irtS blocks."""
     _IRTS = b'\xab\x69\x72\x74\x53'
     names: list[str] = []
     seen: set[str] = set()
@@ -1002,9 +990,7 @@ def _get_template_style_names(data: bytes) -> list[str]:
 
 
 def _auto_resolve_style_ids(data: bytes) -> dict[str, int]:
-    """
-    Use back-reference correlation to auto-resolve style names to run IDs.
-    """
+    """Use back-reference correlation to auto-resolve style names to run IDs."""
     _IRTS = b'\xab\x69\x72\x74\x53'
     _BJSB = b'\xb1sjb'
 
@@ -1355,8 +1341,132 @@ STEP 3 - Output format:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Main conversion
+# Session-aware hub routing + Main conversion  (v0.11)
 # ─────────────────────────────────────────────────────────────────────────────
+
+import re as _re
+
+_SESSION_FINGERPRINTS: list[tuple[int, str]] = [
+    # Prepare Your Heart – explicit Key Passage reference (most reliable)
+    (1, r'Key Passage.*Psalm\s+103'),
+    (2, r'Key Passage.*Psalm\s+78'),
+    (3, r'Key Passage.*Psalm\s+23'),
+    (4, r'Key Passage.*Psalm\s+34'),
+    (5, r'Key Passage.*Psalm\s+94'),
+    (6, r'Key Passage.*Psalm\s+12[78]'),
+    # Verse Collection – first scripture block
+    (1, r'Exodus\s+4:22'),
+    (2, r'Genesis\s+18:18'),
+    (3, r'Psalm\s+28:8'),
+    (4, r'Deuteronomy\s+6:6'),
+    (5, r'Deuteronomy\s+8:5'),
+    (6, r'Genesis\s+33:5'),
+    # Art Observation / Scriptural Reading
+    (2, r"sons will succeed your fathers"),
+    (1, r"Is not Ephraim a precious son"),
+    (3, r'Ezekiel\s+34'),
+    (5, r'little children.*brought to Jesus|children.*brought to.*Jesus'),
+    (6, r'All Scripture is God.breathed'),
+    # Getting Quiet – specific internal psalms
+    (2, r'Psalm\s+32:1|family of origins'),
+    (3, r'Micah\s+2:12|I will surely gather.*Jacob|sheep in a pen'),
+    (4, r'Psalm\s+118:4|fear the Lord.*say.*loving devotion'),
+    (5, r'Isaiah\s+26:16|when You disciplined them'),
+    (6, r'Psalm\s+148|children.*heritage.*launch|launched into the world'),
+    (1, r'Psalm\s+146|Psalm\s+147:1.3|fragile.*weak|tender care.*fatherly'),
+    # Hymns (Tuning Our Hearts)
+    (1, r'tender love a father has'),
+    (2, r"children hear the mighty deeds"),
+    (3, r'Savior.*shepherd lead'),
+    (4, r"Come.*child.*learn to fear"),
+    (5, r'mighty fortress is our God'),
+    (6, r"God is working this purpose out"),
+    # Scripture Readings (Tuning Our Hearts)
+    (1, r"You, O Lord.*our Father.*Redeemer from Everlasting"),
+    (3, r"Hear us, O Shepherd of Israel"),
+    (4, r"Teach me Your way.*undivided heart"),
+    (5, r"He who dwells in the shelter of the Most High"),
+    (2, r"Moses was faithful as a servant"),
+    (6, r"Be very strong.*keep and obey.*Book of the Law"),
+    # Reflection Questions
+    (2, r'Previous Generations.*impacted by previous'),
+    (3, r"God.s Shepherding Care.*shepherding care"),
+    (4, r"Fear of God.*fear of God in your life"),
+    (5, r"Danger and Threat.*most fear"),
+    (6, r"thriving.*flourishing home|vision.*thriving"),
+    # Project Instructions
+    (1, r"descriptive portrait.*God.s fatherly relationship"),
+    (2, r"upbringing and family heritage.*consider dynamics"),
+    (3, r"shepherding work.*write a job description"),
+    (4, r"vocation in faith formation.*recall the bibl"),
+    (5, r"prayer of protection.*children.*Psalm 94|Psalm 94.*prayer of protection"),
+    (6, r"responsibilities God has given.*disciple.*spouse.*parent"),
+    # Discuss with Spouse
+    (1, r"Did you worship God together as a family"),
+    (2, r"What traditions did you have growing"),
+    (3, r"culture of your home during your upbringing"),
+    (4, r"educational experience growing up"),
+    (5, r"discipline.*upbringing.*not appreciate|What was discipline like"),
+    (6, r"clear vision and mission.*family of upbringing"),
+    # Morning/Midday/Evening devotionals – session psalms
+    (1, r'Psalm\s+103(?!\s*:\s*[1-9][0-9])|Proverbs\s+4:20'),
+    (2, r'Psalm\s+78'),
+    (3, r'Psalm\s+23'),
+    (4, r'Psalm\s+34'),
+    (5, r'Psalm\s+94'),
+    (6, r'Psalm\s+12[78]'),
+    # Broader thematic fallbacks (low priority)
+    (2, r'previous generations|family heritage'),
+    (3, r'shepherd(?:ing)?|flock|pasture'),
+    (4, r'fear of God|fear the Lord|faith formation'),
+    (5, r'disciplin(?:e|ing)|prayer of protection'),
+    (6, r'vision.*mission|for the world|family.*legacy'),
+]
+
+
+def _classify_block_session(text: str) -> int:
+    """Return session 1-6 this hub block belongs to, or 0 (shared/unassigned)."""
+    flat = text.replace(_LINE_SEP, ' ')
+    for sess, pattern in _SESSION_FINGERPRINTS:
+        if _re.search(pattern, flat, _re.I):
+            return sess
+    return 0
+
+
+def _detect_session_anchors(
+    data: bytes,
+    boundaries: list[tuple[int, int]],
+) -> dict[int, int]:
+    """Scan all spreads for tiny 'Session Two/Three/.../Six' anchor spreads."""
+    NAMES = {
+        'Session Two': 2, 'Session Three': 3,
+        'Session Four': 4, 'Session Five': 5, 'Session Six': 6,
+    }
+    anchors: dict[int, int] = {}
+    for sp_start, sp_end in boundaries:
+        raw = _extract_blocks_in_region(data, sp_start, sp_end)
+        total = sum(len(t) for _, t, _, _ in raw)
+        if total > 100:
+            continue
+        for _, text, _, _ in raw:
+            clean = text.strip().rstrip('\x00')
+            for name, num in NAMES.items():
+                if clean == name and num not in anchors:
+                    anchors[num] = sp_start
+    return anchors
+
+
+def _is_hub_spread(blocks: list) -> bool:
+    """Return True when a spread contains 3+ blocks sharing the same section header."""
+    from collections import Counter
+    headers = []
+    for _, text, _, _ in blocks:
+        first = text.split(_LINE_SEP)[0].strip().rstrip('\x00')[:40]
+        if first and any(c.isalpha() for c in first):
+            headers.append(first)
+    counts = Counter(headers)
+    return any(cnt >= 3 for cnt in counts.values())
+
 
 def _convert(
     afpub_path: Path,
@@ -1371,8 +1481,6 @@ def _convert(
     print(f"  Decompressed  {len(data):,} bytes")
 
     # Resolve name-keyed styles to numeric IDs for this specific file.
-    # Only add IDs not already covered by id-keyed entries — id-keyed
-    # fallbacks always win over heuristic resolution.
     if name_map:
         name_resolved = _resolve_names_to_ids(data, name_map)
         if name_resolved:
@@ -1385,19 +1493,42 @@ def _convert(
     boundaries = _find_spread_boundaries(data)
     print(f"  Found         {len(boundaries)} spreads")
 
-    seen      = _SeenTexts()
     warnings: list[tuple[str, str]] = []
-    md_chunks: list[str] = []
+    _MASTER_LIMIT = 100_000
 
-    processed_blocks = 0
-    skipped_master = 0
+    # ── Phase 1: Detect session anchors and hub spreads ───────────────────
+    session_anchors = _detect_session_anchors(data, boundaries)
+    session_anchors[1] = 0   # Session 1 starts at the beginning
 
-    # ── Pre-scan: collect callout texts ───────────────────────────────────
+    sorted_anchor_items = sorted(session_anchors.items(), key=lambda x: x[1])
+
+    def _content_session(sp_start: int) -> int:
+        """Assign a non-hub spread to a session by binary offset."""
+        sess = 0
+        for num, anchor_off in sorted_anchor_items:
+            if sp_start >= anchor_off:
+                sess = num
+            else:
+                break
+        return sess
+
+    hub_spread_starts: set[int] = set()
+    for sp_start, sp_end in boundaries:
+        blocks = _extract_blocks_in_region(data, sp_start, sp_end)
+        total = sum(len(t) for _, t, _, _ in blocks)
+        if total > _MASTER_LIMIT or total < 50:
+            continue
+        if _is_hub_spread(blocks):
+            hub_spread_starts.add(sp_start)
+
+    print(f"  Hub spreads:   {len(hub_spread_starts)}")
+
+    # ── Phase 2: Pre-scan callout texts ───────────────────────────────────
     callout_texts: list[str] = []
     for sp_start, sp_end in boundaries:
         all_blocks = _extract_blocks_in_region(data, sp_start, sp_end)
         total_chars = sum(len(t) for _, t, _, _ in all_blocks)
-        if total_chars > 100_000:
+        if total_chars > _MASTER_LIMIT:
             continue
         for _, text, runs, _ in all_blocks:
             prev_end_ct = 0
@@ -1408,47 +1539,57 @@ def _convert(
                     if seg and len(seg) > 10:
                         callout_texts.append(seg)
                 prev_end_ct = ce
-
     callout_texts = sorted(set(callout_texts), key=len, reverse=True)
 
-    _MASTER_SPREAD_CHAR_LIMIT = 100_000
+    # ── Phase 3: Hub spreads – preserve ALL session variants ──────────────
+    # Use full-text dedup (not 80-char) so session-specific blocks that share
+    # a long identical prefix (Prepare Your Heart, Verse Collection, etc.)
+    # are each kept rather than collapsed to one copy.
+    session_hub_blocks: dict[int, list] = {i: [] for i in range(7)}
 
-    for sp_idx, (sp_start, sp_end) in enumerate(boundaries):
-        raw_blocks = _extract_blocks_in_region(data, sp_start, sp_end)
-
-        total_chars = sum(len(t) for _, t, _, _ in raw_blocks)
-        if total_chars > _MASTER_SPREAD_CHAR_LIMIT:
-            skipped_master += 1
+    for sp_start, sp_end in boundaries:
+        if sp_start not in hub_spread_starts:
+            continue
+        blocks = _extract_blocks_in_region(data, sp_start, sp_end)
+        total = sum(len(t) for _, t, _, _ in blocks)
+        if total > _MASTER_LIMIT:
             continue
 
-        # Hub spread detection: Affinity stores template copies of recurring
-        # section elements (Community Confessions, Final Review, Prepare Your
-        # Heart, etc.) in single "hub" spreads — once per session.  When all
-        # copies of a block are textually identical (same first 300 chars),
-        # keep only the first occurrence and discard the rest.  Blocks with
-        # unique content (hymns, verse collections, session scripture) are
-        # kept as-is since they differ per session.
-        _hub_key_counts: dict[str, int] = {}
-        for _, t, _, _ in raw_blocks:
-            _hk = t.strip()[:300]
-            if len(_hk) > 40 and _is_content(_hk):
-                _hub_key_counts[_hk] = _hub_key_counts.get(_hk, 0) + 1
-        if max(_hub_key_counts.values(), default=0) >= 3:
-            _seen_hub: set[str] = set()
-            _deduped: list = []
-            for _blk in raw_blocks:
-                _hk = _blk[1].strip()[:300]
-                if (_hub_key_counts.get(_hk, 0) >= 3
-                        and len(_hk) > 40 and _is_content(_hk)):
-                    if _hk not in _seen_hub:
-                        _seen_hub.add(_hk)
-                        _deduped.append(_blk)
-                    # else: drop this duplicate copy
-                else:
-                    _deduped.append(_blk)
-            raw_blocks = _deduped
+        seen_full: dict[str, tuple] = {}
+        for offset, text, runs, para_runs in blocks:
+            key = text.strip()
+            if key and _is_content(key) and key not in seen_full:
+                seen_full[key] = (offset, text, runs, para_runs)
 
-        best_block: dict[str, tuple[int, str, list, list]] = {}
+        for key, block in seen_full.items():
+            offset, text, runs, para_runs = block
+            sess = _classify_block_session(text)
+            session_hub_blocks[sess].append(block)
+
+    for sess in session_hub_blocks:
+        session_hub_blocks[sess].sort(key=lambda b: b[0])
+
+    # ── Phase 4: Non-hub spreads – group by session ────────────────────────
+    session_content_blocks: dict[int, list] = {i: [] for i in range(7)}
+    skipped_master = 0
+
+    for sp_start, sp_end in boundaries:
+        if sp_start in hub_spread_starts:
+            continue
+
+        raw_blocks = _extract_blocks_in_region(data, sp_start, sp_end)
+        total_chars = sum(len(t) for _, t, _, _ in raw_blocks)
+
+        if total_chars > _MASTER_LIMIT:
+            skipped_master += 1
+            continue
+        if total_chars < 20:
+            continue  # trivial session-anchor labels
+
+        sess = _content_session(sp_start)
+
+        # Within-spread dedup: keep copy with most runs
+        best_block: dict[str, tuple] = {}
         for offset, text, runs, para_runs in raw_blocks:
             key = text.strip()[:80]
             if not key or not _is_content(key):
@@ -1456,21 +1597,68 @@ def _convert(
             existing = best_block.get(key)
             if existing is None or len(runs) > len(existing[2]):
                 best_block[key] = (offset, text, runs, para_runs)
-        unique_in_spread = list(best_block.values())
 
-        sorted_blocks = _sort_spread_blocks(unique_in_spread, style_map)
+        sorted_blocks = _sort_spread_blocks(list(best_block.values()), style_map)
+        session_content_blocks[sess].extend(sorted_blocks)
 
-        for offset, text, runs, para_runs in sorted_blocks:
+    # ── Phase 5: Render in session order ──────────────────────────────────
+    seen = _SeenTexts()
+    md_chunks: list[str] = []
+    processed_blocks = 0
+
+    def _render_blocks(block_list: list) -> None:
+        nonlocal processed_blocks
+        for offset, text, runs, para_runs in block_list:
             if not seen.is_new(text):
                 continue
-
-            paras = _block_to_md(text, runs, para_runs, style_map, fallback, warnings, callout_texts)
+            paras = _block_to_md(
+                text, runs, para_runs, style_map, fallback, warnings, callout_texts
+            )
             if paras:
                 md_chunks.extend(paras)
                 md_chunks.append("")
                 processed_blocks += 1
 
-    # Collapse multiple consecutive blank lines to one
+    def _render_shared_hub() -> None:
+        """Shared hub blocks (section labels, instructions) emitted once per session."""
+        nonlocal processed_blocks
+        for offset, text, runs, para_runs in session_hub_blocks[0]:
+            paras = _block_to_md(
+                text, runs, para_runs, style_map, fallback, warnings, callout_texts
+            )
+            if paras:
+                md_chunks.extend(paras)
+                md_chunks.append("")
+                processed_blocks += 1
+
+    # Session 1: merge content + hub blocks and sort by binary offset.
+    # Hub spreads 21 and 38 sit at lower offsets than the S1 individual
+    # spreads, so binary order naturally interleaves them correctly.
+    s1_all = sorted(
+        session_content_blocks[1] + session_hub_blocks[1],
+        key=lambda b: b[0],
+    )
+    _render_blocks(s1_all)
+
+    # Sessions 2–6: individual content first, then session-specific hub blocks.
+    for sess in range(2, 7):
+        s_content = session_content_blocks[sess]
+        s_hub = session_hub_blocks[sess]
+        if not s_hub and not s_content:
+            continue
+        _render_blocks(s_content)
+        _render_shared_hub()   # section labels + instructions (shared)
+        _render_blocks(s_hub)  # session-specific content
+
+    # Appendix: non-hub content after S6 (conclusion, bibliography, etc.)
+    s6_offset = session_anchors.get(6, 0)
+    appendix_blocks = [
+        b for b in session_content_blocks[0]
+        if b[0] > s6_offset + 200_000
+    ]
+    _render_blocks(appendix_blocks)
+
+    # ── Phase 6: Post-process output ──────────────────────────────────────
     final: list[str] = []
     blank_streak = 0
     for line in md_chunks:
