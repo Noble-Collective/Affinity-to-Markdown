@@ -1,0 +1,206 @@
+# pdf_styles.yaml — Homestead book PDF font mapping
+# ─────────────────────────────────────────────────────────────────────────────
+# Maps (font_name, size) → markdown role for the HomeStead book PDF export.
+#
+# Discovered via --dump-fonts on HomeStead-Interior-Affinity Design-v1.001.pdf
+# Body font: TimesNewRomanPSMT @ 10.0pt (301,556 chars — most common)
+#
+# MARKDOWN ROLES:
+#   "#" – "######"  Heading levels H1–H6
+#   ""              Plain body text
+#   ">"             Blockquote paragraph
+#   "<<"            Citation / attribution (auto-detected when block < 100 chars)
+#   "bold"          Inline bold (applied per-span in body blocks)
+#   "italic"        Inline italic (applied per-span in body/quote blocks)
+#   "p_italic"      Whole paragraph italic (instructions)
+#   "superscript"   Inline <sup>N</sup> verse numbers
+#   "SKIP"          Omit entirely
+# ─────────────────────────────────────────────────────────────────────────────
+
+fonts:
+
+  # ── Session title (Regular 20pt — NOT bold) ───────────────────────────
+  - font: "TimesNewRomanPSMT"
+    size: 20.0
+    markdown: "#"
+    name: "Session Title"
+
+  # ── Movement / major section titles (Bold 20pt) ──────────────────────
+  - font: "TimesNewRomanPS-BoldMT"
+    size: 20.0
+    markdown: "###"
+    name: "Movement Title"
+
+  # ── Session subtitle (Italic 14pt) ───────────────────────────────
+  - font: "TimesNewRomanPS-ItalicMT"
+    size: 14.0
+    markdown: "##"
+    name: "Session Subtitle"
+
+  # ── Section headings (Bold 14pt) ────────────────────────────────
+  # e.g. Community Confession, Corporate Song, Key Idea, Overview
+  - font: "TimesNewRomanPS-BoldMT"
+    size: 14.0
+    markdown: "####"
+    name: "Section Heading"
+
+  # ── Next Steps and similar (Bold 18pt) ──────────────────────────
+  - font: "TimesNewRomanPS-BoldMT"
+    size: 18.0
+    markdown: "####"
+    name: "Next Steps Heading"
+
+  # ── Song / sub-section titles (Bold 12pt) ─────────────────────────
+  # e.g. "The Tender Love a Father Has", discussion sub-labels
+  - font: "TimesNewRomanPS-BoldMT"
+    size: 12.0
+    markdown: "#####"
+    name: "Song / Sub-section Heading"
+
+  # ── Body text (Regular 10pt) ───────────────────────────────────
+  - font: "TimesNewRomanPSMT"
+    size: 10.0
+    markdown: ""
+    name: "Body Text"
+
+  # ── Inline bold (Bold 10pt) ──────────────────────────────────
+  # e.g. "All:", "Reader:", "As priests..." in community readings
+  - font: "TimesNewRomanPS-BoldMT"
+    size: 10.0
+    markdown: "bold"
+    name: "Inline Bold"
+
+  # ── Inline italic (Italic 10pt) ──────────────────────────────
+  # e.g. "most holy work", "most humble walk"
+  - font: "TimesNewRomanPS-ItalicMT"
+    size: 10.0
+    markdown: "italic"
+    name: "Inline Italic"
+
+  # ── Instructional paragraphs (Italic 9.5pt) ──────────────────────
+  # e.g. "Unite your hearts together in worship..."
+  - font: "TimesNewRomanPS-ItalicMT"
+    size: 9.5
+    markdown: "p_italic"
+    name: "Instructions"
+
+  # ── Scripture blockquotes and extended quotes (Regular 8pt) ─────────
+  # Short blocks (<100 chars) auto-detected as citations (<<).
+  # e.g. Job 1:5 quote, Spurgeon quote, Jesus quote
+  - font: "TimesNewRomanPSMT"
+    size: 8.0
+    markdown: ">"
+    name: "Block Quote"
+
+  # ── Italic book titles in citations (Italic 8pt) ───────────────────
+  # e.g. "The Sick Man's Comfort Book" in attribution lines
+  - font: "TimesNewRomanPS-ItalicMT"
+    size: 8.0
+    markdown: "italic"
+    name: "Citation Italic"
+
+  # ── Psalm / scripture verse numbers (Bold 6pt superscript) ───────────
+  # e.g. "103:1", "2", "3" … "22" in Psalm 103
+  - font: "TimesNewRomanPS-BoldMT"
+    size: 6.0
+    markdown: "superscript"
+    name: "Verse Number Superscript"
+
+  # ── Running header small-caps (Bold 9.5pt) — SKIP ─────────────────
+  # e.g. "NTRODUCTION", "ESSION", "NE" (partial small-caps in headers)
+  - font: "TimesNewRomanPS-BoldMT"
+    size: 9.5
+    markdown: "SKIP"
+    name: "Running Header Small-Caps"
+
+  # ── Verse label small-caps (Bold 7pt) — handled by verse detection ────
+  # e.g. "ERSE" in "VERSE 4" drop-cap label
+  - font: "TimesNewRomanPS-BoldMT"
+    size: 7.0
+    markdown: "SKIP"
+    name: "Verse Label Small-Caps"
+
+  # ── Large decorative and front-matter text — SKIP ──────────────────
+  - font: "TimesNewRomanPSMT"
+    size: 58.0
+    markdown: "SKIP"
+    name: "Table of Contents Decorative"
+
+  - font: "TimesNewRomanPSMT"
+    size: 48.0
+    markdown: "SKIP"
+    name: "Large Decorative Title"
+
+  - font: "TimesNewRomanPSMT"
+    size: 28.0
+    markdown: "SKIP"
+    name: "Chapter Title Decorative"
+
+  - font: "TimesNewRomanPSMT"
+    size: 16.0
+    markdown: "SKIP"
+    name: "Front Matter Body"
+
+  - font: "TimesNewRomanPSMT"
+    size: 14.0
+    markdown: "SKIP"
+    name: "Front Matter Heading"
+
+  - font: "TimesNewRomanPSMT"
+    size: 12.0
+    markdown: "SKIP"
+    name: "Front Matter Small"
+
+  - font: "TimesNewRomanPSMT"
+    size: 9.5
+    markdown: "SKIP"
+    name: "Front Matter Caption"
+
+  - font: "TimesNewRomanPSMT"
+    size: 6.0
+    markdown: "SKIP"
+    name: "Artwork Attribution"
+
+  - font: "TimesNewRomanPS-BoldMT"
+    size: 24.0
+    markdown: "SKIP"
+    name: "Drop Cap Decorative"
+
+  - font: "TimesNewRomanPS-BoldMT"
+    size: 16.5
+    markdown: "SKIP"
+    name: "Art Section Label"
+
+  - font: "TimesNewRomanPS-BoldMT"
+    size: 16.0
+    markdown: "SKIP"
+    name: "Author Name Front Matter"
+
+  - font: "TimesNewRomanPS-ItalicMT"
+    size: 18.0
+    markdown: ">"
+    name: "Large Italic Block Quote"
+
+  - font: "TimesNewRomanPS-ItalicMT"
+    size: 6.0
+    markdown: "SKIP"
+    name: "Artwork Caption"
+
+  - font: "TimesNewRomanPS-ItalicMT"
+    size: 14.0
+    markdown: "##"
+    name: "Session Subtitle (dup)"
+
+  - font: "TimesNewRomanPSMT"
+    size: 20.0
+    markdown: "#"
+    name: "Session Title (dup)"
+
+  - font: "Garamond-Bold"
+    size: 10.0
+    markdown: "SKIP"
+    name: "Garamond Decorative"
+
+# Fallback for unmapped (font, size) combinations.
+# "body" treats them as plain body text silently.
+fallback: "body"

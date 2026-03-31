@@ -16,34 +16,44 @@ USAGE
 
   python pdf_to_markdown.py --dump-fonts book.pdf
       → calibration mode: prints all (font, size) combinations found,
-        their run counts, and sample text.  Use this to build pdf_styles.yaml
-        for a new book or template.
+        their character counts, and sample text.  Use this to build
+        pdf_styles.yaml for a new template.
 
 REQUIREMENTS
 ────────────
   Python 3.8+   pymupdf >= 1.23   (pip install pymupdf)
-  pdf_styles.yaml must live in the same folder as this script, or be
-  supplied via the template system (templates/<name>/pdf_styles.yaml).
+  pdf_styles.yaml lives in the template folder:
+    templates/<name>/pdf_styles.yaml
 
 pdf_styles.yaml FORMAT
 ──────────────────────
   fonts:
     - font: "TimesNewRomanPS-BoldMT"
-      size: 24.0
-      markdown: "#"
+      size: 20.0
+      markdown: "###"        # role for this font+size combination
+      name: "Movement Title" # optional human-readable label
 
-    - font: "*"          # wildcard — matches any font at this size
+    - font: "*"              # wildcard — any font at this size
       size: 18.0
-      markdown: "##"
+      markdown: ">"
 
-    - font: "ArialMT"
-      size: 10.5
-      markdown: ""       # plain body text
+  fallback: "body"           # "body" | "skip" | "warn"
 
-  fallback: "warn"       # "body" | "skip" | "warn"
+Sizes are matched to the nearest 0.5 pt.  Run --dump-fonts first to
+find the exact font names and sizes Affinity Publisher embedded in
+your PDF export.
 
-Sizes are matched to the nearest 0.5 pt.  Run --dump-fonts first to find
-the exact font names and sizes Affinity Publisher embedded in your PDF.
+MARKDOWN ROLES
+──────────────
+  "#" – "######"  Heading levels H1–H6
+  ""              Plain body text (join lines within block)
+  ">"             Blockquote paragraph
+  "<<"            Right-aligned citation / attribution
+  "bold"          Inline bold (applied per-span within body)
+  "italic"        Inline italic (applied per-span within body)
+  "p_italic"      Whole paragraph in italic
+  "superscript"   Inline <sup>N</sup> (e.g. verse numbers)
+  "SKIP"          Omit entirely
 """
 
 import glob
@@ -134,9 +144,8 @@ def _iter_text_spans(doc):
 
 def _detect_body_font(doc) -> tuple[str, float]:
     """
-    Return (font_name, size_bucket) for the most frequently used
-    font combination (by character count).  This is almost always the
-    body text font.
+    Return (font_name, size_bucket) for the most-used font (by character
+    count).  This is almost always the body text font.
     """
     counts: Counter = Counter()
     for span in _iter_text_spans(doc):
@@ -154,8 +163,7 @@ def _detect_body_font(doc) -> tuple[str, float]:
 def _dump_fonts(pdf_path: Path) -> None:
     """
     Print every (font, size) combination found in the PDF with
-    character-count totals and sample text.  Calibration tool for
-    building pdf_styles.yaml.
+    character-count totals and sample text.  Calibration tool.
     """
     if fitz is None:
         print("ERROR: PyMuPDF not installed (pip install pymupdf)")
@@ -189,7 +197,6 @@ def _dump_fonts(pdf_path: Path) -> None:
     print(
         "\nBuild pdf_styles.yaml by mapping each combination to a markdown role."
         "\nThe BODY font maps to markdown: \"\" (plain body text)."
-        "\nLarger/bolder fonts typically map to heading levels (#, ##, ###, etc.)."
         "\nRun this report after exporting from Affinity Publisher with embedded fonts.\n"
     )
 
@@ -198,15 +205,25 @@ def _dump_fonts(pdf_path: Path) -> None:
 # Role resolution
 # ────────────────────────────────────────────────────────────────────────────────
 
-def _auto_role(font_name: str, size_b: float, body_size: float) -> str:
-    """
-    Heuristic role when the font/size is not in the style map.
-    Uses size ratio relative to body and font-name keywords as signals.
-    """
+def _resolve_role(
+    font_name: str,
+    size_b: float,
+    font_map: dict,
+    body_size: float,
+    fallback: str,
+    warnings: list,
+) -> str:
+    """Look up a (font, size) pair in the font map and return its Markdown role."""
+    # Exact match
+    if (font_name, size_b) in font_map:
+        return font_map[(font_name, size_b)]
+    # Wildcard
+    if ("*", size_b) in font_map:
+        return font_map[("*", size_b)]
+    # Auto-heuristic from size ratio and font-name keywords
     fname = font_name.lower()
     is_bold = "bold" in fname
     is_italic = "italic" in fname or "oblique" in fname
-
     if body_size > 0:
         ratio = size_b / body_size
         if ratio >= 1.9:
@@ -219,60 +236,37 @@ def _auto_role(font_name: str, size_b: float, body_size: float) -> str:
             return "####"
         elif ratio >= 1.05 and is_bold:
             return "#####"
-
     if is_bold and not is_italic:
         return "bold"
     if is_italic and not is_bold:
         return "italic"
-    return ""
-
-
-def _resolve_role(
-    font_name: str,
-    size: float,
-    font_map: dict,
-    body_size: float,
-    fallback: str,
-    warnings: list,
-) -> str:
-    size_b = _size_bucket(size)
-    # Exact (font, size) match
-    if (font_name, size_b) in font_map:
-        return font_map[(font_name, size_b)]
-    # Wildcard — any font at this size
-    if ("*", size_b) in font_map:
-        return font_map[("*", size_b)]
-    # Auto-detect from size ratio and font name
-    auto = _auto_role(font_name, size_b, body_size)
-    if auto:
-        return auto
     # Fallback
     if fallback == "warn":
-        warnings.append(f"Unmapped font: {font_name!r} @ {size:.1f}pt")
+        warnings.append(f"Unmapped font: {font_name!r} @ {size_b:.1f}pt")
     elif fallback == "skip":
         return "SKIP"
     return ""
 
 
 # ────────────────────────────────────────────────────────────────────────────────
-# Block → Markdown
+# Block helpers
 # ────────────────────────────────────────────────────────────────────────────────
 
 def _is_page_artifact(block: dict, page_height: float) -> bool:
     """
-    Heuristically detect page numbers, running headers, and footers.
-    A block in the top or bottom 4% of the page that contains fewer
-    than 30 characters is treated as a layout artifact and skipped.
+    Detect page numbers, running headers, and footers.
+    A block in the top or bottom 5% of the page with fewer than
+    40 characters is treated as a layout artifact and skipped.
     """
     bbox = block.get("bbox", (0, 0, 0, 0))
     y_top, y_bot = bbox[1], bbox[3]
-    if y_top < page_height * 0.04 or y_bot > page_height * 0.96:
+    if y_top < page_height * 0.05 or y_bot > page_height * 0.95:
         total = "".join(
             span["text"]
             for line in block.get("lines", [])
             for span in line.get("spans", [])
         ).strip()
-        if len(total) < 30:
+        if len(total) < 40:
             return True
     return False
 
@@ -287,6 +281,10 @@ def _span_is_italic(span: dict) -> bool:
     return "italic" in fname or "oblique" in fname or bool(span.get("flags", 0) & 2)
 
 
+# ────────────────────────────────────────────────────────────────────────────────
+# Block → Markdown
+# ────────────────────────────────────────────────────────────────────────────────
+
 def _block_to_md(
     block: dict,
     font_map: dict,
@@ -296,15 +294,17 @@ def _block_to_md(
     warnings: list,
 ) -> list[str]:
     """
-    Convert one PDF text block into a list of Markdown paragraph strings.
+    Convert one PDF text block into Markdown paragraph strings.
 
-    Strategy:
-    - Determine the dominant font/size for the block (by character count).
-    - Look up that font in the style map to get the block-level role.
-    - Heading blocks collapse all spans into a single prefixed line.
-    - Body blocks reconstruct line-by-line with inline bold/italic
-      detection based on per-span font differences from the body font.
-    - List items are detected from leading bullet/number characters.
+    Core design:
+    - Determine the dominant font/size for the block to get the block-level role.
+    - Heading blocks: collapse all spans into a single prefixed line.
+    - Body/quote blocks: join all visual lines within the block into a single
+      paragraph string (PDF line breaks are reflowing, not semantic).
+    - Inline bold/italic: applied per-span within body blocks when the span
+      font differs from the body font in bold/italic status.
+    - Special blocks: verse labels (drop-cap + small-caps) and running headers
+      (all-caps mixed-size) are detected and handled before role resolution.
     """
     if block.get("type") != 0:
         return []
@@ -318,7 +318,58 @@ def _block_to_md(
     if not all_spans:
         return []
 
-    # Dominant font = most characters across all content spans
+    # Collect all sizes present in this block
+    sizes_present = {_size_bucket(s["size"]) for s in all_spans}
+
+    # ── 1. Verse label detection ───────────────────────────────────────────────
+    # Affinity Publisher renders hymn verse labels as drop-cap + small-caps:
+    # Bold 10pt "V" + Bold 7pt "ERSE" + Bold 10pt "4"
+    # These are always in the same block as the verse body text.
+    if 7.0 in sizes_present:
+        # Collect the drop-cap + small-caps spans (Bold, ≤10pt)
+        label_spans = [
+            s for s in all_spans
+            if _size_bucket(s["size"]) in (7.0, 10.0) and _span_is_bold(s)
+        ]
+        # Collect the verse body spans (Regular, 10pt)
+        body_spans_by_line: dict[float, list] = {}
+        for line in block.get("lines", []):
+            line_y = round(line["bbox"][1])
+            for span in line.get("spans", []):
+                if span["text"].strip() and not _span_is_bold(span) and _size_bucket(span["size"]) == body_size:
+                    body_spans_by_line.setdefault(line_y, []).append(span["text"])
+
+        raw_label = "".join(s["text"] for s in label_spans).replace(" ", "")
+        m = re.match(r"V(?:ERSE)?(\d+)", raw_label.upper())
+        if m:
+            result = [f"###### Verse {m.group(1)}"]
+            for line_y in sorted(body_spans_by_line):
+                line_text = " ".join(body_spans_by_line[line_y]).strip()
+                if line_text:
+                    result.append(line_text + "  ")  # Markdown hard line break
+            return result
+        # Unknown 7pt content — skip block
+        return []
+
+    # ── 2. Running header detection ────────────────────────────────────────────
+    # Drop-cap + small-caps running headers (e.g. "INTRODUCTION SESSION ONE",
+    # "SESSION ONE: UNDER GOD'S FATHERLY CARE") have mixed large (14pt) and
+    # small (9.5pt) bold spans whose combined text is all-uppercase.
+    if 9.5 in sizes_present and any(s >= 12.0 for s in sizes_present):
+        full_text = "".join(s["text"] for s in all_spans).strip()
+        if full_text and all(
+            c.isupper() or c in " :'\'\",-" for c in full_text
+        ) and any(c.isalpha() for c in full_text):
+            return []
+
+    # ── 3. Page number suppression ─────────────────────────────────────────────
+    # Single-block spans that are purely numeric = page numbers
+    if len(all_spans) == 1:
+        t = all_spans[0]["text"].strip()
+        if re.match(r"^\d{1,4}$", t):
+            return []
+
+    # ── Determine block-level role ────────────────────────────────────────────
     font_chars: Counter = Counter()
     for span in all_spans:
         text = span["text"].strip()
@@ -337,97 +388,151 @@ def _block_to_md(
     if block_role == "SKIP":
         return []
 
-    # ── Heading block ────────────────────────────────────────────────────────
+    # ── 4. Citation auto-detection ────────────────────────────────────────────
+    # Blockquote blocks shorter than 100 chars are attributions/citations.
+    if block_role == ">":
+        total_chars = sum(len(s["text"].strip()) for s in all_spans)
+        if total_chars < 100:
+            block_role = "<<"
+
+    # ── Heading block ─────────────────────────────────────────────────────────
     if block_role and block_role.startswith("#"):
         text = " ".join(
-            span["text"].strip() for span in all_spans if span["text"].strip()
+            s["text"].strip() for s in all_spans if s["text"].strip()
         )
-        text = " ".join(text.split())  # normalise whitespace
+        text = " ".join(text.split())
         if text and any(c.isalpha() for c in text):
             return [f"{block_role} {text}"]
         return []
 
-    # ── Body / blockquote / list block ─ reconstruct line by line ──────────
-    result_lines: list[str] = []
-    current_parts: list[str] = []
-    prev_y: float | None = None
+    # ── Body / blockquote / citation block ────────────────────────────────────
+    # Collect per-visual-line chunks, then join lines into paragraph(s).
+    # Within each visual line, apply per-span inline formatting (bold/italic)
+    # when the span font differs from the block's dominant style.
 
     body_is_bold = "bold" in body_font.lower()
     body_is_italic = "italic" in body_font.lower() or "oblique" in body_font.lower()
 
+    # Group spans by visual line (Y coordinate bucket)
+    lines_by_y: dict[int, list] = {}
     for line in block.get("lines", []):
-        spans = [s for s in line.get("spans", []) if s["text"].strip()]
-        if not spans:
-            continue
+        line_y = round(line["bbox"][1])
+        for span in line.get("spans", []):
+            if span["text"]:  # include spaces too
+                lines_by_y.setdefault(line_y, []).append(span)
 
-        line_y = line["bbox"][1]
-        # New visual line: more than 3 pt gap in Y
-        if prev_y is not None and abs(line_y - prev_y) > 3 and current_parts:
-            result_lines.append("".join(current_parts))
-            current_parts = []
-
-        for span in spans:
+    # Build one string per visual line with inline markup
+    visual_lines: list[str] = []
+    for line_y in sorted(lines_by_y):
+        parts: list[str] = []
+        for span in lines_by_y[line_y]:
             text = span["text"]
             if not text.strip():
-                current_parts.append(text)
+                parts.append(text)
                 continue
 
-            # Inline bold/italic: only applied inside body-text blocks,
-            # and only when this span differs from the body font style.
+            size_b = _size_bucket(span["size"])
+            span_role = _resolve_role(span["font"], size_b, font_map, body_size, [], [])
+
+            if span_role == "SKIP":
+                continue
+
+            # Superscript: verse numbers, footnotes (e.g. Bold 6pt)
+            if span_role == "superscript":
+                parts.append(f"<sup>{text.strip()}</sup>")
+                continue
+
+            # Inline italic within blockquote (e.g. book titles in citations)
+            if block_role in (">", "<<") and span_role == "italic":
+                parts.append(f"*{text.strip()}*")
+                continue
+
+            # Inline bold/italic within body blocks
             if block_role == "":
-                span_size_b = _size_bucket(span["size"])
-                size_matches_body = abs(span_size_b - body_size) < 0.6
+                size_matches_body = abs(size_b - body_size) < 0.6
                 is_bold = _span_is_bold(span)
                 is_italic = _span_is_italic(span)
-
                 if size_matches_body and not body_is_bold and not body_is_italic:
                     if is_bold and is_italic:
-                        current_parts.append(f"***{text}***")
+                        parts.append(f"***{text}***")
                     elif is_bold:
-                        current_parts.append(f"**{text}**")
+                        parts.append(f"**{text}**")
                     elif is_italic:
-                        current_parts.append(f"*{text}*")
+                        parts.append(f"*{text}*")
                     else:
-                        current_parts.append(text)
+                        parts.append(text)
                 else:
-                    current_parts.append(text)
+                    parts.append(text)
             else:
-                current_parts.append(text)
+                parts.append(text)
 
-        prev_y = line_y
+        line_text = "".join(parts).strip()
+        if line_text:
+            visual_lines.append(line_text)
 
-    if current_parts:
-        result_lines.append("".join(current_parts))
+    if not visual_lines:
+        return []
 
-    # Apply block-level role
+    # ── Join visual lines into paragraph(s) ───────────────────────────────────
+    # For body, blockquote, and citation blocks: PDF visual line breaks are
+    # text reflow, not semantic. Join all lines into a single paragraph.
+    # Exception: if a line ends with punctuation that suggests it's a complete
+    # sentence AND the next line starts with an uppercase letter or number,
+    # keep it as a separate paragraph (handles multi-paragraph blocks).
+    paragraphs: list[str] = []
+    current_para_parts: list[str] = []
+
+    for i, vline in enumerate(visual_lines):
+        if not current_para_parts:
+            current_para_parts.append(vline)
+        else:
+            prev = current_para_parts[-1]
+            # Paragraph break heuristic: prev ends with sentence-final punctuation
+            # AND current starts with uppercase or quote — treat as new paragraph.
+            # But only split if both sides are substantial (not mid-hyphenation).
+            ends_sentence = prev.rstrip().endswith(("."  , "!", "?", "\u201d", "'"))
+            starts_upper = vline and (vline[0].isupper() or vline[0].isdigit())
+            both_long = len(prev) > 60 and len(vline) > 40
+            if ends_sentence and starts_upper and both_long:
+                paragraphs.append(" ".join(current_para_parts))
+                current_para_parts = [vline]
+            else:
+                # Join with space, trimming duplicate whitespace at boundary
+                joined = prev.rstrip() + " " + vline.lstrip()
+                current_para_parts[-1] = joined
+
+    if current_para_parts:
+        paragraphs.append(" ".join(current_para_parts))
+
+    # ── Apply block-level prefix and list detection ───────────────────────────
     output: list[str] = []
-    for raw in result_lines:
-        raw = raw.strip()
-        if not raw or not any(c.isalpha() or c.isdigit() for c in raw):
+    for para in paragraphs:
+        para = para.strip()
+        if not para or not any(c.isalpha() or c.isdigit() for c in para):
             continue
 
-        # Detect list items from leading characters (body blocks only)
         if block_role == "":
-            bullet_m = re.match(r"^[\u2022\u2023\u25e6\-\*]\s+(.+)$", raw)
-            num_m = re.match(r"^(\d+)[.)]\s+(.+)$", raw)
+            # Detect list items
+            bullet_m = re.match(
+                r"^[\u2022\u2023\u25e6\u2013\-\*]\s+(.+)$", para
+            )
+            num_m = re.match(r"^(\d+)[.)]\s+(.+)$", para)
             if bullet_m:
                 output.append(f"- {bullet_m.group(1)}")
-                continue
-            if num_m:
+            elif num_m:
                 output.append(f"{num_m.group(1)}. {num_m.group(2)}")
-                continue
-
-        if block_role == ">":
-            output.append(f"> {raw}")
+            else:
+                output.append(para)
+        elif block_role == ">":
+            output.append(f"> {para}")
         elif block_role == "<<":
-            output.append(f"<< {raw}")
+            output.append(f"<< {para}")
         elif block_role == "p_italic":
-            output.append(f"*{raw}*")
-        elif block_role in ("bold", "italic", ""):
-            output.append(raw)
+            output.append(f"*{para}*")
+        elif block_role in ("bold", "italic"):
+            output.append(para)  # standalone bold/italic blocks render as plain
         else:
-            # Catch-all for any unmapped role
-            output.append(raw)
+            output.append(para)
 
     return output
 
@@ -442,9 +547,6 @@ def _convert_pdf(
     font_map: dict,
     fallback: str,
 ) -> None:
-    """
-    Convert a PDF file to Markdown and write the result to output_path.
-    """
     if fitz is None:
         raise RuntimeError("PyMuPDF not installed — run: pip install pymupdf")
 
@@ -474,7 +576,7 @@ def _convert_pdf(
             if lines:
                 all_lines.append("")  # blank line between blocks
 
-    # Collapse runs of blank lines to a single blank
+    # Collapse consecutive blank lines to one
     final: list[str] = []
     prev_blank = False
     for line in all_lines:
