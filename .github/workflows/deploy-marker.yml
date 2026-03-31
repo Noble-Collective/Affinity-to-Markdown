@@ -40,6 +40,6 @@ jobs:
             --concurrency=2
             --min-instances=0
             --max-instances=3
-            --startup-cpu-boost
+            --cpu-boost
             --set-env-vars=GCS_BUCKET=affinity-markdown-uploads
           secrets: GCP_SA_KEY_B64=GCP_SA_KEY_B64:latest
