@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'afpub_to_markdown.py'
+      - 'main.py'
+      - 'pdf_to_markdown.py'
+      - 'requirements.txt'
+      - 'Dockerfile'
+      - 'static/**'
+      - 'templates/**'
+      - '.github/workflows/deploy.yml'
 
 concurrency:
   group: deploy
