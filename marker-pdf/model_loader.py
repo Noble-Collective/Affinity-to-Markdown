@@ -1,9 +1,9 @@
 """
 model_loader.py — Model loading for the Marker PDF converter.
 
-Provides both synchronous (load_sync) and async-friendly accessors.
-load_sync() is called from app.py __main__ BEFORE uvicorn starts,
-so models are always ready when the first request arrives.
+Loads all 5 Marker/Surya models synchronously before uvicorn starts.
+All models are kept in memory — even with disable_ocr=True, Marker
+still accesses model objects internally during the pipeline.
 """
 import logging
 from typing import Optional
@@ -31,7 +31,6 @@ def get_models() -> dict:
 def load_sync() -> None:
     """
     Load all Marker/Surya models synchronously.
-    Frees the three unused models after loading to stay within 8 GB RAM.
     Blocks until complete. Called once at startup before uvicorn starts.
     """
     global _models, _load_error
@@ -39,19 +38,10 @@ def load_sync() -> None:
         import torch
         from marker.models import create_model_dict
 
-        logger.info("Loading models via create_model_dict()...")
+        logger.info("Loading all Marker models...")
         models = create_model_dict(device="cpu", dtype=torch.float32)
-        logger.info(f"All models loaded: {list(models.keys())}")
-
-        # Free unused models to reduce steady-state RAM
-        for unused in ("recognition_model", "table_rec_model", "ocr_error_model"):
-            if unused in models:
-                models[unused] = None
-                logger.info(f"Freed unused model: {unused}")
-
         _models = models
-        active = [k for k, v in models.items() if v is not None]
-        logger.info(f"Models ready (active): {active}")
+        logger.info(f"Models ready: {list(models.keys())}")
 
     except Exception as e:
         msg = f"Model loading failed: {e}"
@@ -59,6 +49,6 @@ def load_sync() -> None:
         _load_error = msg
 
 
-# Keep start_loading() as a no-op for backwards compatibility
 def start_loading() -> None:
+    """No-op — kept for backwards compatibility."""
     pass
