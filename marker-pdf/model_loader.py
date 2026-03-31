@@ -1,22 +1,17 @@
 """
-model_loader.py — Thread-safe singleton for Marker/Surya model loading.
+model_loader.py — Model loading for the Marker PDF converter.
 
-Loads all models via create_model_dict() then immediately frees the three
-we don't need (recognition, table_rec, ocr_error) to stay within 8 GB RAM.
-
-With disable_ocr=True and TableProcessor removed, only layout_model and
-detection_model are actually used during conversion.
+Provides both synchronous (load_sync) and async-friendly accessors.
+load_sync() is called from app.py __main__ BEFORE uvicorn starts,
+so models are always ready when the first request arrives.
 """
 import logging
-import threading
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 _models: Optional[dict] = None
 _load_error: Optional[str] = None
-_lock = threading.Lock()
-_loading = False
 
 
 def models_ready() -> bool:
@@ -27,57 +22,43 @@ def load_error() -> Optional[str]:
     return _load_error
 
 
-def is_loading() -> bool:
-    return _loading
-
-
 def get_models() -> dict:
     if _models is None:
         raise RuntimeError("Models not loaded yet")
     return _models
 
 
-def _do_load() -> None:
-    global _models, _load_error, _loading
+def load_sync() -> None:
+    """
+    Load all Marker/Surya models synchronously.
+    Frees the three unused models after loading to stay within 8 GB RAM.
+    Blocks until complete. Called once at startup before uvicorn starts.
+    """
+    global _models, _load_error
     try:
         import torch
         from marker.models import create_model_dict
 
-        logger.info("Loading models via create_model_dict() ...")
+        logger.info("Loading models via create_model_dict()...")
         models = create_model_dict(device="cpu", dtype=torch.float32)
         logger.info(f"All models loaded: {list(models.keys())}")
 
-        # Free the three models we don't use:
-        #   recognition_model: OCR text recognition  (disable_ocr=True)
-        #   table_rec_model:   Table structure        (TableProcessor removed)
-        #   ocr_error_model:   OCR error correction   (OCR disabled)
-        # Setting to None releases the PyTorch tensors and frees RAM.
+        # Free unused models to reduce steady-state RAM
         for unused in ("recognition_model", "table_rec_model", "ocr_error_model"):
             if unused in models:
-                logger.info(f"Freeing unused model: {unused}")
                 models[unused] = None
+                logger.info(f"Freed unused model: {unused}")
 
-        with _lock:
-            _models = models
-            _loading = False
-
+        _models = models
         active = [k for k, v in models.items() if v is not None]
         logger.info(f"Models ready (active): {active}")
 
     except Exception as e:
         msg = f"Model loading failed: {e}"
         logger.error(msg, exc_info=True)
-        with _lock:
-            _load_error = msg
-            _loading = False
+        _load_error = msg
 
 
+# Keep start_loading() as a no-op for backwards compatibility
 def start_loading() -> None:
-    global _loading
-    with _lock:
-        if _models is not None or _load_error is not None or _loading:
-            return
-        _loading = True
-    thread = threading.Thread(target=_do_load, daemon=True, name="model-loader")
-    thread.start()
-    logger.info("Model loading started in background thread")
+    pass
