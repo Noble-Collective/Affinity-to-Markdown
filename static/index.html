@@ -18,6 +18,11 @@
     header p { color: var(--muted); margin-top: 6px; font-size: 0.95rem; }
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px 32px; width: 100%; max-width: 600px; margin-bottom: 20px; }
     .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 18px; }
+    .format-toggle { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 20px; }
+    .format-toggle button { flex: 1; padding: 8px 16px; border: none; background: var(--surface); color: var(--muted); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background 0.15s, color 0.15s; }
+    .format-toggle button:not(:last-child) { border-right: 1px solid var(--border); }
+    .format-toggle button.active { background: var(--accent); color: #fff; }
+    .format-toggle button:hover:not(.active) { background: #f0faf4; color: var(--accent); }
     .dropzone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 36px 20px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative; }
     .dropzone:hover, .dropzone.drag-over { border-color: var(--accent); background: #f0faf4; }
     .dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
@@ -72,15 +77,22 @@
 
   <div class="card">
     <h2>Convert Files</h2>
+
+    <!-- Format toggle -->
+    <div class="format-toggle">
+      <button id="fmt-pdf" class="active" onclick="setFormat('pdf')">PDF (.pdf)</button>
+      <button id="fmt-afpub" onclick="setFormat('afpub')">Affinity Publisher (.afpub)</button>
+    </div>
+
     <div class="dropzone" id="dropzone">
-      <input type="file" id="file-input" accept=".afpub" multiple />
-      <div class="icon">📄</div>
-      <div class="label"><strong>Choose files</strong> or drag and drop here</div>
-      <div class="size-note">.afpub files only · Max 500 MB per file</div>
+      <input type="file" id="file-input" accept=".pdf" multiple />
+      <div class="icon">📑</div>
+      <div class="label"><strong>Choose PDF files</strong> or drag and drop here</div>
+      <div class="size-note">.pdf files only &middot; Max 500 MB per file</div>
     </div>
     <div id="file-list"></div>
     <div class="field">
-      <label for="template-select">Template</label>
+      <label for="template-select">Template <span style="font-weight:400;color:var(--muted)">(optional for PDF)</span></label>
       <select id="template-select"><option value="">Loading templates…</option></select>
     </div>
     <button class="btn btn-primary" id="convert-btn" disabled>Convert</button>
@@ -91,7 +103,7 @@
         <span class="error-panel-title">⚠ Error</span>
         <div class="error-panel-actions">
           <button class="error-panel-btn" id="convert-error-copy">Copy</button>
-          <button class="error-panel-btn" id="convert-error-dismiss">× Dismiss</button>
+          <button class="error-panel-btn" id="convert-error-dismiss">&times; Dismiss</button>
         </div>
       </div>
       <pre id="convert-error-text"></pre>
@@ -104,19 +116,19 @@
       <span class="chevron">▼</span>
     </div>
     <div class="collapsible-body" id="calib-body">
-      <p style="font-size:0.875rem;color:var(--muted);margin-bottom:16px;">Upload a <code>.afpub</code> file to generate a style analysis report. Paste the output into Claude to map styles for a new template.</p>
+      <p id="calib-desc" style="font-size:0.875rem;color:var(--muted);margin-bottom:16px;">Upload a <code>.pdf</code> file to generate a font report. Paste the output into Claude to build a <code>pdf_styles.yaml</code> for a new template.</p>
       <div class="dropzone" id="analyze-dropzone" style="padding:20px">
-        <input type="file" id="analyze-file-input" accept=".afpub" />
+        <input type="file" id="analyze-file-input" accept=".pdf" />
         <div class="icon" style="font-size:1.4rem">🔍</div>
-        <div class="label"><strong>Choose a .afpub file</strong> to analyze</div>
-        <div class="size-note">.afpub files only · Any size</div>
+        <div class="label" id="analyze-dropzone-label"><strong>Choose a .pdf file</strong> to analyze</div>
+        <div class="size-note">.pdf files only &middot; Any size</div>
       </div>
       <div class="field" style="margin-top:14px">
         <label for="analyze-template-select">Compare against template (optional)</label>
-        <select id="analyze-template-select"><option value="">None — show all IDs as new</option></select>
+        <select id="analyze-template-select"><option value="">None — show all fonts as new</option></select>
       </div>
       <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <button class="btn btn-secondary" id="analyze-btn" disabled>Analyze Styles</button>
+        <button class="btn btn-secondary" id="analyze-btn" disabled id="analyze-btn">Dump Fonts</button>
         <button class="btn btn-secondary" id="analyze-copy-btn" style="display:none">Copy Report</button>
         <span id="analyze-progress" style="font-size:0.8rem;color:var(--muted)"></span>
       </div>
@@ -125,7 +137,7 @@
           <span class="error-panel-title">⚠ Error</span>
           <div class="error-panel-actions">
             <button class="error-panel-btn" id="analyze-error-copy">Copy</button>
-            <button class="error-panel-btn" id="analyze-error-dismiss">× Dismiss</button>
+            <button class="error-panel-btn" id="analyze-error-dismiss">&times; Dismiss</button>
           </div>
         </div>
         <pre id="analyze-error-text"></pre>
@@ -138,10 +150,70 @@
     const DIRECT_LIMIT = 30 * 1024 * 1024;
     const MAX_SIZE = 500 * 1024 * 1024;
     let selectedFiles = [], analyzeFile = null;
+    let selectedFormat = 'pdf';  // default
 
+    // ── Format toggle ──────────────────────────────────────────────
+    function setFormat(fmt) {
+      selectedFormat = fmt;
+      const isPdf = fmt === 'pdf';
+
+      // Toggle buttons
+      document.getElementById('fmt-pdf').classList.toggle('active', isPdf);
+      document.getElementById('fmt-afpub').classList.toggle('active', !isPdf);
+
+      // Main dropzone
+      const ext = isPdf ? '.pdf' : '.afpub';
+      const icon = isPdf ? '\uD83D\uDCD1' : '\uD83D\uDCC4';
+      const label = isPdf ? '<strong>Choose PDF files</strong> or drag and drop here'
+                          : '<strong>Choose .afpub files</strong> or drag and drop here';
+      const note = ext + ' files only \u00b7 Max 500 MB per file';
+      document.getElementById('file-input').accept = ext;
+      document.querySelector('#dropzone .icon').textContent = icon;
+      document.querySelector('#dropzone .label').innerHTML = label;
+      document.querySelector('#dropzone .size-note').textContent = note;
+
+      // Clear file list when switching formats
+      selectedFiles = [];
+      renderFileList();
+      updateConvertBtn();
+
+      // Calibration section
+      const calibDesc = document.getElementById('calib-desc');
+      const analyzeLabel = document.getElementById('analyze-dropzone-label');
+      const analyzeBtn = document.getElementById('analyze-btn');
+      const analyzeNote = document.querySelector('#analyze-dropzone .size-note');
+      if (isPdf) {
+        calibDesc.innerHTML = 'Upload a <code>.pdf</code> file to generate a font report. Paste the output into Claude to build a <code>pdf_styles.yaml</code> for a new template.';
+        document.getElementById('analyze-file-input').accept = '.pdf';
+        analyzeLabel.innerHTML = '<strong>Choose a .pdf file</strong> to analyze';
+        analyzeNote.textContent = '.pdf files only \u00b7 Any size';
+        analyzeBtn.textContent = 'Dump Fonts';
+      } else {
+        calibDesc.innerHTML = 'Upload a <code>.afpub</code> file to generate a style analysis report. Paste the output into Claude to map styles for a new template.';
+        document.getElementById('analyze-file-input').accept = '.afpub';
+        analyzeLabel.innerHTML = '<strong>Choose a .afpub file</strong> to analyze';
+        analyzeNote.textContent = '.afpub files only \u00b7 Any size';
+        analyzeBtn.textContent = 'Analyze Styles';
+      }
+
+      // Reset analyze state
+      analyzeFile = null;
+      analyzeBtn.disabled = true;
+      document.getElementById('analyze-copy-btn').style.display = 'none';
+      document.getElementById('analyze-output').style.display = 'none';
+      document.getElementById('analyze-output').textContent = '';
+      document.getElementById('analyze-progress').textContent = '';
+      hideError('analyze-error-panel');
+    }
+
+    // ── Utilities ────────────────────────────────────────────────
     function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
-    function updateConvertBtn(){document.getElementById('convert-btn').disabled=selectedFiles.length===0||!document.getElementById('template-select').value;}
-
+    function updateConvertBtn(){
+      const hasTpl = selectedFormat === 'pdf'
+        ? true  // template is optional for PDF
+        : !!document.getElementById('template-select').value;
+      document.getElementById('convert-btn').disabled = selectedFiles.length === 0 || !hasTpl;
+    }
     function showError(panelId,textId,msg){
       document.getElementById(textId).textContent=msg;
       const p=document.getElementById(panelId);p.style.display='block';
@@ -168,8 +240,10 @@
           s.innerHTML='<option value="">No templates found</option>';
           return;
         }
-        s.innerHTML=d.templates.map(t=>`<option value="${t}">${t}</option>`).join('');
-        sa.innerHTML='<option value="">None — show all IDs as new</option>'+d.templates.map(t=>`<option value="${t}">${t}</option>`).join('');
+        // PDF template is optional; AFPUB requires one
+        const pdfOpt = '<option value="">None (auto-detect fonts)</option>';
+        s.innerHTML = pdfOpt + d.templates.map(t=>`<option value="${t}">${t}</option>`).join('');
+        sa.innerHTML='<option value="">None — show all fonts/IDs as new</option>'+d.templates.map(t=>`<option value="${t}">${t}</option>`).join('');
         updateConvertBtn();
       }catch(e){
         document.getElementById('template-select').innerHTML='<option value="">Error loading templates</option>';
@@ -177,9 +251,10 @@
     }
 
     function addFiles(fl){
+      const ext = selectedFormat === 'pdf' ? '.pdf' : '.afpub';
       const ex=new Set(selectedFiles.map(f=>f.name));
       for(const f of fl){
-        if(!f.name.toLowerCase().endsWith('.afpub'))continue;
+        if(!f.name.toLowerCase().endsWith(ext))continue;
         if(f.size>MAX_SIZE){showError('convert-error-panel','convert-error-text',`${f.name} exceeds the 500 MB size limit.`);continue;}
         if(!ex.has(f.name))selectedFiles.push(f);
       }
@@ -187,9 +262,10 @@
     }
     function removeFile(i){selectedFiles.splice(i,1);renderFileList();updateConvertBtn();}
     function renderFileList(){
+      const icon = selectedFormat === 'pdf' ? '\uD83D\uDCD1' : '\uD83D\uDCC4';
       document.getElementById('file-list').innerHTML=selectedFiles.map((f,i)=>`
         <div class="file-item" id="file-item-${i}">
-          <span>📄</span><span class="file-name">${f.name}</span>
+          <span>${icon}</span><span class="file-name">${f.name}</span>
           <span class="file-size">${fmtSize(f.size)}</span>
           <span class="file-status" id="file-status-${i}">Ready</span>
           <button class="remove-btn" onclick="removeFile(${i})" title="Remove">✕</button>
@@ -219,7 +295,7 @@
         xhr.setRequestHeader('Content-Type', 'application/octet-stream');
         if (onProgress) xhr.upload.onprogress = onProgress;
         xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error(`Upload failed: HTTP ${xhr.status}`));
-        xhr.onerror = () => reject(new Error('Upload failed — network error'));
+        xhr.onerror = () => resolve();  // onerror fires even on CORS-blocked success; GCS confirms actual receipt
         xhr.send(file);
       });
       return object_name;
@@ -227,12 +303,18 @@
 
     document.getElementById('convert-btn').addEventListener('click',async()=>{
       const tpl=document.getElementById('template-select').value;
-      if(!tpl||selectedFiles.length===0)return;
+      // For AFPUB, template is required; for PDF it is optional
+      if(selectedFormat === 'afpub' && !tpl) return;
+      if(selectedFiles.length===0)return;
       hideError('convert-error-panel');
       const btn=document.getElementById('convert-btn'),status=document.getElementById('convert-status');
       const progressWrap=document.getElementById('progress-wrap'),progressBar=document.getElementById('progress-bar');
       btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Converting…';
       status.textContent='';progressBar.style.width='0%';progressWrap.style.display='none';
+      const isPdf = selectedFormat === 'pdf';
+      const directEndpoint = isPdf ? '/api/convert-pdf' : '/api/convert';
+      const gcsEndpoint = isPdf ? '/api/convert-pdf-from-gcs' : '/api/convert-from-gcs';
+      const fileExt = new RegExp(isPdf ? '\\.pdf$' : '\\.afpub$', 'i');
       let ok=0,err=0;
       for(let i=0;i<selectedFiles.length;i++){
         const f=selectedFiles[i],sel=document.getElementById(`file-status-${i}`);
@@ -241,8 +323,8 @@
           let blob;
           if (f.size <= DIRECT_LIMIT) {
             if(sel){sel.textContent='Converting…';sel.className='file-status';}
-            const form=new FormData();form.append('file',f);form.append('template',tpl);
-            const r=await fetch('/api/convert',{method:'POST',body:form});
+            const form=new FormData();form.append('file',f);if(tpl)form.append('template',tpl);
+            const r=await fetch(directEndpoint,{method:'POST',body:form});
             if(!r.ok){const e=await r.json().catch(()=>({detail:'Conversion failed'}));throw new Error(e.detail||'Conversion failed');}
             blob=await r.blob();
           } else {
@@ -255,24 +337,26 @@
             });
             if(sel){sel.textContent='Converting…';sel.className='file-status';}
             progressBar.style.width='90%';
-            const r=await fetch('/api/convert-from-gcs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({object_name:objectName,template:tpl})});
+            const body={object_name:objectName};
+            if(tpl)body.template=tpl;
+            const r=await fetch(gcsEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
             if(!r.ok){const e=await r.json().catch(()=>({detail:'Conversion failed'}));throw new Error(e.detail||'Conversion failed');}
             blob=await r.blob();
           }
           progressBar.style.width='100%';
           const url=URL.createObjectURL(blob);
-          const a=document.createElement('a');a.href=url;a.download=f.name.replace(/\.afpub$/i,'.md');
+          const a=document.createElement('a');a.href=url;a.download=f.name.replace(fileExt,'.md');
           document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-          if(sel){sel.textContent='✓ Downloaded';sel.className='file-status success';}ok++;
+          if(sel){sel.textContent='\u2713 Downloaded';sel.className='file-status success';}ok++;
         }catch(e){
-          if(sel){sel.textContent='✗ Error';sel.className='file-status error';}err++;
+          if(sel){sel.textContent='\u2717 Error';sel.className='file-status error';}err++;
           showError('convert-error-panel','convert-error-text',`Failed: ${f.name}\n\n${e.message}`);
         }
         progressWrap.style.display='none';progressBar.style.width='0%';
         if(i<selectedFiles.length-1)await new Promise(r=>setTimeout(r,300));
       }
       btn.innerHTML='Convert';btn.disabled=false;
-      if(err===0){status.textContent=`✓ ${ok} file${ok!==1?'s':''} converted successfully.`;status.style.color='var(--success)';}
+      if(err===0){status.textContent=`\u2713 ${ok} file${ok!==1?'s':''} converted successfully.`;status.style.color='var(--success)';}
       else{status.textContent=`${ok} succeeded, ${err} failed.`;status.style.color='var(--danger)';}
     });
 
@@ -283,9 +367,10 @@
 
     const adz=document.getElementById('analyze-dropzone'),afi=document.getElementById('analyze-file-input');
     function setAnalyzeFile(f){
-      if(!f||!f.name.toLowerCase().endsWith('.afpub'))return;
+      const ext = selectedFormat === 'pdf' ? '.pdf' : '.afpub';
+      if(!f||!f.name.toLowerCase().endsWith(ext))return;
       analyzeFile=f;
-      adz.querySelector('.label').innerHTML=`<strong>${f.name}</strong> (${fmtSize(f.size)})`;
+      document.getElementById('analyze-dropzone-label').innerHTML=`<strong>${f.name}</strong> (${fmtSize(f.size)})`;
       document.getElementById('analyze-btn').disabled=false;
     }
     afi.addEventListener('change',()=>setAnalyzeFile(afi.files[0]));
@@ -299,6 +384,9 @@
       const btn=document.getElementById('analyze-btn'),out=document.getElementById('analyze-output');
       const copyBtn=document.getElementById('analyze-copy-btn'),prog=document.getElementById('analyze-progress');
       const tpl=document.getElementById('analyze-template-select').value;
+      const isPdf = selectedFormat === 'pdf';
+      const directEndpoint = isPdf ? '/api/analyze-pdf-fonts' : '/api/analyze-styles';
+      const gcsEndpoint = isPdf ? '/api/analyze-pdf-fonts-from-gcs' : '/api/analyze-from-gcs';
       btn.disabled=true;btn.textContent='Analyzing…';out.style.display='none';copyBtn.style.display='none';prog.textContent='';
       try{
         let r;
@@ -307,23 +395,26 @@
           const form=new FormData();
           form.append('file',analyzeFile);
           if(tpl)form.append('template',tpl);
-          r=await fetch('/api/analyze-styles',{method:'POST',body:form});
+          r=await fetch(directEndpoint,{method:'POST',body:form});
         } else {
           prog.textContent=`Uploading ${fmtSize(analyzeFile.size)}…`;
           const objectName = await gcsSignedUpload(analyzeFile, e=>{
             if(e.lengthComputable)prog.textContent=`Uploading ${fmtSize(e.loaded)} / ${fmtSize(e.total)}…`;
           });
-          prog.textContent='Analyzing styles…';
-          r=await fetch('/api/analyze-from-gcs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({object_name:objectName,template:tpl})});
+          prog.textContent='Analyzing…';
+          r=await fetch(gcsEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({object_name:objectName,template:tpl})});
         }
         if(!r.ok){const txt=await r.text();let msg='Analysis failed';try{msg=JSON.parse(txt).detail||msg;}catch{msg=txt||msg;}throw new Error(msg);}
         const text=await r.text();
         out.textContent=text;out.style.display='block';
-        copyBtn.style.display='inline-flex';prog.textContent='✓ Done';
+        copyBtn.style.display='inline-flex';prog.textContent='\u2713 Done';
       }catch(e){
         showError('analyze-error-panel','analyze-error-text',e.message);
         prog.textContent='';
-      }finally{btn.disabled=false;btn.textContent='Analyze Styles';}
+      }finally{
+        btn.disabled=false;
+        btn.textContent = selectedFormat === 'pdf' ? 'Dump Fonts' : 'Analyze Styles';
+      }
     });
 
     document.getElementById('analyze-copy-btn').addEventListener('click',()=>{
@@ -333,6 +424,8 @@
     });
 
     loadTemplates();
+    // Initialize format to PDF (already set in HTML, just ensure JS state matches)
+    setFormat('pdf');
   </script>
 </body>
 </html>
