@@ -1,0 +1,26 @@
+# Cloud Build config for building the Marker base image.
+#
+# Run ONCE from your terminal (from the repo root):
+#   gcloud builds submit marker-pdf \
+#     --config marker-pdf/cloudbuild-base.yaml \
+#     --project affinity-markdown-converter \
+#     --timeout 3600
+#
+# This takes ~20 minutes (pip install + model download).
+# Only needs to be re-run when upgrading marker-pdf or Surya.
+
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - '-f'
+      - 'Dockerfile.base'
+      - '-t'
+      - 'us-east1-docker.pkg.dev/affinity-markdown-converter/cloud-run-source-deploy/marker-pdf-base:latest'
+      - '.'
+    timeout: '3000s'
+
+images:
+  - 'us-east1-docker.pkg.dev/affinity-markdown-converter/cloud-run-source-deploy/marker-pdf-base:latest'
+
+timeout: '3600s'
