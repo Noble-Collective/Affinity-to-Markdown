@@ -43,4 +43,4 @@ jobs:
             --min-instances=0
             --max-instances=3
             --cpu-boost
-            --remove-secrets=GCP_SA_KEY_B64
+            --allow-unauthenticated
