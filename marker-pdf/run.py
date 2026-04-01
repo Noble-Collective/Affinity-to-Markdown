@@ -18,13 +18,10 @@ logging.basicConfig(level=logging.WARNING)
 
 def patch_block_relabel():
     """
-    Patch a bug in Marker's BlockRelabelProcessor where block.top_k.get()
-    returns None for some blocks, causing:
-      TypeError: '>' not supported between instances of 'NoneType' and 'float'
-
-    The fix: skip relabeling when confidence is None (block has no confidence score).
-    This is a one-line fix to the Marker source — applied as a monkey-patch so
-    we don't need to modify files in the venv.
+    Patch Marker bug: BlockRelabelProcessor crashes when block.top_k.get()
+    returns None (no confidence score for that block type).
+    Fix: skip relabeling when confidence is None.
+    Applied as monkey-patch — no venv files need to be modified.
     """
     from copy import deepcopy
     from marker.processors.block_relabel import BlockRelabelProcessor
@@ -47,14 +44,9 @@ def patch_block_relabel():
                 )
                 confidence_thresh, relabel_block_type = self.block_relabel_map[block.block_type]
                 confidence = block.top_k.get(block.block_type)
-                # BUG FIX: skip blocks with no confidence score (top_k returns None)
                 if confidence is None:
-                    continue
+                    continue  # BUG FIX: skip blocks with no confidence score
                 if confidence > confidence_thresh:
-                    logger.debug(
-                        f"Skipping relabel for {block_id}; "
-                        f"Confidence: {confidence} > {confidence_thresh}"
-                    )
                     continue
                 new_block_cls = get_block_class(relabel_block_type)
                 new_block = new_block_cls(
@@ -75,7 +67,7 @@ def patch_block_relabel():
 def post_process(markdown: str) -> str:
     """
     Thin post-processing on Marker's output:
-    - Remove image reference lines  ![](...) 
+    - Remove image reference lines
     - Strip CRLF line endings
     - Collapse 3+ blank lines to 2
     """
@@ -125,7 +117,6 @@ def main():
         page_range = pages
         print(f"Page range: {page_range[0]}-{page_range[-1]} ({len(page_range)} pages)")
 
-    # Apply bug fix to Marker before loading models
     patch_block_relabel()
 
     print("Loading models (~30s from disk)...")
@@ -134,23 +125,42 @@ def main():
     models = create_model_dict(device="cpu", dtype=torch.float32)
     print("Models loaded.")
 
-    # ── Marker configuration — iteration 3 (with block_relabel restored) ─
+    # ── Marker configuration — iteration 4 ───────────────────────────────
+    #
+    # Changes from iteration 3:
+    #
+    # level_count: 4 (restored from 3)
+    #   level_count=3 collapsed all H4 section headings to 0. Need 4 clusters
+    #   to capture: session title / movement titles / section headings / sub-headings.
+    #
+    # merge_threshold: 0.4 (kept from iter 3)
+    #   Merges adjacent heading clusters that are close in size.
+    #
+    # block_relabel_str: "SectionHeader:Text:0.6" (restored + patched)
+    #   Demotes low-confidence layout headings to body text before KMeans.
+    #   Now works correctly with the top_k=None bug patched above.
+    #
+    # Blockquote settings kept from iter 3 (improved 2→13, ref is 23):
+    #   min_x_indent=0.01, x_start_tolerance=0.05, x_end_tolerance=0.05
+    #
+    # TextProcessor_column_gap_ratio: 0.06 (kept — helps column joining)
+    # disable_links: True (kept — reduces text fragmentation)
+
     config = {
         # Heading detection
-        "level_count": 3,
+        "level_count": 4,
         "merge_threshold": 0.4,
         "default_level": 3,
-        # Demote low-confidence SectionHeader blocks to Text before KMeans.
-        # Restored now that the top_k=None bug is patched.
+        # Demote low-confidence headings to body text (bug patched above)
         "block_relabel_str": "SectionHeader:Text:0.6",
         # Running header suppression
         "common_element_threshold": 0.15,
         "text_match_threshold": 85,
-        # Blockquote detection — very low indent + loose alignment
+        # Blockquote detection — low indent + loose alignment (13/23 in iter 3)
         "BlockquoteProcessor_min_x_indent": 0.01,
         "BlockquoteProcessor_x_start_tolerance": 0.05,
         "BlockquoteProcessor_x_end_tolerance": 0.05,
-        # Multi-column text joining (fixes hyphenation artifacts)
+        # Multi-column text joining
         "TextProcessor_column_gap_ratio": 0.06,
         # Strip link annotations
         "disable_links": True,
