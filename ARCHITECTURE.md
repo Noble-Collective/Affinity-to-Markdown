@@ -61,7 +61,7 @@ The tradeoff: Marker requires ~6-8 GB RAM (5 Surya ML models) and a large Docker
 
 ## Homestead Book PDF — Font Analysis
 
-> Discovered via `--dump-fonts` on `HomeStead-Interior-Affinity Design-v1.001.pdf`  
+> Discovered via `--dump-fonts` on `HomeStead-Interior-Affinity Design-v1.001.pdf`
 > Body font: `TimesNewRomanPSMT @ 10.0pt` (301,556 chars — most common by far)
 
 ### Font → Semantic Role Mapping
@@ -94,166 +94,256 @@ The tradeoff: Marker requires ~6-8 GB RAM (5 Surya ML models) and a large Docker
 **Running headers use a drop-cap + small-caps pattern:**
 - "INTRODUCTION SESSION ONE" = Bold 14pt drop caps ("I", "S", "O") + Bold 9.5pt small-caps ("NTRODUCTION", "ESSION", "NE") interleaved in one block
 - Marker's `IgnoreTextProcessor` should catch these via repetition detection
-- Fallback: all-caps block with mixed sizes → skip
 
 **Verse labels are drop-cap + small-caps too:**
 - "VERSE 4" = Bold 10pt "V" + Bold 7pt "ERSE" + Bold 10pt "4"
 - The 7pt span is the distinctive marker
-- Should map to H6 via Marker's SectionHeaderProcessor
 
 **Blockquotes and citations are the same font/size (8pt Regular):**
 - Long blocks (≥100 chars) = blockquote `>`
 - Short blocks (<100 chars) = citation `<<`
-- Affinity Publisher renders overview section quotes in 8pt, not the larger italic size
 
-**The whole-book PDF is 481 pages.** The first ~60 pages are front matter (title pages, copyright, series info, table of contents). Session 1 starts around page 63. Marker's `page_range` config option lets us skip front matter.
+**The whole-book PDF is 481 pages.** Front matter ends around page 62. Session 1 starts at page 63.
 
 ---
 
-## Marker Configuration Reference
+## Marker: Complete Configurable Parameter Reference
 
-### How Config Works
+All parameters discovered by reading Marker/Surya source. Passed as a flat dict to `PdfConverter`.
 
-Config is passed as a plain dict to `PdfConverter`. Keys map to processor attributes directly, or use prefixed keys for processor-specific settings:
+### SectionHeaderProcessor
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `level_count` | 4 | Number of KMeans heading clusters to find. 6 = too many H1s for this PDF. 3 works better. |
+| `merge_threshold` | 0.25 | When adjacent clusters are within this ratio, merge them. Increase → fewer distinct heading levels. |
+| `default_level` | 2 | Heading level for blocks that don't fit any cluster. Set to 3 for this book. |
+| `height_tolerance` | 0.99 | Block height must be ≥ min_height × tolerance to match a cluster. |
 
+### BlockquoteProcessor
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `min_x_indent` | 0.1 | Fraction of block width a block must be indented to be a blockquote. 0.01–0.03 works better for this PDF. |
+| `x_start_tolerance` | 0.01 | How precisely consecutive blockquote blocks must be left-aligned. Increase to 0.05 for looser matching. |
+| `x_end_tolerance` | 0.01 | Same for right alignment. |
+
+### IgnoreTextProcessor
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `common_element_threshold` | 0.2 | Fraction of pages a text block must appear on to be suppressed. 0.15 catches more running headers. |
+| `common_element_min_blocks` | 3 | Minimum occurrences before suppression. |
+| `max_streak` | 3 | Max consecutive pages before always suppressing. |
+| `text_match_threshold` | 90 | Fuzzy match score (0-100) for similarity. 85 catches slight variations. |
+
+### TextProcessor
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `column_gap_ratio` | 0.02 | Minimum page-width fraction for a column gap. Increase to 0.06 to better join 2-column text (fixes hyphenation artifacts like "wor-" / "ship"). |
+
+### ListProcessor
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `min_x_indent` | 0.01 | Indentation threshold for nested list items. |
+
+### BlockRelabelProcessor
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `block_relabel_str` | `""` | Comma-separated rules: `"SectionHeader:Text:0.6"` demotes low-confidence headings to body text before KMeans runs. Critical for reducing spurious H1s. Format: `original:new:confidence_threshold`. |
+
+### DocumentBuilder
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `lowres_image_dpi` | 96 | DPI for layout detection images. 72 is fine for CPU inference and reduces RAM. |
+| `highres_image_dpi` | 192 | DPI for OCR images. Irrelevant when `disable_ocr=True`. |
+| `disable_ocr` | False | Set True for PDFs with embedded text. Skips OCR entirely. |
+
+### PdfProvider
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `pdftext_workers` | 4 | Parallel workers for PDF text extraction. Set 1 for Cloud Run. |
+| `disable_links` | False | Strip hyperlink annotations. Set True to reduce text fragmentation. |
+| `flatten_pdf` | True | Flatten PDF structure before processing. |
+
+### MarkdownRenderer
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `page_separator` | `"---...---"` | Text inserted between pages when `paginate_output=True`. |
+| `html_tables_in_markdown` | False | Output tables as HTML instead of Markdown. |
+
+### Other flags (passed directly to config dict)
+| Key | Notes |
+|-----|-------|
+| `disable_image_extraction` | Suppress image extraction to output directory |
+| `extract_images` | Belt-and-suspenders image suppression |
+| `page_range` | List of 0-indexed page numbers to convert. e.g. `list(range(62, 200))` |
+
+---
+
+## Marker Config Iteration Log
+
+### Iteration 1 — Baseline
 ```python
-config = {
-    "level_count": 6,                          # sets SectionHeaderProcessor.level_count
-    "SectionHeaderProcessor_level_count": 6,   # same, more explicit
-}
+{"level_count": 6, "default_level": 3, "disable_ocr": True,
+ "pdftext_workers": 1, "DocumentBuilder_lowres_image_dpi": 72,
+ "disable_image_extraction": True}
 ```
+**Results:** H1=73, H2=2, H3=3, H4=25. Images in output (21 refs). Blockquotes=0. Lists=50/66.
+**Problems:** `level_count=6` causes KMeans to over-cluster, most headings become H1.
 
-The `assign_config()` utility applies matching keys to processor instances at init time.
+### Iteration 2
+Added: `level_count=4`, `BlockquoteProcessor_min_x_indent=0.03`, `extract_images=False`
+**Results:** H1=73 (unchanged). Blockquotes=2 (slight improvement). Images=0 (fixed).
+**Problems:** Heading over-assignment unchanged. level_count alone doesn't fix the H1 problem.
 
-### Recommended Config for Noble Collective Books
+### Iteration 3 (current)
+Added: `block_relabel_str="SectionHeader:Text:0.6"`, `merge_threshold=0.4`,
+`level_count=3`, `BlockquoteProcessor_min_x_indent=0.01`,
+`BlockquoteProcessor_x_start_tolerance=0.05`, `BlockquoteProcessor_x_end_tolerance=0.05`,
+`TextProcessor_column_gap_ratio=0.06`, `disable_links=True`
+**Key hypothesis:** `block_relabel_str` demotes low-confidence layout headings before KMeans
+runs, reducing the spurious H1 count. Results pending.
 
+---
+
+## Marker Output Quality — Known Issues
+
+After 3 config iterations, here is the current state of each output element vs the reference:
+
+### Working well ✓
+- Body text paragraph joining — correct, no line-by-line fragmentation
+- Inline bold/italic — `**As priests...**`, `*most holy work*` correct
+- Numbered and bullet lists — ~50/66 items correct
+- Running header suppression — "INTRODUCTION SESSION ONE" removed
+- Image references — removed via post-processing
+
+### Partially working
+- Blockquotes — 2/23 detected. Marker's spatial indentation detector struggles with 8pt
+  scripture quotes which have subtle indentation in this PDF's 2-column layout.
+- Lists — `- 1. Question` format instead of `1. Question` (Marker combining bullet + number markers)
+
+### Not working / requires post-processing
+- **Heading hierarchy** — 73 H1s vs 1 expected. Root cause: Marker's layout model classifies
+  too many blocks as SectionHeader, then KMeans can't find clean clusters. Explored knobs:
+  `level_count`, `merge_threshold`, `block_relabel_str`. May ultimately need font-size-based
+  post-processing using PyMuPDF span data.
+- **Citations** — `<<` format not produced. Marker has no concept of right-aligned citation.
+  Fix: post-processing regex to detect short standalone scripture reference lines.
+- **Hyphenation artifacts** — "wor-" / "ship" splits from 2-column layout. `column_gap_ratio`
+  tuning may help. Fix: post-processing regex to merge lines ending with hyphen.
+- **Pull-quote callouts** — appear as orphan paragraphs mid-text AND again in body text.
+  Fix: detect and remove duplicate standalone callout paragraphs in post-processing.
+- **Verse numbers in Psalm 103** — inconsistent: some `**103:1**` (bold), some `<sup>2</sup>`.
+  Fix: post-processing to normalize all verse numbers to `<sup>N</sup>`.
+
+---
+
+## Future Config Ideas to Try
+
+These are untried Marker configuration approaches worth attempting in future sessions:
+
+**1. `force_layout_block = "Text"`**
+Set on `LayoutBuilder` to bypass layout detection entirely and treat every block as text.
+For prose-only books this could eliminate all heading mis-classification. Downside: no
+headings detected at all — would need full post-processing pass to assign headings.
 ```python
-config = {
-    # ── Heading levels ──────────────────────────────────────────────
-    # Default is 4 (H1-H4). We need 6 for verse labels (H6).
-    "level_count": 6,
-    # Unclustered headers default to H3, not H2
-    "default_level": 3,
-
-    # ── Running header removal ───────────────────────────────────────
-    # Catch text appearing on 15%+ of pages (default: 0.2 = 20%)
-    "common_element_threshold": 0.15,
-    # Slightly looser fuzzy matching (default: 90)
-    "text_match_threshold": 85,
-
-    # ── Performance ─────────────────────────────────────────────────
-    # PDF has embedded text — no OCR needed
-    "disable_ocr": True,
-    # Single worker for Cloud Run
-    "pdftext_workers": 1,
-    # Lower DPI for layout detection (no GPU, CPU inference)
-    "DocumentBuilder_lowres_image_dpi": 72,
-    # No images in output
-    "disable_image_extraction": True,
-
-    # ── Page range ───────────────────────────────────────────────────
-    # Skip front matter. Homestead Session 1 starts at page ~63 (0-indexed: 62).
-    # Pass as a list of ints: list(range(62, 200))
-    # Leave as None to convert the whole document.
-    # "page_range": list(range(62, 200)),
-}
+config["force_layout_block"] = "Text"
 ```
 
-### Trimmed Processor List
-
-Remove all LLM and irrelevant processors for a prose book:
-
+**2. More aggressive `block_relabel_str` threshold**
+Try 0.5 or even 0.4 (lower = demote more SectionHeaders to Text). Goal: only keep
+headings the layout model is very confident about, reducing KMeans input noise.
 ```python
-from marker.processors.order import OrderProcessor
-from marker.processors.block_relabel import BlockRelabelProcessor
-from marker.processors.line_merge import LineMergeProcessor
-from marker.processors.blockquote import BlockquoteProcessor
-from marker.processors.ignoretext import IgnoreTextProcessor
-from marker.processors.list import ListProcessor
-from marker.processors.page_header import PageHeaderProcessor
-from marker.processors.sectionheader import SectionHeaderProcessor
-from marker.processors.text import TextProcessor
-from marker.processors.blank_page import BlankPageProcessor
-
-PROCESSOR_LIST = [
-    OrderProcessor,
-    BlockRelabelProcessor,
-    LineMergeProcessor,
-    BlockquoteProcessor,
-    IgnoreTextProcessor,
-    ListProcessor,
-    PageHeaderProcessor,
-    SectionHeaderProcessor,
-    TextProcessor,
-    BlankPageProcessor,
-]
+config["block_relabel_str"] = "SectionHeader:Text:0.5"
 ```
 
-**Removed (not needed for prose books):**
-- All 10 `LLM*` processors (LLMSectionHeaderProcessor, LLMTableProcessor, etc.)
-- `CodeProcessor`, `EquationProcessor`, `FootnoteProcessor`
-- `TableProcessor`, `LLMTableMergeProcessor`, `LLMFormProcessor`
-- `LineNumbersProcessor`, `ReferenceProcessor`, `DebugProcessor`
+**3. `level_count=2` — just two heading sizes**
+Force KMeans to find only 2 clusters: "big" (session/movement titles) and "small"
+(section headings). Everything else falls to `default_level`. Simplest possible clustering.
 
-### BlockTypes Available for Custom Processors
-
-If we need a custom `BaseProcessor`, these are the available block types:
-
-```
-Text, SectionHeader, ListGroup, ListItem, PageHeader, PageFooter,
-Table, TableCell, TableGroup, Figure, FigureGroup, Picture, PictureGroup,
-Caption, Footnote, Code, Equation, Form, Handwriting, TextInlineMath,
-TableOfContents, Reference, ComplexRegion, Line, Span, Char, Page, Document
-```
-
-### Custom Processor Pattern
-
-Only use this after exhausting Marker's built-in configuration. A custom processor has full access to the structured document object:
-
+**4. LLM-assisted section header detection**
+Add `LLMSectionHeaderProcessor` back into the processor list with a Gemini API key.
+This uses an LLM to re-examine ambiguous heading blocks and assign better levels.
+Potentially the most accurate fix for the heading hierarchy problem.
 ```python
-from marker.processors import BaseProcessor
-from marker.schema import BlockTypes
-from marker.schema.document import Document
-
-class NobleCollectiveProcessor(BaseProcessor):
-    """Book-specific cleanup that can't be handled by config alone."""
-    block_types = (BlockTypes.Text, BlockTypes.SectionHeader)
-
-    def __call__(self, document: Document):
-        for page in document.pages:
-            for block in page.contained_blocks(document, self.block_types):
-                # Example: suppress a block
-                block.ignore_for_output = True
-                # Example: change a block's type
-                block.block_type = BlockTypes.Text
-                # Example: modify content
-                # (access via block.structure → line IDs → document lookup)
+# Requires: pip install google-genai + GEMINI_API_KEY env var
+processor_list.append("marker.processors.llm.llm_sectionheader.LLMSectionHeaderProcessor")
+config["use_llm"] = True
+config["llm_service"] = "marker.services.gemini.GoogleGeminiService"
 ```
 
-Inject it into the pipeline by appending to `PROCESSOR_LIST` before `TextProcessor`.
+**5. Custom `BaseProcessor` for font-size-based heading assignment**
+After Marker runs, add a custom processor that reads span font sizes from the document
+and reassigns `heading_level` based on the known font map:
+- 20pt Regular → level 1
+- 20pt Bold → level 3
+- 14pt Bold → level 4
+- etc.
+This is the most reliable fix but requires custom code.
+
+**6. Post-processing pipeline (minimal custom code)**
+Rather than fighting Marker's heading detection, accept its output and apply a thin
+post-processing layer using PyMuPDF to re-read font sizes for the heading blocks.
+Priority order for fixes:
+1. Citation detection regex (easy, high value)
+2. Hyphenation artifact repair (easy)
+3. Bullet+number list fix: `- 1.` → `1.` (one regex)
+4. Font-size heading remapping via PyMuPDF (moderate, high value)
+5. Blockquote detection via font size (moderate)
+
+**7. `paginate_output=True` for page-aware processing**
+Enable pagination markers between pages, then use them in post-processing to apply
+per-page context (e.g. which session we're in) for smarter heading assignment.
 
 ---
 
 ## Infrastructure
 
+### Cloud Run + Marker: Key Lessons
+
+**Models must load BEFORE uvicorn starts.** If models load in a background thread after
+the server starts, Cloud Run will scale the instance to zero while models are loading
+(typically after 60-90 seconds of no successful responses). The fix: load models
+synchronously in `__main__` before calling `uvicorn.run()`. The port stays closed
+until models are ready; Cloud Run gen2 waits up to 240 seconds for the port to open.
+
+**Do NOT free unused models.** Even with `disable_ocr=True` and table/LLM processors
+removed, Marker accesses all 5 model objects internally during the pipeline. Setting
+any model to `None` causes `AttributeError: 'NoneType' has no attribute 'disable_tqdm'`.
+All 5 must stay loaded.
+
+**Surya's model cache location.** Surya downloads models to `/root/.cache/datalab/models/`
+NOT to `HF_HOME` or `TRANSFORMERS_CACHE`. Any GCS caching strategy must target this path.
+
+**Base image approach for cold starts.** The `Dockerfile.base` + `cloudbuild-base.yaml`
+pattern bakes models into a base Docker image. The app `Dockerfile` then does
+`FROM marker-pdf-base:latest` + `COPY . /app/` — builds in ~30 seconds, cold starts
+in ~30 seconds (model loading from disk, no download). Build the base image once with:
+```bash
+cd /c/Users/Steve/Affinity-to-Markdown/marker-pdf
+gcloud builds submit . --config cloudbuild-base.yaml --project affinity-markdown-converter --timeout 3600
+```
+Rebuild base only when upgrading `marker-pdf` version or adding pip dependencies.
+
+**Cloud Build timeout.** `gcloud run deploy --source` has an implicit Cloud Build timeout
+of ~10 minutes. A vanilla `pip install marker-pdf` (PyTorch + Surya) takes 15+ minutes.
+Solution: install CPU-only torch first (`--index-url https://download.pytorch.org/whl/cpu`),
+cutting download from ~2GB to ~200MB. Or use the base image approach above.
+
+**Signal 11 (SIGSEGV) crashes.** Seen during model loading when all 5 models try to
+load simultaneously into an 8GB container. Using the base image + synchronous loading
+(models load one at a time sequentially) resolves this.
+
 ### Docker Image Strategy
 
-The Marker Docker image bakes in ~3 GB of Surya model weights at build time to avoid cold-start downloads on Cloud Run. Models are cached at `/app/models` with these env vars:
-
 ```
-HF_HOME=/app/models
-TORCH_HOME=/app/models/torch
-TRANSFORMERS_CACHE=/app/models/transformers
+marker-pdf-base (built once manually, ~20 min)
+  └── python:3.11-slim + system libs
+  └── pip install torch (CPU) + marker-pdf + all deps
+  └── create_model_dict() → downloads ~3GB Surya models to /root/.cache/datalab/models/
+
+marker-pdf-converter (CI build, ~30 sec)
+  FROM marker-pdf-base    ← already has everything
+  COPY . /app/            ← just copies app code
 ```
-
-These must match at runtime so the app finds the pre-downloaded weights.
-
-**Build time:** ~15-20 minutes on first build (model download). Subsequent builds that only change app code are ~2 minutes (Docker layer cache).
-
-**Layer cache invalidation:**
-- Change `requirements.txt` → pip install re-runs → slow
-- Change `download_models.py` → models re-download → slow
-- Change `app.py`, `converter.py`, `gcs_client.py` → only `COPY . .` re-runs → fast
 
 ### Cloud Run Configuration
 
@@ -266,6 +356,7 @@ These must match at runtime so the app finds the pre-downloaded weights.
 | Min instances | 0 | 0 |
 | Max instances | default | 3 |
 | Execution env | gen2 | gen2 |
+| Startup | normal | synchronous model load before port opens |
 
 ### GCS File Routing
 
@@ -274,12 +365,47 @@ Files >30 MB exceed Cloud Run's HTTP body limit. Routing:
 - `POST /api/request-upload` → returns a signed V4 PUT URL for GCS
 - Browser uploads directly to GCS via XHR
 - `POST /convert-from-gcs` → Cloud Run downloads from GCS, converts, deletes
-- `xhr.onerror` on browser side → resolve (not reject): CORS headers can block the response even when the upload succeeded; GCS download confirms actual arrival
+- `xhr.onerror` on browser side → resolve (not reject): CORS headers can block the response even when the upload succeeded
 
 ### Secrets
 
 - `GCP_SA_KEY` — GitHub Actions secret (JSON, for deploy authentication)
 - `GCP_SA_KEY_B64` — Cloud Run env var (base64-encoded JSON, for GCS operations at runtime)
+- Secret Manager API was NOT enabled in this project — pass `GCP_SA_KEY_B64` as a plain
+  env var via GitHub Actions `env_vars`, not via `secrets:` in the workflow.
+
+---
+
+## Local CLI Usage (Recommended for Quality Testing)
+
+Marker is not designed for serverless. For iterating on output quality, run locally:
+
+**Setup (one time):**
+```bash
+cd /c/Users/Steve/Affinity-to-Markdown/marker-pdf
+/c/Users/Steve/AppData/Local/Programs/Python/Python311/python.exe -m venv venv311
+source venv311/Scripts/activate
+pip install marker-pdf==1.10.2
+```
+Note: Requires Python 3.11 — Marker is not compatible with Python 3.14 (Pillow and
+regex packages lack prebuilt wheels).
+
+**Convert a PDF:**
+```bash
+source venv311/Scripts/activate   # activate each session
+python run.py "C:/path/to/book.pdf"
+python run.py "C:/path/to/book.pdf" --page-range 62-200
+```
+
+**Iteration workflow:**
+1. Claude pushes updated config to `marker-pdf/run.py`
+2. `git pull` in Git Bash
+3. `python run.py "C:/path/to/Session1_extract.pdf"`
+4. Upload output `.md` to Claude
+5. Claude diffs vs reference, identifies issues, updates config
+
+Models download on first run (~5-10 min), then load from disk in ~30 seconds on every
+subsequent run. Models stored at `~/.cache/datalab/models/` permanently.
 
 ---
 
@@ -296,30 +422,20 @@ Files >30 MB exceed Cloud Run's HTTP body limit. Routing:
       styles.yaml               ← AFPUB style ID → Markdown mappings
       pdf_styles.yaml           ← PyMuPDF font → Markdown mappings (fallback)
   .github/workflows/
-    deploy.yml                  ← Auto-deploys root → afpub-converter on any push
-    deploy-marker.yml           ← Auto-deploys marker-pdf/ → marker-pdf-converter
-                                   only when marker-pdf/** changes
+    deploy.yml                  ← Fires only on root service file changes
+    deploy-marker.yml           ← Fires only on marker-pdf/** changes
 
-marker-pdf/                     ← marker-pdf-converter service root
-  Dockerfile                    ← Bakes Surya models into image
+marker-pdf/                     ← marker-pdf-converter service root + local CLI
+  Dockerfile                    ← FROM marker-pdf-base; COPY app code only
+  Dockerfile.base               ← Full build: system libs + pip + Surya models
+  cloudbuild-base.yaml          ← One-time manual base image build config
   requirements.txt
-  download_models.py            ← Runs during Docker build to pre-cache models
-  app.py                        ← FastAPI routing only
-  converter.py                  ← Marker conversion logic (chunk 2)
-  gcs_client.py                 ← GCS operations (chunk 3)
+  app.py                        ← FastAPI routing (loads models before starting)
+  converter.py                  ← Marker conversion logic + CLI __main__
+  model_loader.py               ← Synchronous model loading singleton
+  model_cache.py                ← GCS model cache (restore/save) — not yet wired
+  run.py                        ← Simple local runner (recommended for iteration)
 ```
-
----
-
-## Known Issues & Decisions
-
-**Affinity Publisher doesn't store a name→ID mapping in the binary.** The same style name can have different IDs across different book templates. Each new book template requires running `--analyze-styles` on a sample file and manually updating `styles.yaml`. This is a fundamental limitation of the AFPUB format, not a fixable bug.
-
-**Marker requires 8 GB RAM.** The 5 Surya models (layout, recognition, detection, table rec, OCR error) load into memory simultaneously. There is no lightweight text-only mode — even `disable_ocr=True` still loads the layout model for structural understanding.
-
-**The Homestead PDF is 481 pages.** Use `page_range` to target specific sessions. Front matter ends around page 62. Each session is roughly 50-80 pages.
-
-**Signed URLs vs Resumable Sessions for GCS uploads.** Resumable session URLs fail for browser uploads due to CORS. V4 signed PUT URLs work. This is a known GCS limitation, not a bug in our code.
 
 ---
 
@@ -330,6 +446,8 @@ marker-pdf/                     ← marker-pdf-converter service root
 | Mar 2026 | AFPUB binary parser reached v0.10 — all Session 1 features working |
 | Mar 2026 | Switched strategy to PDF extraction — AFPUB fragility acknowledged |
 | Mar 2026 | Evaluated PyMuPDF (too manual), Docling (OOM), Marker (selected) |
-| Mar 2026 | Deep-dived Homestead PDF font structure — complete font→role mapping documented above |
-| Mar 2026 | Marker service chunk 1 deployed: Dockerfile + health check + model pre-download |
-| Mar 2026 | Chunk 2 pending: converter.py with trimmed processor list and config tuning |
+| Mar 2026 | Deep-dived Homestead PDF font structure — complete font→role mapping |
+| Mar 2026 | Marker service infrastructure: base image, synchronous loading, 35-second cold start |
+| Mar 2026 | First successful local conversion via `run.py` on Python 3.11 venv |
+| Mar 2026 | Config iterations 1-3: heading detection, blockquotes, column joining, block relabeling |
+| Apr 2026 | Iteration 3 in progress — `block_relabel_str` is the key untested lever for H1 problem |
