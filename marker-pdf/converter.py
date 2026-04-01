@@ -2,10 +2,14 @@
 converter.py — Marker PDF → Markdown conversion logic.
 
 Pure conversion module — no HTTP or web code here.
-Uses model_loader.get_models() so the 5 Surya models are
-loaded once at startup and reused across requests.
+Can be used as a CLI tool directly:
+
+  python converter.py book.pdf
+  python converter.py book.pdf --page-range 62-200
+  python converter.py book.pdf output.md
 """
 import logging
+import sys
 import tempfile
 from pathlib import Path
 from typing import Optional
@@ -13,10 +17,6 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 # ── Trimmed processor list ────────────────────────────────────────────────────
-# Only processors needed for prose books.
-# Removed: all 10 LLM* processors, CodeProcessor, EquationProcessor,
-# FootnoteProcessor, TableProcessor + variants, LineNumbersProcessor,
-# ReferenceProcessor, DebugProcessor.
 PROCESSOR_LIST = [
     "marker.processors.order.OrderProcessor",
     "marker.processors.block_relabel.BlockRelabelProcessor",
@@ -30,38 +30,24 @@ PROCESSOR_LIST = [
     "marker.processors.blank_page.BlankPageProcessor",
 ]
 
-# ── Marker configuration ────────────────────────────────────────────────────
-# Keys map directly to processor attributes via assign_config().
-# See ARCHITECTURE.md for full rationale on each setting.
+# ── Marker configuration ──────────────────────────────────────────────────────
 MARKER_CONFIG: dict = {
-    # SectionHeaderProcessor: extend KMeans clustering to H6
-    # (default is 4, which would collapse verse labels into H4)
     "level_count": 6,
-    # Default heading level for unclustered headers (H3 not H2)
     "default_level": 3,
-    # IgnoreTextProcessor: catch running headers on 15%+ of pages
     "common_element_threshold": 0.15,
-    # IgnoreTextProcessor: slightly looser fuzzy match (default 90)
     "text_match_threshold": 85,
-    # PDF has embedded text — OCR is not needed
     "disable_ocr": True,
-    # Single worker on Cloud Run (no multiprocessing)
     "pdftext_workers": 1,
-    # Lower DPI for layout model (CPU inference, no GPU)
     "DocumentBuilder_lowres_image_dpi": 72,
-    # Don't extract images into the output
     "disable_image_extraction": True,
 }
 
 
 def parse_page_range(s: str) -> list[int]:
     """
-    Parse a human-friendly page range string into a list of 0-indexed page numbers.
-
-    Accepts:
-      "62-200"      → list(range(62, 201))
-      "62,63,64"    → [62, 63, 64]
-      "0-10,20-30"  → mixed ranges
+    Parse a page range string into 0-indexed page numbers.
+      "62-200"     → list(range(62, 201))
+      "0-10,20-30" → mixed ranges
     """
     pages: list[int] = []
     for part in s.split(","):
@@ -79,47 +65,96 @@ def parse_page_range(s: str) -> list[int]:
 def convert_pdf(
     pdf_path: Path,
     page_range: Optional[list[int]] = None,
+    models: Optional[dict] = None,
 ) -> str:
     """
     Convert a PDF file to Markdown using Marker.
 
     Args:
         pdf_path:   Path to the input PDF.
-        page_range: Optional list of 0-indexed page numbers to convert.
-                    Useful for skipping front matter.
-                    Example: list(range(62, 200)) for Session 1 of Homestead.
+        page_range: Optional 0-indexed page numbers to convert.
+                    Example: list(range(62, 200)) skips front matter.
+        models:     Pre-loaded model dict. If None, loads via model_loader.
 
     Returns:
         Markdown string.
-
-    Raises:
-        RuntimeError: if models are not loaded yet.
     """
-    import model_loader
     from marker.converters.pdf import PdfConverter
 
-    models = model_loader.get_models()  # raises if not ready
+    if models is None:
+        import model_loader
+        models = model_loader.get_models()
 
     config = dict(MARKER_CONFIG)
     if page_range is not None:
         config["page_range"] = page_range
 
-    # PdfConverter calls strings_to_classes() on processor_list internally
     converter = PdfConverter(
         artifact_dict=models,
         processor_list=PROCESSOR_LIST,
         config=config,
-        # renderer defaults to MarkdownRenderer
     )
 
     size_kb = pdf_path.stat().st_size // 1024
     pages_info = f", pages {page_range[0]}–{page_range[-1]}" if page_range else ""
-    logger.info(f"Converting {pdf_path.name} ({size_kb} KB{pages_info})")
+    print(f"  Converting {pdf_path.name} ({size_kb} KB{pages_info})")
 
     rendered = converter(str(pdf_path))
 
-    logger.info(
-        f"Done: {len(rendered.markdown):,} chars, "
-        f"{len(rendered.markdown.splitlines())} lines"
-    )
+    lines = len(rendered.markdown.splitlines())
+    chars = len(rendered.markdown)
+    print(f"  Done: {chars:,} chars, {lines} lines")
     return rendered.markdown
+
+
+# ── CLI entry point ───────────────────────────────────────────────────────────
+
+def main():
+    import argparse
+    import torch
+    from marker.models import create_model_dict
+
+    parser = argparse.ArgumentParser(
+        description="Convert a PDF to Markdown using Marker."
+    )
+    parser.add_argument("input", help="Path to the input PDF file")
+    parser.add_argument(
+        "output", nargs="?", help="Output .md path (default: same name as input)"
+    )
+    parser.add_argument(
+        "--page-range",
+        default="",
+        help="Page range to convert, 0-indexed. e.g. '62-200' or '0-10,20-30'. "
+             "Useful for skipping front matter in long documents.",
+    )
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.WARNING)  # suppress Marker/torch noise
+
+    pdf_path = Path(args.input)
+    if not pdf_path.exists():
+        print(f"ERROR: File not found: {pdf_path}")
+        sys.exit(1)
+    if pdf_path.suffix.lower() != ".pdf":
+        print(f"ERROR: Not a PDF file: {pdf_path}")
+        sys.exit(1)
+
+    output_path = Path(args.output) if args.output else pdf_path.with_suffix(".md")
+
+    page_range = None
+    if args.page_range.strip():
+        page_range = parse_page_range(args.page_range.strip())
+        print(f"  Page range: {page_range[0]}–{page_range[-1]} ({len(page_range)} pages)")
+
+    print("Loading models (first run downloads ~3 GB, subsequent runs are instant)...")
+    models = create_model_dict(device="cpu", dtype=torch.float32)
+    print("Models loaded.")
+
+    markdown = convert_pdf(pdf_path, page_range=page_range, models=models)
+
+    output_path.write_text(markdown, encoding="utf-8")
+    print(f"\nWritten: {output_path}")
+
+
+if __name__ == "__main__":
+    main()
