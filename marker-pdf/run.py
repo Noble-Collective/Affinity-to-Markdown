@@ -16,6 +16,62 @@ from pathlib import Path
 logging.basicConfig(level=logging.WARNING)
 
 
+def patch_block_relabel():
+    """
+    Patch a bug in Marker's BlockRelabelProcessor where block.top_k.get()
+    returns None for some blocks, causing:
+      TypeError: '>' not supported between instances of 'NoneType' and 'float'
+
+    The fix: skip relabeling when confidence is None (block has no confidence score).
+    This is a one-line fix to the Marker source — applied as a monkey-patch so
+    we don't need to modify files in the venv.
+    """
+    from copy import deepcopy
+    from marker.processors.block_relabel import BlockRelabelProcessor
+    from marker.schema.registry import get_block_class
+    from marker.schema.blocks import BlockId
+    from marker.logger import get_logger
+    logger = get_logger()
+
+    def patched_call(self, document):
+        if len(self.block_relabel_map) == 0:
+            return
+        for page in document.pages:
+            for block in page.structure_blocks(document):
+                if block.block_type not in self.block_relabel_map:
+                    continue
+                block_id = BlockId(
+                    page_id=page.page_id,
+                    block_id=block.block_id,
+                    block_type=block.block_type,
+                )
+                confidence_thresh, relabel_block_type = self.block_relabel_map[block.block_type]
+                confidence = block.top_k.get(block.block_type)
+                # BUG FIX: skip blocks with no confidence score (top_k returns None)
+                if confidence is None:
+                    continue
+                if confidence > confidence_thresh:
+                    logger.debug(
+                        f"Skipping relabel for {block_id}; "
+                        f"Confidence: {confidence} > {confidence_thresh}"
+                    )
+                    continue
+                new_block_cls = get_block_class(relabel_block_type)
+                new_block = new_block_cls(
+                    polygon=deepcopy(block.polygon),
+                    page_id=block.page_id,
+                    structure=deepcopy(block.structure),
+                    text_extraction_method=block.text_extraction_method,
+                    source="heuristics",
+                    top_k=block.top_k,
+                    metadata=block.metadata,
+                )
+                page.replace_block(block, new_block)
+                logger.debug(f"Relabelled {block_id} to {relabel_block_type}")
+
+    BlockRelabelProcessor.__call__ = patched_call
+
+
 def post_process(markdown: str) -> str:
     """
     Thin post-processing on Marker's output:
@@ -69,30 +125,24 @@ def main():
         page_range = pages
         print(f"Page range: {page_range[0]}-{page_range[-1]} ({len(page_range)} pages)")
 
+    # Apply bug fix to Marker before loading models
+    patch_block_relabel()
+
     print("Loading models (~30s from disk)...")
     import torch
     from marker.models import create_model_dict
     models = create_model_dict(device="cpu", dtype=torch.float32)
     print("Models loaded.")
 
-    # ── Marker configuration — iteration 3b ──────────────────────────────
-    #
-    # Note: block_relabel_str removed — Marker bug where some blocks have
-    # top_k=None, causing TypeError: '>' not supported between NoneType and float.
-    # Filed as known Marker issue. Will revisit when fixed upstream.
-    #
-    # Other changes vs iteration 2:
-    # - level_count: 3 (fewer KMeans clusters = simpler heading assignment)
-    # - merge_threshold: 0.4 (merge closer heading sizes together)
-    # - BlockquoteProcessor tolerances loosened (min_x_indent 0.01, tolerances 0.05)
-    # - TextProcessor_column_gap_ratio: 0.06 (fix 2-column hyphenation artifacts)
-    # - disable_links: True (reduce text span fragmentation from hyperlinks)
-
+    # ── Marker configuration — iteration 3 (with block_relabel restored) ─
     config = {
         # Heading detection
         "level_count": 3,
         "merge_threshold": 0.4,
         "default_level": 3,
+        # Demote low-confidence SectionHeader blocks to Text before KMeans.
+        # Restored now that the top_k=None bug is patched.
+        "block_relabel_str": "SectionHeader:Text:0.6",
         # Running header suppression
         "common_element_threshold": 0.15,
         "text_match_threshold": 85,
@@ -113,10 +163,9 @@ def main():
         "extract_images": False,
     }
 
-    # Note: BlockRelabelProcessor kept in list but block_relabel_str is empty
-    # so it runs as a no-op. Removing it entirely also works.
     processor_list = [
         "marker.processors.order.OrderProcessor",
+        "marker.processors.block_relabel.BlockRelabelProcessor",
         "marker.processors.line_merge.LineMergeProcessor",
         "marker.processors.blockquote.BlockquoteProcessor",
         "marker.processors.ignoretext.IgnoreTextProcessor",
