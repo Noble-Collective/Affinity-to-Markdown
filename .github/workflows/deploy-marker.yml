@@ -1,13 +1,17 @@
 name: Deploy Marker PDF Service
 
-# Only runs when marker-pdf/ files change — independent of the afpub deploy.
+# DISABLED — iterating locally while output quality is being tuned.
+# To re-enable: change 'workflow_dispatch' back to the push trigger below.
+#
+# on:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - 'marker-pdf/**'
+#       - '.github/workflows/deploy-marker.yml'
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'marker-pdf/**'
-      - '.github/workflows/deploy-marker.yml'
+  workflow_dispatch:  # manual trigger only
 
 concurrency:
   group: deploy-marker
