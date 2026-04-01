@@ -19,15 +19,14 @@ logging.basicConfig(level=logging.WARNING)
 def post_process(markdown: str) -> str:
     """
     Thin post-processing on Marker's output:
-    - Remove image references  ![](...) lines
-    - Strip CRLF → LF
+    - Remove image reference lines  ![](...) 
+    - Strip CRLF line endings
     - Collapse 3+ blank lines to 2
     """
     lines = markdown.replace('\r\n', '\n').replace('\r', '\n').splitlines()
     out = []
     blank_count = 0
     for line in lines:
-        # Drop image lines
         if re.match(r'^!\[.*?\]\(.*?\)\s*$', line):
             continue
         if line.strip() == '':
@@ -57,7 +56,6 @@ def main():
 
     output_path = Path(args.output) if args.output else pdf_path.with_suffix(".md")
 
-    # Parse page range
     page_range = None
     if args.page_range.strip():
         pages = []
@@ -71,38 +69,64 @@ def main():
         page_range = pages
         print(f"Page range: {page_range[0]}-{page_range[-1]} ({len(page_range)} pages)")
 
-    # Load models
-    print("Loading models (first run ~30s from disk)...")
+    print("Loading models (~30s from disk)...")
     import torch
     from marker.models import create_model_dict
     models = create_model_dict(device="cpu", dtype=torch.float32)
     print("Models loaded.")
 
-    # ── Marker configuration ──────────────────────────────────────────────
-    # level_count=4: KMeans finds 4 heading clusters across the document.
-    #   Using 6 over-splits and promotes everything to H1.
-    #   4 correctly finds: session title, movement titles,
-    #   section headings, sub-section headings.
+    # ── Marker configuration — iteration 3 ───────────────────────────────
     #
-    # default_level=3: unclustered headers default to H3 (###)
+    # Changes from iteration 2:
     #
-    # common_element_threshold=0.15: suppress running headers appearing
-    #   on 15%+ of pages (e.g. "INTRODUCTION SESSION ONE" drop-caps)
+    # block_relabel_str: "SectionHeader:Text:0.6"
+    #   NEW: Demote low-confidence SectionHeader blocks to Text before
+    #   KMeans runs. If the layout model is < 60% sure a block is a heading,
+    #   treat it as body text. This shrinks the heading pool so KMeans can
+    #   find cleaner clusters. Directly attacks the 73-H1 problem.
     #
-    # BlockquoteProcessor_min_x_indent=0.03: lower indentation threshold
-    #   to catch the 8pt scripture quotes which have modest indentation
+    # merge_threshold: 0.4 (was 0.25)
+    #   When adjacent KMeans clusters are close in height, merge them into
+    #   the same heading level. 0.4 is more aggressive merging than 0.25,
+    #   reducing over-fragmentation of similar-sized headings.
     #
-    # extract_images=False + disable_image_extraction=True:
-    #   belt-and-suspenders to suppress ![]() image references in output
+    # level_count: 3 (was 4)
+    #   Force KMeans to find only 3 heading clusters: large (session title),
+    #   medium (movement titles), small (section headings). Simpler clusters
+    #   = more reliable assignment. Sub-headings fall to default_level=3.
+    #
+    # BlockquoteProcessor_min_x_indent: 0.01 (was 0.03)
+    #   Very low indent threshold — scripture quotes in this PDF are in a
+    #   narrower column and may only be slightly indented.
+    # BlockquoteProcessor_x_start_tolerance: 0.05 (was 0.01)
+    # BlockquoteProcessor_x_end_tolerance: 0.05 (was 0.01)
+    #   Looser alignment tolerance for consecutive quote blocks.
+    #
+    # TextProcessor_column_gap_ratio: 0.06 (was 0.02)
+    #   Wider column-gap detection to fix hyphenation artifacts where
+    #   2-column text (e.g. "wor-" / "ship") isn't being joined.
+    #
+    # disable_links: True (was False)
+    #   Strip hyperlink annotations which can fragment text spans.
+
     config = {
         # Heading detection
-        "level_count": 4,
+        "level_count": 3,
+        "merge_threshold": 0.4,
         "default_level": 3,
+        # Demote low-confidence layout headings to body text
+        "block_relabel_str": "SectionHeader:Text:0.6",
         # Running header suppression
         "common_element_threshold": 0.15,
         "text_match_threshold": 85,
-        # Blockquote detection — lower indent threshold
-        "BlockquoteProcessor_min_x_indent": 0.03,
+        # Blockquote detection
+        "BlockquoteProcessor_min_x_indent": 0.01,
+        "BlockquoteProcessor_x_start_tolerance": 0.05,
+        "BlockquoteProcessor_x_end_tolerance": 0.05,
+        # Multi-column text joining (fixes hyphenation artifacts)
+        "TextProcessor_column_gap_ratio": 0.06,
+        # Strip link annotations
+        "disable_links": True,
         # Performance
         "disable_ocr": True,
         "pdftext_workers": 1,
