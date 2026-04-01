@@ -2,12 +2,11 @@
 """
 run.py - Local runner for PDF to Markdown conversion.
 
-Architecture (iteration 7):
-  - Marker handles text extraction, paragraph joining, list detection,
-    blockquote spatial detection.
-  - PyMuPDF builds accurate heading map + skip set from font data.
-  - Post-processing: heading remapping, citation detection, blockquote
-    detection via 8pt font, verse label extraction, hyphenation fix.
+Architecture (iteration 8):
+  - Marker: text extraction, paragraph joining, list/blockquote detection.
+  - PyMuPDF: heading map, skip set, blockquote/citation sets, verse map.
+  - Post-processing: heading remap, bold-strip from headings, verse label
+    extraction, blockquote/citation detection, hyphenation, spacing fixes.
 
 Usage:
   python run.py path/to/book.pdf
@@ -35,6 +34,12 @@ HOMESTEAD_FONT_HEADINGS = {
     ("TimesNewRomanPSMT",        28.0): "SKIP",
 }
 
+# Verse label block: BoldMT@10 (drop-cap V) + BoldMT@7 (small-caps ERSE) + body
+_VERSE_BLOCK_FONTS = {
+    ("TimesNewRomanPS-BoldMT", 10.0),
+    ("TimesNewRomanPS-BoldMT", 7.0),
+}
+
 _RUNNING_HEADER_FONTS = {
     ("TimesNewRomanPS-BoldMT", 14.0),
     ("TimesNewRomanPS-BoldMT", 9.5),
@@ -47,32 +52,22 @@ _CITATION_RE = re.compile(
     r")$"
 )
 
-# Verse label pattern: "VERSE 1", "VERSE 2", etc.
-_VERSE_LABEL_RE = re.compile(r"^VERSE\s+(\d+)(.*)", re.DOTALL)
-
 
 def size_bucket(size: float) -> float:
     return round(float(size) * 2) / 2
 
 
 def normalise_key(text: str) -> str:
-    """Normalise text for heading map lookup.
-    Strips bold/italic markers, lowercases, normalises quotes/apostrophes,
-    collapses whitespace, truncates to 60 chars.
-    """
     t = re.sub(r"\*+", "", text)
-    t = t.replace("\u2018", "'").replace("\u2019", "'")  # curly single quotes
-    t = t.replace("\u201c", '"').replace("\u201d", '"')  # curly double quotes
-    t = t.replace("\u2013", "-").replace("\u2014", "-")  # en/em dash
+    t = t.replace("\u2018", "'").replace("\u2019", "'")
+    t = t.replace("\u201c", '"').replace("\u201d", '"')
+    t = t.replace("\u2013", "-").replace("\u2014", "-")
     t = " ".join(t.split()).strip().lower()
     return t[:60]
 
 
 def build_heading_map(pdf_path: Path, page_range=None) -> dict:
-    """
-    Use PyMuPDF to build {normalised_text -> markdown_prefix} for all
-    heading-font blocks in the PDF.
-    """
+    """PyMuPDF font-based heading map: {normalised_text -> markdown_prefix}"""
     try:
         import fitz
     except ImportError:
@@ -110,8 +105,7 @@ def build_heading_map(pdf_path: Path, page_range=None) -> dict:
             if prefix == "SKIP":
                 continue
 
-            # Collect only spans from the dominant heading font
-            # (avoids picking up trailing small-caps or mixed content)
+            # Only spans from the dominant font (ignore mixed small-caps etc.)
             text_parts = []
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
@@ -130,10 +124,7 @@ def build_heading_map(pdf_path: Path, page_range=None) -> dict:
 
 
 def build_skip_set(pdf_path: Path, page_range=None) -> set:
-    """
-    Build set of normalised text snippets to remove from output:
-    running headers, page numbers, decorative large text.
-    """
+    """Running headers, page numbers, decorative large text → skip."""
     try:
         import fitz
     except ImportError:
@@ -180,12 +171,8 @@ def build_skip_set(pdf_path: Path, page_range=None) -> set:
     return skip_set
 
 
-def build_blockquote_set(pdf_path: Path, page_range=None) -> tuple[set, set]:
-    """
-    Scan for 8pt text blocks. Returns:
-      blockquote_set: normalised first-60-chars of long 8pt blocks (>80 chars)
-      citation_set:   normalised text of short 8pt blocks (<=80 chars)
-    """
+def build_blockquote_set(pdf_path: Path, page_range=None) -> tuple:
+    """8pt text blocks: long → blockquotes, short → citations."""
     try:
         import fitz
     except ImportError:
@@ -218,7 +205,6 @@ def build_blockquote_set(pdf_path: Path, page_range=None) -> tuple[set, set]:
                 continue
 
             dom_font = max(font_chars, key=font_chars.get)
-            # 8pt Regular = blockquote or citation
             if dom_font not in (
                 ("TimesNewRomanPSMT", 8.0),
                 ("TimesNewRomanPS-ItalicMT", 8.0),
@@ -238,17 +224,77 @@ def build_blockquote_set(pdf_path: Path, page_range=None) -> tuple[set, set]:
     return bq_set, cit_set
 
 
+def build_verse_map(pdf_path: Path, page_range=None) -> dict:
+    """
+    Extract hymn verse structure from PyMuPDF.
+    Verse blocks have mixed BoldMT@10 (drop-cap V) + BoldMT@7 (ERSE).
+    Returns {verse_number_str: [line1, line2, ...]}
+    """
+    try:
+        import fitz
+    except ImportError:
+        return {}
+
+    verse_map = {}
+    doc = fitz.open(str(pdf_path))
+    pages_to_scan = range(doc.page_count) if page_range is None else [
+        p for p in page_range if p < doc.page_count
+    ]
+
+    for page_idx in pages_to_scan:
+        page = doc[page_idx]
+        for block in page.get_text("dict", sort=True)["blocks"]:
+            if block.get("type") != 0:
+                continue
+
+            font_set = set()
+            for line in block.get("lines", []):
+                for span in line.get("spans", []):
+                    if span["text"].strip():
+                        font_set.add((span["font"], size_bucket(span["size"])))
+
+            # Verse label blocks have BOTH 10pt Bold AND 7pt Bold
+            if not _VERSE_BLOCK_FONTS.issubset(font_set):
+                continue
+
+            # Extract lines, separating verse label from verse text
+            lines_out = []
+            verse_num = None
+            for line in block.get("lines", []):
+                line_text = "".join(s["text"] for s in line.get("spans", []))
+                line_text = line_text.strip()
+                if not line_text:
+                    continue
+
+                # First line usually starts with "VERSE N" (V at 10pt, ERSE at 7pt)
+                m = re.match(r"^VERSE\s*(\d+)\s*(.*)", line_text, re.IGNORECASE)
+                if m and verse_num is None:
+                    verse_num = m.group(1)
+                    rest = m.group(2).strip()
+                    if rest:
+                        lines_out.append(rest)
+                elif verse_num is not None:
+                    lines_out.append(line_text)
+
+            if verse_num and lines_out:
+                # Don't overwrite — keep first occurrence of each verse number
+                if verse_num not in verse_map:
+                    verse_map[verse_num] = lines_out
+
+    return verse_map
+
+
 def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
     """
-    Three passes:
-    1. Remove lines in skip_set (running headers, page numbers)
-    2. Remap existing heading lines to correct levels
-    3. Promote body text lines that match heading_map (catches headings
-       Marker classified as Text rather than SectionHeader)
+    1. Remove skip_set lines (running headers, page numbers)
+    2. Remap existing headings to correct levels
+    3. Strip bold/italic markers from heading content
+    4. Promote body text lines that match heading_map
     """
     lines = markdown.splitlines()
     out = []
     for line in lines:
+        # Skip running headers / page numbers
         clean_check = normalise_key(re.sub(r"[#>]", "", line))
         if clean_check in skip_set:
             continue
@@ -256,19 +302,21 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
         m = re.match(r'^(#{1,6})\s+(.+)$', line)
         if m:
             content = m.group(2)
-            clean = normalise_key(content)
+            # Strip bold/italic markers from heading content
+            # "#### **Overview**" → "#### Overview"
+            content_clean = re.sub(r'^\*\*(.+)\*\*$', r'\1', content.strip())
+            content_clean = re.sub(r'^\*(.+)\*$', r'\1', content_clean.strip())
+            clean = normalise_key(content_clean)
             if clean in skip_set:
                 continue
             if clean in heading_map:
-                out.append(f"{heading_map[clean]} {content}")
+                out.append(f"{heading_map[clean]} {content_clean}")
             else:
-                out.append(line)
+                out.append(f"{m.group(1)} {content_clean}")
         else:
-            # Promote body text lines that should be headings
-            # (Marker classified them as Text, not SectionHeader)
+            # Promote body text to heading if it matches the heading map
             body_clean = normalise_key(line)
             if body_clean in heading_map and line.strip() and len(line.strip()) > 2:
-                # Wrap in appropriate bold/italic if needed
                 prefix = heading_map[body_clean]
                 out.append(f"{prefix} {line.strip()}")
             else:
@@ -277,11 +325,61 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
     return '\n'.join(out)
 
 
+def fix_verse_labels(markdown: str, verse_map: dict) -> str:
+    """
+    Replace verse label headings (#### **VERSE N** or # **VERSE N**) with:
+      ###### Verse N
+      line1  
+      line2  
+      line3
+    Uses the verse structure extracted by PyMuPDF.
+    Falls back to just fixing the heading level if no verse_map entry.
+    """
+    if not verse_map:
+        # Still fix heading level even without verse map
+        markdown = re.sub(
+            r'^#{1,6}\s+\*?\*?VERSE\s+(\d+)\*?\*?\s*$',
+            lambda m: f"###### Verse {m.group(1)}",
+            markdown,
+            flags=re.MULTILINE | re.IGNORECASE
+        )
+        return markdown
+
+    lines = markdown.splitlines()
+    out = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        m = re.match(r'^#{1,6}\s+\*?\*?VERSE\s+(\d+)\*?\*?\s*$', line, re.IGNORECASE)
+        if m:
+            verse_num = m.group(1)
+            # Output the correct H6 label
+            out.append(f"###### Verse {verse_num}")
+            # If we have verse text from PyMuPDF, output it with hard line breaks
+            if verse_num in verse_map:
+                verse_lines = verse_map[verse_num]
+                out.append("")
+                for j, vl in enumerate(verse_lines):
+                    if j < len(verse_lines) - 1:
+                        out.append(f"{vl}  ")  # hard line break
+                    else:
+                        out.append(vl)
+                # Skip the next block of body text that Marker output for this verse
+                # (it will be a merged single line — skip it)
+                i += 1
+                while i < len(lines) and lines[i].strip():
+                    i += 1
+                continue
+            # No verse map — keep Marker's verse text as-is
+        else:
+            out.append(line)
+        i += 1
+
+    return '\n'.join(out)
+
+
 def fix_blockquotes(markdown: str, bq_set: set, cit_set: set) -> str:
-    """
-    Convert body text lines to > blockquotes or << citations
-    when they match PyMuPDF 8pt font blocks.
-    """
+    """Convert body text to > blockquotes or << citations via 8pt font map."""
     if not bq_set and not cit_set:
         return markdown
 
@@ -306,7 +404,7 @@ def fix_blockquotes(markdown: str, bq_set: set, cit_set: set) -> str:
 
 
 def fix_citations(markdown: str) -> str:
-    """Convert standalone short scripture reference lines to << citations."""
+    """Convert standalone scripture references to << citations."""
     lines = markdown.splitlines()
     out = []
     for i, line in enumerate(lines):
@@ -341,12 +439,10 @@ def fix_citations(markdown: str) -> str:
 
 
 def fix_bullet_numbers(markdown: str) -> str:
-    """Convert '- 1. Text' → '1. Text'."""
     return re.sub(r'^- (\d+\.)\s', r'\1 ', markdown, flags=re.MULTILINE)
 
 
 def fix_hyphenation(markdown: str) -> str:
-    """Merge lines ending with hyphen into the next non-blank line."""
     lines = markdown.splitlines()
     out = []
     i = 0
@@ -366,12 +462,12 @@ def fix_hyphenation(markdown: str) -> str:
 
 
 def post_process(markdown: str, heading_map: dict, skip_set: set,
-                 bq_set: set, cit_set: set) -> str:
-    """Apply all post-processing passes in order."""
+                 bq_set: set, cit_set: set, verse_map: dict) -> str:
     markdown = markdown.replace('\r\n', '\n').replace('\r', '\n')
     markdown = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', markdown, flags=re.MULTILINE)
     markdown = re.sub(r'^-{20,}\s*$', '', markdown, flags=re.MULTILINE)
     markdown = fix_headings(markdown, heading_map, skip_set)
+    markdown = fix_verse_labels(markdown, verse_map)
     markdown = fix_blockquotes(markdown, bq_set, cit_set)
     markdown = fix_citations(markdown)
     markdown = fix_bullet_numbers(markdown)
@@ -381,7 +477,6 @@ def post_process(markdown: str, heading_map: dict, skip_set: set,
 
 
 def patch_block_relabel():
-    """Patch Marker bug: top_k.get() returns None for some blocks."""
     from copy import deepcopy
     from marker.processors.block_relabel import BlockRelabelProcessor
     from marker.schema.registry import get_block_class
@@ -449,34 +544,29 @@ def main():
         page_range = pages
         print(f"Page range: {page_range[0]}-{page_range[-1]} ({len(page_range)} pages)")
 
-    # Step 1: Build all PyMuPDF maps (fast, ~1s)
     print("Building font maps from PDF...")
     heading_map = build_heading_map(pdf_path, page_range)
     skip_set = build_skip_set(pdf_path, page_range)
     bq_set, cit_set = build_blockquote_set(pdf_path, page_range)
+    verse_map = build_verse_map(pdf_path, page_range)
     print(f"  {len(heading_map)} headings, {len(skip_set)} skips, "
-          f"{len(bq_set)} blockquotes, {len(cit_set)} citations found.")
+          f"{len(bq_set)} blockquotes, {len(cit_set)} citations, "
+          f"{len(verse_map)} verses found.")
 
     patch_block_relabel()
 
-    # Step 2: Marker conversion
     print("Loading models (~30s from disk)...")
     import torch
     from marker.models import create_model_dict
     models = create_model_dict(device="cpu", dtype=torch.float32)
     print("Models loaded.")
 
-    # ── Marker configuration — iteration 7 ───────────────────────────────
-    # Back to standard Marker layout detection (not force_layout_block).
-    # force_layout_block="Text" was tried in iteration 6 but produced
-    # one blob per page — unusable. Marker's layout detection is needed
-    # for proper within-page block segmentation.
-    #
-    # All structural roles now handled by PyMuPDF post-processing:
-    # - Headings: font-based remapping with normalise_key() fixing curly quotes
-    # - Body text promoted to headings when Marker classifies them as Text
-    # - Blockquotes: 8pt font detection
-    # - Citations: scripture reference pattern + 8pt short block detection
+    # ── Marker configuration — iteration 8 ───────────────────────────────
+    # Key change: removed PageHeaderProcessor.
+    # PageHeaderProcessor was classifying movement titles (Seeking God's Wisdom,
+    # Exploring the Biblical Text etc.) as page headers and dropping them,
+    # because they appear at the very top of their pages. Our PyMuPDF skip_set
+    # already handles running header removal — we don't need PageHeaderProcessor.
     config = {
         "level_count": 4,
         "default_level": 3,
@@ -500,7 +590,7 @@ def main():
         "marker.processors.blockquote.BlockquoteProcessor",
         "marker.processors.ignoretext.IgnoreTextProcessor",
         "marker.processors.list.ListProcessor",
-        "marker.processors.page_header.PageHeaderProcessor",
+        # PageHeaderProcessor REMOVED — was dropping movement titles at top of pages
         "marker.processors.sectionheader.SectionHeaderProcessor",
         "marker.processors.text.TextProcessor",
         "marker.processors.blank_page.BlankPageProcessor",
@@ -518,9 +608,10 @@ def main():
     )
     rendered = converter(str(pdf_path))
 
-    # Step 3: Post-process
     print("Post-processing...")
-    markdown = post_process(rendered.markdown, heading_map, skip_set, bq_set, cit_set)
+    markdown = post_process(
+        rendered.markdown, heading_map, skip_set, bq_set, cit_set, verse_map
+    )
     output_path.write_text(markdown, encoding="utf-8")
     lines = len(markdown.splitlines())
     print(f"Done! Written to: {output_path} ({lines} lines)")
