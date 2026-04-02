@@ -283,7 +283,7 @@ def fix_headings(markdown, heading_map, skip_set):
     """Remap heading levels using font-derived heading_map.
     The heading_map is the source of truth for what IS a heading.
     If Marker marks something as a heading but it's NOT in the map,
-    the font rules didn't identify it as a heading → demote to bold."""
+    the font rules didn't identify it as a heading -> demote to bold."""
     occ = {}
     def _gl(key):
         if key not in heading_map: return None
@@ -304,8 +304,6 @@ def fix_headings(markdown, heading_map, skip_set):
             if level:
                 out.append(f"{level} {content_clean}")
             else:
-                # Not in heading_map: font rules say this isn't a heading.
-                # Demote Marker's incorrect heading to bold text.
                 out.append(f"**{content_clean}**")
         else:
             stripped = line.strip()
@@ -464,7 +462,7 @@ def fix_structural_labels(md):
     return '\n'.join(out)
 
 def fix_bold_bullets(md):
-    """Convert **\u2022 Text**: ... \u2192 - **Text**: ..."""
+    """Convert **bullet Text**: ... to - **Text**: ..."""
     lines = md.splitlines(); out = []
     for line in lines:
         s = line.strip()
@@ -525,6 +523,28 @@ def fix_callouts(md, callout_texts):
             if m: out[idx] = out[idx][:m.start()] + f"<Callout>{m.group()}</Callout>" + out[idx][m.end():]
     return '\n'.join(out)
 
+def fix_empty_tables(md, threshold=0.7):
+    """Remove tables where most cells are empty (blank worksheets/forms).
+    A table with >threshold fraction of empty cells is a fillable form, not content."""
+    lines = md.splitlines(); out = []; i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.strip().startswith('|') and i+1 < len(lines) and '|---' in lines[i+1]:
+            table_lines = []
+            while i < len(lines) and lines[i].strip().startswith('|'):
+                table_lines.append(lines[i]); i += 1
+            total = empty = 0
+            for tl in table_lines:
+                if '---' in tl: continue
+                for cell in tl.strip().strip('|').split('|'):
+                    total += 1
+                    if not cell.strip(): empty += 1
+            if total > 0 and empty / total >= threshold: continue
+            out.extend(table_lines)
+        else:
+            out.append(line); i += 1
+    return '\n'.join(out)
+
 def fix_final_review_table(md, cfg):
     rules = cfg.get("table_to_list",[])
     if not rules: return md
@@ -574,6 +594,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = fix_bullet_numbers(md)
     md = fix_hyphenation(md)
     md = fix_callouts(md, callout_texts or [])
+    md = fix_empty_tables(md)
     md = fix_final_review_table(md, cfg)
     md = fix_inline_bold(md, inline_bold or [])
     md = fix_junk_content(md, cfg)
