@@ -9,7 +9,7 @@ used instead of hardcoded font names or absolute sizes.
 Usage:
   python run.py path/to/book.pdf                    # full conversion
   python run.py path/to/book.pdf --save-raw         # save Marker output before post-processing
-  python run.py --postprocess raw.md book.pdf       # re-run post-processing only (fast)
+  python run.py raw.md book.pdf --postprocess       # re-run post-processing only (fast)
   python run.py path/to/book.pdf --template homestead
   python run.py path/to/book.pdf --page-range 62-200
   python run.py path/to/book.pdf --dump-fonts       # calibration mode
@@ -30,7 +30,7 @@ logging.basicConfig(level=logging.WARNING)
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 
-# ── YAML loader ───────────────────────────────────────────────────────────────
+# ── YAML loader ──────────────────────────────────────────────────────────────────────
 def _load_yaml(path: Path) -> dict:
     import yaml
     with open(path, encoding="utf-8") as f:
@@ -244,6 +244,10 @@ def build_blockquote_set(pdf_path: Path, cfg: dict, body_size: float,
 
 def build_verse_map(pdf_path: Path, cfg: dict, body_size: float,
                     page_range=None) -> dict:
+    """
+    Extract hymn verse structure from the PDF using verse_label_signature.
+    Returns {verse_num_str: [line1, line2, ...]} with properly formatted lines.
+    """
     import fitz
     verse_map = {}
     doc = fitz.open(str(pdf_path))
@@ -291,7 +295,7 @@ def build_verse_map(pdf_path: Path, cfg: dict, body_size: float,
     return verse_map
 
 
-# ── Dump fonts calibration mode ───────────────────────────────────────────────
+# ── Dump fonts calibration mode ─────────────────────────────────────────────
 def dump_fonts(pdf_path: Path, page_range=None) -> None:
     import fitz
     doc = fitz.open(str(pdf_path))
@@ -356,6 +360,10 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
 
 
 def fix_verse_labels(markdown: str, verse_map: dict) -> str:
+    """
+    Replace VERSE N headings with proper H6 labels and verse text from the PDF.
+    Skips ALL of Marker's merged verse text (everything up to the next heading).
+    """
     if not verse_map:
         return re.sub(
             r'^#{1,6}\s+\*?\*?VERSE\s+(\d+)\*?\*?\s*$',
@@ -376,14 +384,21 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
                 vlines = verse_map[verse_num]
                 for j, vl in enumerate(vlines):
                     out.append(f"{vl}  " if j < len(vlines) - 1 else vl)
+            # Skip ALL of Marker's merged verse text until the next heading
+            i += 1
+            while i < len(lines):
+                if lines[i].lstrip().startswith('#'):
+                    break
                 i += 1
-                while i < len(lines) and lines[i].strip():
-                    i += 1
-                continue
-        else:
-            out.append(line)
+            continue
+        out.append(line)
         i += 1
     return '\n'.join(out)
+
+
+def fix_double_blockquote_citations(markdown: str) -> str:
+    """Convert Marker's '> > Citation' double-blockquote to '<< Citation'."""
+    return re.sub(r'^> > (.+)$', r'<< \1', markdown, flags=re.MULTILINE)
 
 
 def fix_blockquotes(markdown: str, bq_set: set, cit_set: set) -> str:
@@ -406,6 +421,7 @@ def fix_blockquotes(markdown: str, bq_set: set, cit_set: set) -> str:
 
 
 def fix_citations(markdown: str, cfg: dict) -> str:
+    """Convert standalone short lines to << citations using configured patterns."""
     patterns = cfg.get("_citation_res", [])
     cit_max = cfg.get("citation_max_chars", 80)
     lines = markdown.splitlines()
@@ -437,10 +453,12 @@ def fix_citations(markdown: str, cfg: dict) -> str:
 
 
 def fix_bullet_numbers(markdown: str) -> str:
+    """Fix Marker bug: '- 1. Text' → '1. Text'"""
     return re.sub(r'^- (\d+\.)\s', r'\1 ', markdown, flags=re.MULTILINE)
 
 
 def fix_hyphenation(markdown: str) -> str:
+    """Merge column-break hyphenated words split across lines."""
     lines = markdown.splitlines()
     out = []
     i = 0
@@ -459,23 +477,79 @@ def fix_hyphenation(markdown: str) -> str:
     return '\n'.join(out)
 
 
+def fix_pullquote_fragments(markdown: str) -> str:
+    """
+    Remove PDF margin pull-quote lines that Marker emits with a leading space.
+    These are decorative repeated-text callouts in the book margins.
+    Must run BEFORE fix_blockquotes (which would convert them to '>' lines).
+    """
+    lines = markdown.splitlines()
+    out = []
+    for line in lines:
+        if line.startswith(' ') and len(line.strip()) < 120 and line.strip():
+            s = line.strip()
+            if not any(s.startswith(c) for c in ['-', '*', '#', '>']):
+                continue  # skip pull-quote
+        out.append(line)
+    return '\n'.join(out)
+
+
+def fix_structural_labels(markdown: str) -> str:
+    """
+    Remove purely structural/decorative labels that appear in the PDF as
+    schedule headers or activity labels but have no content value in markdown.
+    Examples: PRAYERS, CATECHISM, MUTUAL ENCOURAGEMENT, SONGS, etc.
+    """
+    lines = markdown.splitlines()
+    out = []
+    for line in lines:
+        s = line.strip()
+        # All-caps headings (e.g. '#### PRAYERS', '# MUTUAL ENCOURAGEMENT')
+        if re.match(r'^#{1,6}\s+[A-Z][A-Z\s]+$', s):
+            continue
+        # All-caps bold standalone labels (e.g. '**SEEKING THE TRUTH**')
+        if re.match(r'^\*\*[A-Z][A-Z\s]+\*\*$', s):
+            continue
+        # Citations that are all-caps bold labels (e.g. '<< **CATECHISM**')
+        if re.match(r'^<<\s+\*\*[A-Z\s]+\*\*$', s):
+            continue
+        # Single bold capital letter artifacts (e.g. '**S**')
+        if re.match(r'^\*\*[A-Z]\*\*$', s):
+            continue
+        # Bullet character • alone on a line
+        if s == '\u2022':
+            continue
+        # Convert • bullets to standard markdown
+        if s.startswith('\u2022'):
+            out.append(re.sub(r'^\u2022\s*', '- ', line))
+            continue
+        out.append(line)
+    return '\n'.join(out)
+
+
 def post_process(markdown: str, heading_map: dict, skip_set: set,
                  bq_set: set, cit_set: set, verse_map: dict, cfg: dict) -> str:
     markdown = markdown.replace('\r\n', '\n').replace('\r', '\n')
+    # Remove image links and long horizontal rules Marker sometimes emits
     markdown = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', markdown, flags=re.MULTILINE)
     markdown = re.sub(r'^-{20,}\s*$', '', markdown, flags=re.MULTILINE)
+    # Run fixes in order (pull-quotes before blockquotes to avoid false conversion)
+    markdown = fix_pullquote_fragments(markdown)
     markdown = fix_headings(markdown, heading_map, skip_set)
     markdown = fix_verse_labels(markdown, verse_map)
+    markdown = fix_double_blockquote_citations(markdown)
     markdown = fix_blockquotes(markdown, bq_set, cit_set)
     markdown = fix_citations(markdown, cfg)
     markdown = fix_bullet_numbers(markdown)
     markdown = fix_hyphenation(markdown)
+    markdown = fix_structural_labels(markdown)
     markdown = re.sub(r'\n{3,}', '\n\n', markdown)
     return markdown.strip() + '\n'
 
 
 # ── Marker bug patch ──────────────────────────────────────────────────────────
 def patch_block_relabel():
+    """Patch Marker bug: BlockRelabelProcessor crashes when top_k returns None."""
     from copy import deepcopy
     from marker.processors.block_relabel import BlockRelabelProcessor
     from marker.schema.registry import get_block_class
@@ -532,22 +606,24 @@ def main():
     parser = argparse.ArgumentParser(
         description="Convert PDF to Markdown using Marker + font-based post-processing."
     )
-    parser.add_argument("input", help="Path to the PDF file OR raw Marker .md file (with --postprocess)")
+    parser.add_argument("input",
+                        help="Path to PDF, OR raw Marker .md file (with --postprocess)")
     parser.add_argument("pdf", nargs="?",
-                        help="Path to PDF (required with --postprocess, for font scanning)")
+                        help="PDF path (required with --postprocess, for font scanning)")
     parser.add_argument("output", nargs="?", help="Output .md path (optional)")
     parser.add_argument("--template", default="homestead",
-                        help="Template name (default: homestead)")
+                        help="Template name (default: homestead). "
+                             "Loads templates/<name>/pdf_config.yaml")
     parser.add_argument("--page-range", default="",
                         help="0-indexed page range e.g. '62-200'")
     parser.add_argument("--dump-fonts", action="store_true",
-                        help="Print font table for calibration and exit")
+                        help="Print font analysis table for calibration and exit")
     parser.add_argument("--save-raw", action="store_true",
-                        help="Also save Marker's raw output before post-processing "
-                             "(saved as <output>.raw.md)")
+                        help="Save Marker's raw output before post-processing "
+                             "as <output>.raw.md")
     parser.add_argument("--postprocess", action="store_true",
-                        help="Skip Marker entirely — apply post-processing to an "
-                             "existing raw Marker .md file. "
+                        help="Skip Marker — apply post-processing to an existing "
+                             "raw .md file. "
                              "Usage: python run.py raw.md book.pdf --postprocess")
     args = parser.parse_args()
 
@@ -564,7 +640,7 @@ def main():
         page_range = pages
         print(f"Page range: {page_range[0]}-{page_range[-1]} ({len(page_range)} pages)")
 
-    # ── --dump-fonts mode ─────────────────────────────────────────────────────
+    # ── --dump-fonts mode ──────────────────────────────────────────────────
     if args.dump_fonts:
         pdf_path = Path(args.input)
         if not pdf_path.exists():
@@ -576,7 +652,7 @@ def main():
     cfg = load_template(args.template)
     print(f"Template: {args.template}")
 
-    # ── --postprocess mode: skip Marker, re-run post-processing only ──────────
+    # ── --postprocess mode: skip Marker, re-run post-processing only ───────
     if args.postprocess:
         raw_md_path = Path(args.input)
         if not raw_md_path.exists():
@@ -616,7 +692,7 @@ def main():
         print(f"Done! Written to: {output_path} ({len(markdown.splitlines())} lines)")
         return
 
-    # ── Full conversion mode ──────────────────────────────────────────────────
+    # ── Full conversion mode ──────────────────────────────────────────────
     pdf_path = Path(args.input)
     if not pdf_path.exists():
         print(f"ERROR: File not found: {pdf_path}")
@@ -707,7 +783,6 @@ def main():
     )
     rendered = converter(str(pdf_path))
 
-    # Optionally save raw Marker output before post-processing
     if args.save_raw:
         raw_path = output_path.with_suffix(".raw.md")
         raw_path.write_text(rendered.markdown, encoding="utf-8")
