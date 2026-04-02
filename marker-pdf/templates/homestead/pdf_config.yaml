@@ -108,3 +108,24 @@ discussion_question_labels:
   - "##### Searching the Text"
   - "##### Seeking the Truth"
   - "##### Evaluating Our Lives"
+
+# ── Content cleanup (generic, config-driven) ─────────────────────────────────
+# Lines matching these regexes are removed from the output.
+# Used for navigation labels, attribution metadata, and other non-content
+# text that renders after Figure/Picture blocks are relabeled to Text.
+skip_line_patterns:
+  - '^Session \d+ (Community Study|Weekly Disciplines)'
+  - '^Rijn, Rembrandt'
+
+# Tables whose first row contains any of these strings are removed entirely.
+# Used for decorative grid tables (e.g. discussion question grids with
+# rotated column headers) that render as junk markdown tables.
+skip_table_markers:
+  - 'SEARCHING'
+
+# Single-column tables matching these rules are converted to headed lists.
+# Handles content that Marker renders as a table instead of a section
+# (common when Figure blocks are relabeled to Text).
+table_to_list:
+  - header_contains: "Final Review"
+    output_heading: "#### Final Review"
