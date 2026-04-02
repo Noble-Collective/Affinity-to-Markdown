@@ -247,6 +247,7 @@ def build_verse_map(pdf_path: Path, cfg: dict, body_size: float,
     """
     Extract hymn verse structure from the PDF using verse_label_signature.
     Returns {verse_num_str: [line1, line2, ...]} with properly formatted lines.
+    Only stores the FIRST occurrence of each verse number (first song in the PDF).
     """
     import fitz
     verse_map = {}
@@ -362,7 +363,9 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
 def fix_verse_labels(markdown: str, verse_map: dict) -> str:
     """
     Replace VERSE N headings with proper H6 labels and verse text from the PDF.
-    Adds a blank line after each verse block before the next heading.
+    Uses verse_map text only for the FIRST occurrence of each verse number
+    (i.e. the first song). For subsequent songs with the same verse numbers,
+    keeps Marker's merged text rather than inserting wrong-song content.
     """
     if not verse_map:
         return re.sub(
@@ -373,26 +376,32 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
     lines = markdown.splitlines()
     out = []
     i = 0
+    used_nums: set = set()  # track verse numbers already replaced with PDF text
     while i < len(lines):
         line = lines[i]
         m = re.match(r'^#{1,6}\s+\*?\*?VERSE\s+(\d+)\*?\*?\s*$', line, re.IGNORECASE)
         if m:
             verse_num = m.group(1)
             out.append(f"###### Verse {verse_num}")
-            if verse_num in verse_map:
+            if verse_num in verse_map and verse_num not in used_nums:
+                # First occurrence: insert PDF verse text and skip Marker's merged text
                 out.append("")
                 vlines = verse_map[verse_num]
                 for j, vl in enumerate(vlines):
                     out.append(f"{vl}  " if j < len(vlines) - 1 else vl)
-            out.append("")  # blank line after verse text before next heading
-            # Skip ALL of Marker's merged verse text until the next heading
-            i += 1
-            while i < len(lines):
-                if lines[i].lstrip().startswith('#'):
-                    break
+                out.append("")  # blank line after verse block
+                used_nums.add(verse_num)
                 i += 1
-            continue
-        out.append(line)
+                while i < len(lines):
+                    if lines[i].lstrip().startswith('#'):
+                        break
+                    i += 1
+                continue
+            else:
+                # Subsequent song reusing verse numbers: keep Marker's text as-is
+                out.append("")  # blank line after heading
+        else:
+            out.append(line)
         i += 1
     return '\n'.join(out)
 
@@ -459,7 +468,12 @@ def fix_bullet_numbers(markdown: str) -> str:
 
 
 def fix_hyphenation(markdown: str) -> str:
-    """Merge column-break hyphenated words split across lines."""
+    """Merge column-break hyphenated words split across lines.
+
+    Does NOT merge when the next non-blank line is a heading (starts with #).
+    This prevents corruption like 'tem# God's care...' when a hyphenated word
+    is immediately followed by a pull-quote heading in the raw output.
+    """
     lines = markdown.splitlines()
     out = []
     i = 0
@@ -469,7 +483,8 @@ def fix_hyphenation(markdown: str) -> str:
             j = i + 1
             while j < len(lines) and not lines[j].strip():
                 j += 1
-            if j < len(lines):
+            # Don't merge into headings or other structural lines
+            if j < len(lines) and not lines[j].lstrip().startswith('#'):
                 out.append(line.rstrip()[:-1] + lines[j].lstrip())
                 i = j + 1
                 continue
@@ -541,7 +556,6 @@ def fix_discussion_question_groups(markdown: str, cfg: dict) -> str:
         return markdown
 
     # Remove any misplaced all-caps bold label that Marker may have extracted
-    # (e.g. **SEEKING THE TRUTH** appears before all questions, not between groups)
     markdown = re.sub(r'\n+\*\*[A-Z][A-Z\s]+\*\*\n+(?=\n*#{1,4}\s+Discussion)', '\n\n', markdown)
 
     lines = markdown.splitlines()
@@ -550,18 +564,15 @@ def fix_discussion_question_groups(markdown: str, cfg: dict) -> str:
     group_count = 0
 
     for line in lines:
-        # Enter Discussion Questions section
         if re.match(r'^####\s+Discussion Questions', line, re.IGNORECASE):
             in_dq = True
             group_count = 0
             out.append(line)
             continue
 
-        # Exit at H1-H4 heading (not H5+)
         if in_dq and re.match(r'^#{1,4}\s+', line) and not re.match(r'^#{5,}', line):
             in_dq = False
 
-        # Insert group heading before each restart at 1.
         if in_dq and re.match(r'^1\.\s+', line) and group_count < len(labels_cfg):
             if group_count > 0:
                 out.append('')
@@ -593,6 +604,10 @@ def fix_structural_labels(markdown: str) -> str:
             continue
         # Single bold capital letter artifacts (e.g. '**S**')
         if re.match(r'^\*\*[A-Z]\*\*$', s):
+            continue
+        # Italic pull-quote fragments from page margins (e.g. '*"As a father...*')
+        # These are decorative callout quotes that bleed into Marker's text flow.
+        if re.match(r'^\*".+\.\.\.\*$', s):
             continue
         # Bullet character • alone on a line
         if s == '\u2022':
