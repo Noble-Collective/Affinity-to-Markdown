@@ -3,7 +3,7 @@
 run.py - Local runner for PDF to Markdown conversion.
 
 All book-specific configuration lives in templates/<template>/pdf_config.yaml.
-The conversion logic is fully generic — font ratios and weight patterns are
+The conversion logic is fully generic -- font ratios and weight patterns are
 used instead of hardcoded font names or absolute sizes.
 
 Usage:
@@ -30,7 +30,6 @@ logging.basicConfig(level=logging.WARNING)
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 
-# ── YAML loader ──────────────────────────────────────────────────────────────────────
 def _load_yaml(path: Path) -> dict:
     import yaml
     with open(path, encoding="utf-8") as f:
@@ -49,7 +48,6 @@ def load_template(template_name: str) -> dict:
     return config
 
 
-# ── Font helpers ──────────────────────────────────────────────────────────────
 def size_bucket(size: float) -> float:
     return round(float(size) * 2) / 2
 
@@ -75,53 +73,42 @@ def normalise_key(text: str) -> str:
 
 
 def _match_rule(weight: str, ratio: float, rule: dict) -> bool:
-    return (
-        rule["weight"] == weight
-        and rule["min_ratio"] <= ratio <= rule["max_ratio"]
-    )
+    return (rule["weight"] == weight
+            and rule["min_ratio"] <= ratio <= rule["max_ratio"])
 
 
-# ── Body font auto-detection ──────────────────────────────────────────────────
 def detect_body_font(pdf_path: Path, page_range=None) -> tuple:
     import fitz
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count
-    ]
+        p for p in page_range if p < doc.page_count]
     freq: dict = {}
     for page_idx in pages:
         page = doc[page_idx]
         for block in page.get_text("dict")["blocks"]:
-            if block.get("type") != 0:
-                continue
+            if block.get("type") != 0: continue
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
                     t = span["text"].strip()
                     if any(c.isalpha() for c in t):
                         key = (span["font"], size_bucket(span["size"]))
                         freq[key] = freq.get(key, 0) + len(t)
-    if not freq:
-        return ("unknown", 10.0)
+    if not freq: return ("unknown", 10.0)
     return max(freq, key=freq.get)
 
 
-# ── PyMuPDF scanning ──────────────────────────────────────────────────────────
-def build_heading_map(pdf_path: Path, cfg: dict, body_size: float,
-                      page_range=None) -> dict:
+def build_heading_map(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> dict:
     import fitz
     heading_map = {}
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count
-    ]
+        p for p in page_range if p < doc.page_count]
     rules = cfg.get("headings", [])
     skip_ratio = cfg.get("skip_large_ratio", 2.4)
-
     for page_idx in pages:
         page = doc[page_idx]
         for block in page.get_text("dict", sort=True)["blocks"]:
-            if block.get("type") != 0:
-                continue
+            if block.get("type") != 0: continue
             font_chars: dict = {}
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
@@ -129,20 +116,17 @@ def build_heading_map(pdf_path: Path, cfg: dict, body_size: float,
                     if any(c.isalpha() for c in t):
                         key = (span["font"], size_bucket(span["size"]))
                         font_chars[key] = font_chars.get(key, 0) + len(t)
-            if not font_chars:
-                continue
+            if not font_chars: continue
             dom_font, dom_size = max(font_chars, key=font_chars.get)
             ratio = dom_size / body_size
             weight = font_weight(dom_font)
-            if ratio > skip_ratio:
-                continue
+            if ratio > skip_ratio: continue
             matched_level = None
             for rule in rules:
                 if _match_rule(weight, ratio, rule):
                     matched_level = rule["level"]
                     break
-            if matched_level is None:
-                continue
+            if matched_level is None: continue
             text_parts = []
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
@@ -152,26 +136,21 @@ def build_heading_map(pdf_path: Path, cfg: dict, body_size: float,
             text = " ".join(" ".join(text_parts).split()).strip()
             if text and len(text) > 2:
                 heading_map[normalise_key(text)] = "#" * matched_level
-
     return heading_map
 
 
-def build_skip_set(pdf_path: Path, cfg: dict, body_size: float,
-                   page_range=None) -> set:
+def build_skip_set(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> set:
     import fitz
     skip_set = set()
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count
-    ]
+        p for p in page_range if p < doc.page_count]
     rh_sig = cfg.get("running_header_signature", [])
     skip_ratio = cfg.get("skip_large_ratio", 2.4)
-
     for page_idx in pages:
         page = doc[page_idx]
         for block in page.get_text("dict", sort=True)["blocks"]:
-            if block.get("type") != 0:
-                continue
+            if block.get("type") != 0: continue
             wr_pairs = set()
             text = ""
             for line in block.get("lines", []):
@@ -182,40 +161,31 @@ def build_skip_set(pdf_path: Path, cfg: dict, body_size: float,
                         wr_pairs.add((font_weight(span["font"]), ratio))
                         text += span["text"]
             text = " ".join(text.split()).strip()
-            if not text:
-                continue
+            if not text: continue
             if re.match(r"^\d{1,3}$", text):
-                skip_set.add(normalise_key(text))
-                continue
+                skip_set.add(normalise_key(text)); continue
             if any(r > skip_ratio for _, r in wr_pairs):
-                skip_set.add(normalise_key(text))
-                continue
+                skip_set.add(normalise_key(text)); continue
             if rh_sig and all(
-                any(_match_rule(w, r, rule) for w, r in wr_pairs)
-                for rule in rh_sig
+                any(_match_rule(w, r, rule) for w, r in wr_pairs) for rule in rh_sig
             ):
                 skip_set.add(normalise_key(text))
-
     return skip_set
 
 
-def build_blockquote_set(pdf_path: Path, cfg: dict, body_size: float,
-                         page_range=None) -> tuple:
+def build_blockquote_set(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> tuple:
     import fitz
     bq_set = set()
     cit_set = set()
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count
-    ]
+        p for p in page_range if p < doc.page_count]
     max_ratio = cfg.get("quote_max_ratio", 0.88)
     cit_max = cfg.get("citation_max_chars", 80)
-
     for page_idx in pages:
         page = doc[page_idx]
         for block in page.get_text("dict", sort=True)["blocks"]:
-            if block.get("type") != 0:
-                continue
+            if block.get("type") != 0: continue
             font_chars: dict = {}
             text = ""
             for line in block.get("lines", []):
@@ -225,100 +195,72 @@ def build_blockquote_set(pdf_path: Path, cfg: dict, body_size: float,
                         key = (span["font"], size_bucket(span["size"]))
                         font_chars[key] = font_chars.get(key, 0) + len(t.strip())
                     text += t
-            if not font_chars:
-                continue
+            if not font_chars: continue
             _, dom_size = max(font_chars, key=font_chars.get)
-            if dom_size / body_size > max_ratio:
-                continue
+            if dom_size / body_size > max_ratio: continue
             text = " ".join(text.split()).strip()
-            if not text or not any(c.isalpha() for c in text):
-                continue
+            if not text or not any(c.isalpha() for c in text): continue
             key = normalise_key(text[:60])
-            if len(text) > cit_max:
-                bq_set.add(key)
-            else:
-                cit_set.add(key)
-
+            if len(text) > cit_max: bq_set.add(key)
+            else: cit_set.add(key)
     return bq_set, cit_set
 
 
-def build_verse_map(pdf_path: Path, cfg: dict, body_size: float,
-                    page_range=None) -> dict:
-    """
-    Extract hymn verse structure from the PDF using verse_label_signature.
-    Returns {verse_num_str: [line1, line2, ...]} with properly formatted lines.
-    Only stores the FIRST occurrence of each verse number (first song in the PDF).
-    """
+def build_verse_map(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> dict:
     import fitz
     verse_map = {}
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count
-    ]
+        p for p in page_range if p < doc.page_count]
     sig = cfg.get("verse_label_signature", [])
-    if not sig:
-        return verse_map
-
+    if not sig: return verse_map
     for page_idx in pages:
         page = doc[page_idx]
         for block in page.get_text("dict", sort=True)["blocks"]:
-            if block.get("type") != 0:
-                continue
+            if block.get("type") != 0: continue
             wr_pairs = set()
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
                     if span["text"].strip():
                         ratio = size_bucket(span["size"]) / body_size
                         wr_pairs.add((font_weight(span["font"]), ratio))
-            if not all(
-                any(_match_rule(w, r, rule) for w, r in wr_pairs)
-                for rule in sig
-            ):
+            if not all(any(_match_rule(w, r, rule) for w, r in wr_pairs) for rule in sig):
                 continue
             lines_out = []
             verse_num = None
             for line in block.get("lines", []):
-                line_text = "".join(s["text"] for s in line.get("spans", []))
-                line_text = line_text.strip()
-                if not line_text:
-                    continue
+                line_text = "".join(s["text"] for s in line.get("spans", [])).strip()
+                if not line_text: continue
                 m = re.match(r"^VERSE\s*(\d+)\s*(.*)", line_text, re.IGNORECASE)
                 if m and verse_num is None:
                     verse_num = m.group(1)
                     rest = m.group(2).strip()
-                    if rest:
-                        lines_out.append(rest)
+                    if rest: lines_out.append(rest)
                 elif verse_num is not None:
                     lines_out.append(line_text)
             if verse_num and lines_out and verse_num not in verse_map:
                 verse_map[verse_num] = lines_out
-
     return verse_map
 
 
-# ── Dump fonts calibration mode ─────────────────────────────────────────────
 def dump_fonts(pdf_path: Path, page_range=None) -> None:
     import fitz
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count
-    ]
+        p for p in page_range if p < doc.page_count]
     freq: dict = {}
     samples: dict = {}
     for page_idx in pages:
         page = doc[page_idx]
         for block in page.get_text("dict")["blocks"]:
-            if block.get("type") != 0:
-                continue
+            if block.get("type") != 0: continue
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
                     t = span["text"].strip()
                     if any(c.isalpha() for c in t):
                         key = (span["font"], size_bucket(span["size"]))
                         freq[key] = freq.get(key, 0) + len(t)
-                        if key not in samples:
-                            samples[key] = t[:50]
-
+                        if key not in samples: samples[key] = t[:50]
     body_font, body_size = max(freq, key=freq.get)
     print(f"\nBody font (most frequent): {body_font} @ {body_size}pt")
     print(f"\n{'Font':<40} {'Size':>6} {'Ratio':>6} {'Weight':>10} {'Chars':>8}  Sample")
@@ -332,28 +274,26 @@ def dump_fonts(pdf_path: Path, page_range=None) -> None:
     print("Use these ratios to configure headings in pdf_config.yaml.")
 
 
-# ── Post-processing passes ────────────────────────────────────────────────────
+# ---- Post-processing passes ----
+
 def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
     lines = markdown.splitlines()
     out = []
     for line in lines:
-        if normalise_key(re.sub(r"[#>]", "", line)) in skip_set:
-            continue
+        if normalise_key(re.sub(r"[#>]", "", line)) in skip_set: continue
         m = re.match(r'^(#{1,6})\s+(.+)$', line)
         if m:
             content = m.group(2)
             content_clean = re.sub(r'^\*\*(.+)\*\*$', r'\1', content.strip())
             content_clean = re.sub(r'^\*(.+)\*$', r'\1', content_clean.strip())
             clean = normalise_key(content_clean)
-            if clean in skip_set:
-                continue
+            if clean in skip_set: continue
             if clean in heading_map:
                 out.append(f"{heading_map[clean]} {content_clean}")
             else:
                 out.append(f"{m.group(1)} {content_clean}")
         else:
             stripped = line.strip()
-            # Match bold-only lines: **Heading Text** (from relabeled Figure blocks)
             bm = re.match(r'^\*\*(.+?)\*\*$', stripped)
             if bm:
                 inner = bm.group(1)
@@ -370,22 +310,15 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
 
 
 def fix_verse_labels(markdown: str, verse_map: dict) -> str:
-    """
-    Replace VERSE N headings with proper H6 labels and verse text from the PDF.
-    Uses verse_map text only for the FIRST occurrence of each verse number
-    (i.e. the first song). For subsequent songs with the same verse numbers,
-    keeps Marker's merged text rather than inserting wrong-song content.
-    """
     if not verse_map:
         return re.sub(
             r'^(?:#{1,6}\s+)?\*?\*?VERSE\s+(\d+)\*?\*?\s*$',
             lambda m: f"###### Verse {m.group(1)}",
-            markdown, flags=re.MULTILINE | re.IGNORECASE
-        )
+            markdown, flags=re.MULTILINE | re.IGNORECASE)
     lines = markdown.splitlines()
     out = []
     i = 0
-    used_nums: set = set()  # track verse numbers already replaced with PDF text
+    used_nums: set = set()
     while i < len(lines):
         line = lines[i]
         m = re.match(r'^(?:#{1,6}\s+)?\*?\*?VERSE\s+(\d+)\*?\*?\s*$', line, re.IGNORECASE)
@@ -393,12 +326,11 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
             verse_num = m.group(1)
             out.append(f"###### Verse {verse_num}")
             if verse_num in verse_map and verse_num not in used_nums:
-                # First occurrence: insert PDF verse text and skip Marker's merged text
                 out.append("")
                 vlines = verse_map[verse_num]
                 for j, vl in enumerate(vlines):
                     out.append(f"{vl}  " if j < len(vlines) - 1 else vl)
-                out.append("")  # blank line after verse block
+                out.append("")
                 used_nums.add(verse_num)
                 i += 1
                 while i < len(lines):
@@ -408,8 +340,7 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
                     i += 1
                 continue
             else:
-                # Subsequent song reusing verse numbers: keep Marker's text as-is
-                out.append("")  # blank line after heading
+                out.append("")
         else:
             out.append(line)
         i += 1
@@ -417,7 +348,6 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
 
 
 def fix_double_blockquote_citations(markdown: str) -> str:
-    """Convert Marker's '> > Citation' double-blockquote to '<< Citation'."""
     return re.sub(r'^> > (.+)$', r'<< \1', markdown, flags=re.MULTILINE)
 
 
@@ -426,22 +356,16 @@ def fix_blockquotes(markdown: str, bq_set: set, cit_set: set) -> str:
     out = []
     for line in lines:
         stripped = line.strip()
-        if not stripped or line.startswith('>') or line.startswith('<<') \
-                or line.startswith('#'):
-            out.append(line)
-            continue
+        if not stripped or line.startswith('>') or line.startswith('<<') or line.startswith('#'):
+            out.append(line); continue
         key = normalise_key(stripped[:60])
-        if key in bq_set:
-            out.append(f"> {stripped}")
-        elif key in cit_set:
-            out.append(f"<< {stripped}")
-        else:
-            out.append(line)
+        if key in bq_set: out.append(f"> {stripped}")
+        elif key in cit_set: out.append(f"<< {stripped}")
+        else: out.append(line)
     return '\n'.join(out)
 
 
 def fix_citations(markdown: str, cfg: dict) -> str:
-    """Convert standalone short lines to << citations using configured patterns."""
     patterns = cfg.get("_citation_res", [])
     cit_max = cfg.get("citation_max_chars", 80)
     lines = markdown.splitlines()
@@ -451,42 +375,27 @@ def fix_citations(markdown: str, cfg: dict) -> str:
         if not stripped or stripped.startswith('#') or stripped.startswith('>') \
                 or stripped.startswith('<<') or stripped.startswith('-') \
                 or stripped.startswith('*') or len(stripped) > 120:
-            out.append(line)
-            continue
+            out.append(line); continue
         prev_blank = (i == 0) or (lines[i-1].strip() == '')
         next_blank = (i == len(lines)-1) or (lines[i+1].strip() == '')
         if not (prev_blank and next_blank):
-            out.append(line)
-            continue
+            out.append(line); continue
         if any(p.match(stripped) for p in patterns):
-            out.append(f"<< {stripped}")
-            continue
+            out.append(f"<< {stripped}"); continue
         prev_content = next(
-            (lines[j].strip() for j in range(i-1, -1, -1) if lines[j].strip()), ""
-        )
-        if (prev_content.startswith('>') or prev_content.startswith('<<')) \
-                and len(stripped) < cit_max:
-            out.append(f"<< {stripped}")
-            continue
+            (lines[j].strip() for j in range(i-1, -1, -1) if lines[j].strip()), "")
+        if (prev_content.startswith('>') or prev_content.startswith('<<')) and len(stripped) < cit_max:
+            out.append(f"<< {stripped}"); continue
         out.append(line)
     return '\n'.join(out)
 
 
 def fix_bullet_numbers(markdown: str) -> str:
-    """Fix Marker bug: '- 1. Text' -> '1. Text'"""
     return re.sub(r'^- (\d+\.)\s', r'\1 ', markdown, flags=re.MULTILINE)
 
 
 def fix_hyphenation(markdown: str) -> str:
-    """Merge column-break hyphenated words split across lines.
-
-    Only merges when the next non-blank line starts with a lowercase letter,
-    indicating a mid-word continuation (e.g. 'wor-' + 'ship').  Does NOT
-    merge when the next line starts uppercase (new sentence/paragraph) or
-    with a heading marker.  This prevents artifacts like 'tem-' + 'God's
-    care...' being merged into 'temGod's care...' when a pull-quote callout
-    sits between a column-break hyphenation and its real continuation.
-    """
+    """Only merge when next non-blank line starts lowercase (mid-word)."""
     lines = markdown.splitlines()
     out = []
     i = 0
@@ -494,25 +403,18 @@ def fix_hyphenation(markdown: str) -> str:
         line = lines[i]
         if line.rstrip().endswith('-') and len(line.strip()) > 5:
             j = i + 1
-            while j < len(lines) and not lines[j].strip():
-                j += 1
+            while j < len(lines) and not lines[j].strip(): j += 1
             if j < len(lines):
                 next_line = lines[j].lstrip()
-                # Only merge if next starts lowercase (mid-word continuation)
                 if next_line and next_line[0].islower() and not next_line.startswith('#'):
                     out.append(line.rstrip()[:-1] + lines[j].lstrip())
-                    i = j + 1
-                    continue
+                    i = j + 1; continue
         out.append(line)
         i += 1
     return '\n'.join(out)
 
 
 def fix_pullquote_fragments(markdown: str) -> str:
-    """
-    Remove PDF margin pull-quote lines that Marker emits with a leading space.
-    Must run BEFORE fix_blockquotes (which would convert them to '>' lines).
-    """
     lines = markdown.splitlines()
     out = []
     for line in lines:
@@ -525,35 +427,14 @@ def fix_pullquote_fragments(markdown: str) -> str:
 
 
 def fix_missing_section_headings(markdown: str, cfg: dict) -> str:
-    """
-    Insert H3 section headings that Marker drops (large icon+heading blocks).
-
-    Two detection modes, both configured via missing_section_headings in
-    pdf_config.yaml:
-
-    1. italic_snippet: insert heading just before an italic instruction paragraph
-       containing the given text snippet. Used when Marker drops the heading
-       but keeps the italic intro paragraph.
-
-    2. before_heading: insert heading just before a specific target heading.
-       Used when Marker drops both the H3 heading AND its italic intro paragraph,
-       so there's no italic anchor to detect from (e.g. Charting the Path Ahead
-       which Marker skips entirely).
-    """
     insertions = cfg.get("missing_section_headings", [])
-    if not insertions:
-        return markdown
-
-    # Split entries by type
+    if not insertions: return markdown
     italic_entries = [e for e in insertions if "italic_snippet" in e]
     before_entries = [e for e in insertions if "before_heading" in e]
-
     lines = markdown.splitlines()
     out = []
     for i, line in enumerate(lines):
         stripped = line.strip()
-
-        # before_heading: insert before a specific target heading
         for entry in before_entries:
             target = entry["before_heading"].strip()
             if stripped == target:
@@ -563,14 +444,9 @@ def fix_missing_section_headings(markdown: str, cfg: dict) -> str:
                 if heading_text not in prev:
                     out.append("")
                     out.append(heading)
-                    # Also insert any static content lines after the heading
-                    for extra in entry.get("insert_lines", []):
-                        out.append(extra)
-                    if entry.get("insert_lines"):
-                        out.append("")
+                    for extra in entry.get("insert_lines", []): out.append(extra)
+                    if entry.get("insert_lines"): out.append("")
                 break
-
-        # italic_snippet: insert before italic instruction paragraphs
         if stripped.startswith('*') and stripped.endswith('*') and len(stripped) > 30:
             text_lower = stripped.lower()
             for entry in italic_entries:
@@ -582,154 +458,94 @@ def fix_missing_section_headings(markdown: str, cfg: dict) -> str:
                         out.append("")
                         out.append(heading)
                     break
-
         out.append(line)
     return '\n'.join(out)
 
 
 def fix_discussion_question_groups(markdown: str, cfg: dict) -> str:
-    """
-    Insert Searching the Text / Seeking the Truth / Evaluating Our Lives
-    headings before each group of 4 discussion questions.
-    The PDF has these as sideways column labels; Marker extracts them
-    inconsistently. We detect group boundaries by the 1-4 numbering restart.
-    Configured via discussion_question_labels in pdf_config.yaml.
-    """
     labels_cfg = cfg.get("discussion_question_labels", [
-        "##### Searching the Text",
-        "##### Seeking the Truth",
-        "##### Evaluating Our Lives",
-    ])
-    if not labels_cfg:
-        return markdown
-
-    # Remove any misplaced all-caps bold label that Marker may have extracted
+        "##### Searching the Text", "##### Seeking the Truth", "##### Evaluating Our Lives"])
+    if not labels_cfg: return markdown
     markdown = re.sub(r'\n+\*\*[A-Z][A-Z\s]+\*\*\n+(?=\n*#{1,4}\s+Discussion)', '\n\n', markdown)
-
     lines = markdown.splitlines()
     out = []
     in_dq = False
     group_count = 0
-
     for line in lines:
         if re.match(r'^####\s+\*?\*?Discussion Questions\*?\*?', line, re.IGNORECASE):
-            in_dq = True
-            group_count = 0
-            out.append(line)
-            continue
-
+            in_dq = True; group_count = 0; out.append(line); continue
         if in_dq and re.match(r'^#{1,4}\s+', line) and not re.match(r'^#{5,}', line):
             in_dq = False
-
         if in_dq and re.match(r'^1\.\s+', line) and group_count < len(labels_cfg):
-            if group_count > 0:
-                out.append('')
-            out.append(labels_cfg[group_count])
-            out.append('')
-            group_count += 1
-
+            if group_count > 0: out.append('')
+            out.append(labels_cfg[group_count]); out.append(''); group_count += 1
         out.append(line)
-
     return '\n'.join(out)
 
 
 def fix_structural_labels(markdown: str) -> str:
-    """
-    Remove purely structural/decorative labels and fix Marker artifacts.
-    """
     lines = markdown.splitlines()
     out = []
     for line in lines:
         s = line.strip()
-        # All-caps headings (e.g. '#### PRAYERS', '# MUTUAL ENCOURAGEMENT')
-        if re.match(r'^#{1,6}\s+[A-Z][A-Z\s]+$', s):
-            continue
-        # All-caps bold standalone labels (e.g. '**SEEKING THE TRUTH**')
-        if re.match(r'^\*\*[A-Z][A-Z\s]+\*\*$', s):
-            continue
-        # Citations that are all-caps bold labels (e.g. '<< **CATECHISM**')
-        if re.match(r'^<<\s+\*\*[A-Z\s]+\*\*$', s):
-            continue
-        # Single bold capital letter artifacts (e.g. '**S**')
-        if re.match(r'^\*\*[A-Z]\*\*$', s):
-            continue
-        # Italic pull-quote fragments from page margins (e.g. '*"As a father...*')
-        if re.match(r'^\*".+\.\.\.\*$', s):
-            continue
-        # Bullet character alone on a line
-        if s == '\u2022':
-            continue
-        # Headings ending with colon = Marker body-text label artifacts
+        if re.match(r'^#{1,6}\s+[A-Z][A-Z\s]+$', s): continue
+        if re.match(r'^\*\*[A-Z][A-Z\s]+\*\*$', s): continue
+        if re.match(r'^<<\s+\*\*[A-Z\s]+\*\*$', s): continue
+        if re.match(r'^\*\*[A-Z]\*\*$', s): continue
+        if re.match(r'^\*".+\.\.\.\*$', s): continue
+        if s == '\u2022': continue
         if re.match(r'^#{1,6}\s+\w.*:$', s):
-            out.append(re.sub(r'^#{1,6}\s+', '', line))  # demote to body text
-            continue
-        # Convert bullet characters to standard markdown
+            out.append(re.sub(r'^#{1,6}\s+', '', line)); continue
         if s.startswith('\u2022'):
-            out.append(re.sub(r'^\u2022\s*', '- ', line))
-            continue
+            out.append(re.sub(r'^\u2022\s*', '- ', line)); continue
         out.append(line)
     return '\n'.join(out)
 
 
-def fix_final_review_table(markdown: str) -> str:
-    """Convert Marker's table-formatted Final Review into proper questions.
-
-    When Figure blocks are relabeled to Text, the Final Review questions
-    sometimes come through as a single-column Marker table instead of
-    numbered list items.  Convert them back to proper markdown questions.
-    """
+def fix_final_review_table(markdown: str, cfg: dict) -> str:
+    """Convert single-column Marker tables to headed lists using config rules."""
+    rules = cfg.get("table_to_list", [])
+    if not rules: return markdown
     lines = markdown.splitlines()
     out = []
     i = 0
     while i < len(lines):
         line = lines[i]
-        if '| Final Review' in line and i + 1 < len(lines) and '|---' in lines[i + 1]:
-            out.append("#### Final Review")
-            out.append("")
-            i += 2  # skip header + separator
+        matched_rule = None
+        if line.strip().startswith('|') and i + 1 < len(lines) and '|---' in lines[i + 1]:
+            for rule in rules:
+                if rule["header_contains"] in line:
+                    matched_rule = rule; break
+        if matched_rule:
+            out.append(matched_rule["output_heading"]); out.append("")
+            i += 2
             while i < len(lines) and lines[i].strip().startswith('|'):
                 cell = lines[i].strip().strip('|').strip()
                 if cell and not cell.startswith('---'):
                     text = re.sub(r'<br\s*/?>', ' ', cell).strip()
                     m2 = re.match(r'^(\d+)\.\s+(.+)', text)
-                    if m2:
-                        out.append(f"{m2.group(1)}. {m2.group(2)}")
+                    if m2: out.append(f"{m2.group(1)}. {m2.group(2)}")
                 i += 1
-            out.append("")
-            continue
-        out.append(line)
-        i += 1
+            out.append(""); continue
+        out.append(line); i += 1
     return '\n'.join(out)
 
 
-def fix_junk_content(markdown: str) -> str:
-    """Remove nav labels and decorative tables from relabeled Figure blocks.
-
-    When Figure/Picture blocks are relabeled to Text, some non-content
-    elements (navigation labels, decorative grid tables) now render as
-    text.  Remove them.
-    """
+def fix_junk_content(markdown: str, cfg: dict) -> str:
+    """Remove non-content text using config-driven patterns."""
+    line_pats = [re.compile(p) for p in cfg.get("skip_line_patterns", [])]
+    table_markers = cfg.get("skip_table_markers", [])
     lines = markdown.splitlines()
     out = []
     i = 0
     while i < len(lines):
         line = lines[i]
         stripped = line.strip()
-        # Skip "Session N Community Study" / "Session N Weekly Disciplines" nav labels
-        if re.match(r'^Session \d+ (Community Study|Weekly Disciplines)', stripped):
-            i += 1
+        if any(p.match(stripped) for p in line_pats): i += 1; continue
+        if stripped.startswith('|') and any(m in stripped for m in table_markers):
+            while i < len(lines) and lines[i].strip().startswith('|'): i += 1
             continue
-        # Skip the SEARCHING/SEEKING decorative grid table
-        if 'SEARCHING<br>' in stripped or '| SEARCHING' in stripped:
-            while i < len(lines) and lines[i].strip().startswith('|'):
-                i += 1
-            continue
-        # Skip artwork attribution metadata (from relabeled Figure blocks)
-        if stripped.startswith('Rijn, Rembrandt'):
-            i += 1
-            continue
-        out.append(line)
-        i += 1
+        out.append(line); i += 1
     return '\n'.join(out)
 
 
@@ -746,8 +562,8 @@ def post_process(markdown: str, heading_map: dict, skip_set: set,
     markdown = fix_citations(markdown, cfg)
     markdown = fix_bullet_numbers(markdown)
     markdown = fix_hyphenation(markdown)
-    markdown = fix_final_review_table(markdown)
-    markdown = fix_junk_content(markdown)
+    markdown = fix_final_review_table(markdown, cfg)
+    markdown = fix_junk_content(markdown, cfg)
     markdown = fix_missing_section_headings(markdown, cfg)
     markdown = fix_discussion_question_groups(markdown, cfg)
     markdown = fix_structural_labels(markdown)
@@ -755,84 +571,57 @@ def post_process(markdown: str, heading_map: dict, skip_set: set,
     return markdown.strip() + '\n'
 
 
-# ── Marker bug patch ──────────────────────────────────────────────────────────
+# ---- Marker bug patch ----
+
 def patch_block_relabel():
-    """Patch Marker bug: BlockRelabelProcessor crashes when top_k returns None."""
     from copy import deepcopy
     from marker.processors.block_relabel import BlockRelabelProcessor
     from marker.schema.registry import get_block_class
-
     def patched_call(self, document):
-        if len(self.block_relabel_map) == 0:
-            return
+        if len(self.block_relabel_map) == 0: return
         for page in document.pages:
             for block in page.structure_blocks(document):
-                if block.block_type not in self.block_relabel_map:
-                    continue
+                if block.block_type not in self.block_relabel_map: continue
                 confidence_thresh, relabel_block_type = self.block_relabel_map[block.block_type]
                 confidence = block.top_k.get(block.block_type)
-                if confidence is None:
-                    continue
-                if confidence > confidence_thresh:
-                    continue
+                if confidence is None: continue
+                if confidence > confidence_thresh: continue
                 new_block_cls = get_block_class(relabel_block_type)
                 new_block = new_block_cls(
-                    polygon=deepcopy(block.polygon),
-                    page_id=block.page_id,
+                    polygon=deepcopy(block.polygon), page_id=block.page_id,
                     structure=deepcopy(block.structure),
                     text_extraction_method=block.text_extraction_method,
-                    source="heuristics",
-                    top_k=block.top_k,
-                    metadata=block.metadata,
-                )
+                    source="heuristics", top_k=block.top_k, metadata=block.metadata)
                 page.replace_block(block, new_block)
-
     BlockRelabelProcessor.__call__ = patched_call
 
 
 def get_available_gemini_model(api_key: str) -> str:
-    candidates = ["gemini-2.0-flash", "gemini-2.0-flash-lite",
-                  "gemini-1.5-flash", "gemini-1.5-pro"]
+    candidates = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-pro"]
     try:
         from google import genai
         client = genai.Client(api_key=api_key)
         available = {m.name.split("/")[-1] for m in client.models.list()}
-        print(f"  Available: {sorted(m for m in available if 'gemini' in m and 'preview' not in m)}")
         for c in candidates:
-            if c in available:
-                return c
-        flash = sorted(m for m in available if 'flash' in m and 'preview' not in m)
-        if flash:
-            return flash[0]
-    except Exception as e:
-        print(f"  Could not list Gemini models: {e}")
+            if c in available: return c
+    except Exception:
+        pass
     return "gemini-2.0-flash"
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# ---- Main ----
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="Convert PDF to Markdown using Marker + font-based post-processing."
-    )
-    parser.add_argument("input",
-                        help="Path to PDF, OR raw Marker .md file (with --postprocess)")
-    parser.add_argument("pdf", nargs="?",
-                        help="PDF path (required with --postprocess, for font scanning)")
+    parser = argparse.ArgumentParser(description="Convert PDF to Markdown using Marker + font-based post-processing.")
+    parser.add_argument("input", help="Path to PDF, OR raw Marker .md file (with --postprocess)")
+    parser.add_argument("pdf", nargs="?", help="PDF path (required with --postprocess)")
     parser.add_argument("output", nargs="?", help="Output .md path (optional)")
-    parser.add_argument("--template", default="homestead",
-                        help="Template name (default: homestead). "
-                             "Loads templates/<n>/pdf_config.yaml")
-    parser.add_argument("--page-range", default="",
-                        help="0-indexed page range e.g. '62-200'")
-    parser.add_argument("--dump-fonts", action="store_true",
-                        help="Print font analysis table for calibration and exit")
-    parser.add_argument("--save-raw", action="store_true",
-                        help="Save Marker's raw output before post-processing "
-                             "as <o>.raw.md")
+    parser.add_argument("--template", default="homestead")
+    parser.add_argument("--page-range", default="", help="0-indexed page range e.g. '62-200'")
+    parser.add_argument("--dump-fonts", action="store_true")
+    parser.add_argument("--save-raw", action="store_true")
     parser.add_argument("--postprocess", action="store_true",
-                        help="Skip Marker -- apply post-processing to an existing "
-                             "raw .md file. "
-                             "Usage: python run.py raw.md book.pdf --postprocess")
+                        help="Skip Marker; apply post-processing to an existing raw .md file.")
     args = parser.parse_args()
 
     page_range = None
@@ -850,80 +639,55 @@ def main():
 
     if args.dump_fonts:
         pdf_path = Path(args.input)
-        if not pdf_path.exists():
-            print(f"ERROR: File not found: {pdf_path}")
-            sys.exit(1)
-        dump_fonts(pdf_path, page_range)
-        return
+        if not pdf_path.exists(): print(f"ERROR: File not found: {pdf_path}"); sys.exit(1)
+        dump_fonts(pdf_path, page_range); return
 
     cfg = load_template(args.template)
     print(f"Template: {args.template}")
 
     if args.postprocess:
         raw_md_path = Path(args.input)
-        if not raw_md_path.exists():
-            print(f"ERROR: Raw markdown file not found: {raw_md_path}")
-            sys.exit(1)
-        if not args.pdf:
-            print("ERROR: --postprocess requires a PDF path as the second argument")
-            print("  Usage: python run.py raw.md book.pdf --postprocess")
-            sys.exit(1)
+        if not raw_md_path.exists(): print(f"ERROR: Raw markdown not found: {raw_md_path}"); sys.exit(1)
+        if not args.pdf: print("ERROR: --postprocess requires PDF path as second arg"); sys.exit(1)
         pdf_path = Path(args.pdf)
-        if not pdf_path.exists():
-            print(f"ERROR: PDF not found: {pdf_path}")
-            sys.exit(1)
-
+        if not pdf_path.exists(): print(f"ERROR: PDF not found: {pdf_path}"); sys.exit(1)
         output_path = Path(args.output) if args.output else raw_md_path.with_suffix(".md")
         if output_path == raw_md_path:
             output_path = raw_md_path.with_stem(raw_md_path.stem + "_processed")
-
         body_font_name, body_size = detect_body_font(pdf_path, page_range)
         print(f"Body font (auto): {body_font_name} @ {body_size}pt")
-
         print("Building font maps from PDF...")
         heading_map = build_heading_map(pdf_path, cfg, body_size, page_range)
         skip_set = build_skip_set(pdf_path, cfg, body_size, page_range)
         bq_set, cit_set = build_blockquote_set(pdf_path, cfg, body_size, page_range)
         verse_map = build_verse_map(pdf_path, cfg, body_size, page_range)
         print(f"  {len(heading_map)} headings, {len(skip_set)} skips, "
-              f"{len(bq_set)} blockquotes, {len(cit_set)} citations, "
-              f"{len(verse_map)} verses.")
-
+              f"{len(bq_set)} blockquotes, {len(cit_set)} citations, {len(verse_map)} verses.")
         raw_markdown = raw_md_path.read_text(encoding="utf-8")
         print("Post-processing...")
-        markdown = post_process(
-            raw_markdown, heading_map, skip_set, bq_set, cit_set, verse_map, cfg
-        )
+        markdown = post_process(raw_markdown, heading_map, skip_set, bq_set, cit_set, verse_map, cfg)
         output_path.write_text(markdown, encoding="utf-8")
         print(f"Done! Written to: {output_path} ({len(markdown.splitlines())} lines)")
         return
 
     # Full conversion mode
     pdf_path = Path(args.input)
-    if not pdf_path.exists():
-        print(f"ERROR: File not found: {pdf_path}")
-        sys.exit(1)
-
+    if not pdf_path.exists(): print(f"ERROR: File not found: {pdf_path}"); sys.exit(1)
     output_path = Path(args.output) if args.output else pdf_path.with_suffix(".md")
-
     body_font_name, body_size = detect_body_font(pdf_path, page_range)
     print(f"Body font (auto): {body_font_name} @ {body_size}pt")
-
     print("Building font maps from PDF...")
     heading_map = build_heading_map(pdf_path, cfg, body_size, page_range)
     skip_set = build_skip_set(pdf_path, cfg, body_size, page_range)
     bq_set, cit_set = build_blockquote_set(pdf_path, cfg, body_size, page_range)
     verse_map = build_verse_map(pdf_path, cfg, body_size, page_range)
     print(f"  {len(heading_map)} headings, {len(skip_set)} skips, "
-          f"{len(bq_set)} blockquotes, {len(cit_set)} citations, "
-          f"{len(verse_map)} verses found.")
+          f"{len(bq_set)} blockquotes, {len(cit_set)} citations, {len(verse_map)} verses found.")
 
     google_api_key = os.environ.get("GOOGLE_API_KEY", "")
     use_llm = bool(google_api_key)
-    if use_llm:
-        print("GOOGLE_API_KEY found -- LLM heading correction enabled.")
-    else:
-        print("No GOOGLE_API_KEY -- font-based heading correction only.")
+    if use_llm: print("GOOGLE_API_KEY found -- LLM heading correction enabled.")
+    else: print("No GOOGLE_API_KEY -- font-based heading correction only.")
 
     patch_block_relabel()
 
@@ -934,39 +698,16 @@ def main():
     print("Models loaded.")
 
     marker_config = {
-        # ── Layout detection ─────────────────────────────────────────────
-        # DPI 96 = Marker default. Was 72, but lower DPI degrades surya's
-        # ability to distinguish text regions from decorative icons.
         "lowres_image_dpi": 96,
-
-        # ── Critical fix: relabel Figure/Picture to Text ─────────────────
-        # ROOT CAUSE of dropped content: surya classifies icon-heavy page
-        # regions as Figure/Picture.  Text lines ARE extracted and assigned
-        # to those blocks, but Figure.assemble_html and Picture.assemble_html
-        # only render Reference children -- all text is silently discarded.
-        # Relabeling to Text makes those blocks render their text normally.
-        # Threshold 1.0 = relabel ALL Figure/Picture blocks (the condition
-        # is "skip if confidence > threshold", and confidence is never > 1.0).
-        # SectionHeader:Text:0.6 demotes low-confidence headings as before.
         "block_relabel_str": "SectionHeader:Text:0.6,Figure:Text:1.0,Picture:Text:1.0",
-
-        # ── Heading detection ────────────────────────────────────────────
         "level_count": 4,
         "default_level": 3,
-
-        # ── Running header / common element suppression ──────────────────
         "common_element_threshold": 0.15,
         "text_match_threshold": 85,
-
-        # ── Blockquote detection ─────────────────────────────────────────
         "BlockquoteProcessor_min_x_indent": 0.01,
         "BlockquoteProcessor_x_start_tolerance": 0.05,
         "BlockquoteProcessor_x_end_tolerance": 0.05,
-
-        # ── Text / column joining ────────────────────────────────────────
         "TextProcessor_column_gap_ratio": 0.06,
-
-        # ── General ──────────────────────────────────────────────────────
         "disable_links": True,
         "disable_ocr": True,
         "pdftext_workers": 1,
@@ -974,16 +715,7 @@ def main():
         "extract_images": False,
     }
 
-    # ── Processor list: use Marker's full defaults ───────────────────────
-    # Previously we used a stripped-down list that excluded IgnoreTextProcessor
-    # and BlankPageProcessor, believing they caused the content drops.
-    # The actual root cause was Figure/Picture block rendering (fixed above
-    # via block_relabel_str).  The default list includes all processors;
-    # LLM processors are no-ops when use_llm=False.
-    # BlankPageProcessor.filter_blank_pages defaults to False (does nothing).
-    # IgnoreTextProcessor only marks first/last blocks on pages with >20%
-    # repetition -- safe for running headers, won't touch mid-page content.
-    processor_list = None  # None = use Marker's default_processors
+    processor_list = None  # Use Marker's full default processor list
 
     llm_service_cls = None
     if use_llm:
@@ -999,11 +731,8 @@ def main():
     from marker.converters.pdf import PdfConverter
     print(f"Converting {pdf_path.name}...")
     converter = PdfConverter(
-        artifact_dict=models,
-        processor_list=processor_list,
-        config=marker_config,
-        llm_service=llm_service_cls,
-    )
+        artifact_dict=models, processor_list=processor_list,
+        config=marker_config, llm_service=llm_service_cls)
     rendered = converter(str(pdf_path))
 
     if args.save_raw:
@@ -1013,8 +742,7 @@ def main():
 
     print("Post-processing...")
     markdown = post_process(
-        rendered.markdown, heading_map, skip_set, bq_set, cit_set, verse_map, cfg
-    )
+        rendered.markdown, heading_map, skip_set, bq_set, cit_set, verse_map, cfg)
     output_path.write_text(markdown, encoding="utf-8")
     print(f"Done! Written to: {output_path} ({len(markdown.splitlines())} lines)")
 
