@@ -1,38 +1,18 @@
 # Homestead book PDF conversion config
 # ─────────────────────────────────────────────────────────────────────────────
 # All size thresholds are expressed as RATIOS relative to body text size.
-# This makes the config portable across different font families and sizes:
-# if body text is 10pt, a ratio of 2.0 means 20pt.
+# This makes the config portable across different font families and sizes.
 #
 # To calibrate for a new book:
 # 1. Run: python run.py book.pdf --dump-fonts
-#    This prints all font sizes found, their frequency, and the computed ratio.
 # 2. Set body_font to "auto" (uses most frequent font) or specify explicitly.
 # 3. Adjust heading rules to match the visual hierarchy.
-# 4. Re-run until output matches expectations.
 # ─────────────────────────────────────────────────────────────────────────────
 
-# ── Body font detection ───────────────────────────────────────────────────────
-# "auto" = use the most frequent font by character count (recommended).
-# Override with an exact font name string if auto-detection is wrong.
 body_font: auto
 
-# ── Heading level rules ───────────────────────────────────────────────────────
-# Each rule maps a (weight, size_ratio) combination to a Markdown heading level.
-# Rules are evaluated top-to-bottom; first match wins.
-#
-# weight:    regular | bold | italic | bold-italic
-# min_ratio: font_size / body_font_size must be >= this
-# max_ratio: font_size / body_font_size must be <= this
-# level:     1-6 (Markdown heading level)
-#
-# Homestead hierarchy (body = 10pt):
-#   20pt regular  = H1  (session title)
-#   20pt bold     = H3  (movement title — same size, different weight to H1)
-#   14pt italic   = H2  (session subtitle)
-#   14pt bold     = H4  (section heading)
-#   18pt bold     = H4  ("Next Steps" heading — larger but same visual weight)
-#   12pt bold     = H5  (song title / sub-section)
+# Heading level rules: (weight, size_ratio) → heading level
+# Homestead body = 10pt. Ratios: 2.0=20pt, 1.4=14pt, 1.2=12pt
 headings:
   - weight: regular
     min_ratio: 1.85
@@ -65,16 +45,9 @@ headings:
     max_ratio: 1.30
     level: 5
 
-# ── Skip rules ────────────────────────────────────────────────────────────────
-# Blocks whose dominant font size ratio exceeds this are decorative headers
-# or section divider pages — skip them entirely.
 skip_large_ratio: 2.4
 
-# ── Running header detection ──────────────────────────────────────────────────
-# Running headers are blocks that contain ALL of these weight+ratio combinations
-# simultaneously. This detects the drop-cap + small-caps pattern used in this book
-# (e.g. "INTRODUCTION SESSION ONE" = bold 14pt drop-cap + bold 9.5pt small-caps).
-# A block must contain ALL entries to be considered a running header.
+# Running headers: blocks containing ALL of these weight+ratio combinations
 running_header_signature:
   - weight: bold
     min_ratio: 1.35
@@ -83,19 +56,10 @@ running_header_signature:
     min_ratio: 0.88
     max_ratio: 1.00
 
-# ── Blockquote / citation detection ──────────────────────────────────────────
-# Blocks whose dominant font size ratio is at or below this threshold are
-# considered quote text (smaller than body text = indented scripture quote).
 quote_max_ratio: 0.88
-
-# Within quote blocks: text shorter than this (chars) is a citation attribution.
-# Text longer than this is a blockquote body.
 citation_max_chars: 80
 
-# ── Verse label detection ────────────────────────────────────────────────────
-# Verse label blocks (e.g. "VERSE 1") contain BOTH of these weight+ratio
-# combinations — a drop-cap letter at body size and small-caps below body size.
-# All entries must be present in a block for it to be treated as a verse label.
+# Verse label detection
 verse_label_signature:
   - weight: bold
     min_ratio: 0.95
@@ -104,11 +68,37 @@ verse_label_signature:
     min_ratio: 0.62
     max_ratio: 0.75
 
-# ── Citation regex patterns ───────────────────────────────────────────────────
-# Standalone short paragraphs matching any of these patterns are converted to
-# << citations. Patterns use Python regex syntax.
 citation_patterns:
-  # Scripture references: "John 3:16", "Psalm 103:1-22", "Isaiah 63:16"
   - '^[A-Z][a-zA-Z]+\s+\d+:\d+[\d\-\u2013\u2014,;:\s]*$'
-  # Abbreviated refs: "Mt. 5:3"
   - '^[A-Z][a-zA-Z]+\.\s+\d+:\d+[\d\-\u2013\u2014,;:\s]*$'
+
+# Missing section headings: Marker drops these large icon+heading blocks.
+# Detected by the italic instruction paragraph that follows each heading.
+missing_section_headings:
+  - italic_snippet: "focus your thinking around the key idea"
+    heading: "### Seeking God's Wisdom"
+  - italic_snippet: "study god's word together"
+    heading: "### Exploring the Biblical Text"
+  - italic_snippet: "reflect on the session and envision"
+    heading: "### Charting the Path Ahead"
+  - italic_snippet: "read the main biblical text studied"
+    heading: "### Scripture Reading"
+  - italic_snippet: "study the key themes of this session"
+    heading: "### Topical Study"
+  - italic_snippet: "use the artwork on the following page"
+    heading: "### Art Observation"
+  - italic_snippet: "use the following activity as a concrete"
+    heading: "### Spiritual Practice"
+  - italic_snippet: "journal your thoughts on this week"
+    heading: "### Journal Reflection"
+  - italic_snippet: "the following activity helps you internalize"
+    heading: "### Personal Project"
+  - italic_snippet: "the role of a parent is to cultivate"
+    heading: "### Parenting Project"
+
+# Discussion question group labels (inserted before each group of 4 questions)
+# The PDF has these as sideways column headers; Marker can't reliably extract them.
+discussion_question_labels:
+  - "##### Searching the Text"
+  - "##### Seeking the Truth"
+  - "##### Evaluating Our Lives"

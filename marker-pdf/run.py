@@ -362,7 +362,7 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
 def fix_verse_labels(markdown: str, verse_map: dict) -> str:
     """
     Replace VERSE N headings with proper H6 labels and verse text from the PDF.
-    Skips ALL of Marker's merged verse text (everything up to the next heading).
+    Adds a blank line after each verse block before the next heading.
     """
     if not verse_map:
         return re.sub(
@@ -384,6 +384,7 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
                 vlines = verse_map[verse_num]
                 for j, vl in enumerate(vlines):
                     out.append(f"{vl}  " if j < len(vlines) - 1 else vl)
+            out.append("")  # blank line after verse text before next heading
             # Skip ALL of Marker's merged verse text until the next heading
             i += 1
             while i < len(lines):
@@ -480,7 +481,6 @@ def fix_hyphenation(markdown: str) -> str:
 def fix_pullquote_fragments(markdown: str) -> str:
     """
     Remove PDF margin pull-quote lines that Marker emits with a leading space.
-    These are decorative repeated-text callouts in the book margins.
     Must run BEFORE fix_blockquotes (which would convert them to '>' lines).
     """
     lines = markdown.splitlines()
@@ -489,16 +489,94 @@ def fix_pullquote_fragments(markdown: str) -> str:
         if line.startswith(' ') and len(line.strip()) < 120 and line.strip():
             s = line.strip()
             if not any(s.startswith(c) for c in ['-', '*', '#', '>']):
-                continue  # skip pull-quote
+                continue
         out.append(line)
+    return '\n'.join(out)
+
+
+def fix_missing_section_headings(markdown: str, cfg: dict) -> str:
+    """
+    Insert H3 section headings that Marker drops (large icon+heading blocks).
+    Detects their location by the italic instruction paragraphs that follow them.
+    Configured via missing_section_headings in pdf_config.yaml.
+    """
+    insertions = cfg.get("missing_section_headings", [])
+    if not insertions:
+        return markdown
+    lines = markdown.splitlines()
+    out = []
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        # Italic instruction paragraphs: start and end with *
+        if stripped.startswith('*') and stripped.endswith('*') and len(stripped) > 30:
+            text_lower = stripped.lower()
+            for entry in insertions:
+                if entry["italic_snippet"].lower() in text_lower:
+                    heading = entry["heading"]
+                    heading_text = re.sub(r'^#+\s+', '', heading).strip().lower()
+                    # Only insert if not already present in preceding lines
+                    prev = '\n'.join(lines[max(0, i-6):i]).lower()
+                    if heading_text not in prev:
+                        out.append("")
+                        out.append(heading)
+                    break
+        out.append(line)
+    return '\n'.join(out)
+
+
+def fix_discussion_question_groups(markdown: str, cfg: dict) -> str:
+    """
+    Insert Searching the Text / Seeking the Truth / Evaluating Our Lives
+    headings before each group of 4 discussion questions.
+    The PDF has these as sideways column labels; Marker extracts them
+    inconsistently. We detect group boundaries by the 1-4 numbering restart.
+    Configured via discussion_question_labels in pdf_config.yaml.
+    """
+    labels_cfg = cfg.get("discussion_question_labels", [
+        "##### Searching the Text",
+        "##### Seeking the Truth",
+        "##### Evaluating Our Lives",
+    ])
+    if not labels_cfg:
+        return markdown
+
+    # Remove any misplaced all-caps bold label that Marker may have extracted
+    # (e.g. **SEEKING THE TRUTH** appears before all questions, not between groups)
+    markdown = re.sub(r'\n+\*\*[A-Z][A-Z\s]+\*\*\n+(?=\n*#{1,4}\s+Discussion)', '\n\n', markdown)
+
+    lines = markdown.splitlines()
+    out = []
+    in_dq = False
+    group_count = 0
+
+    for line in lines:
+        # Enter Discussion Questions section
+        if re.match(r'^####\s+Discussion Questions', line, re.IGNORECASE):
+            in_dq = True
+            group_count = 0
+            out.append(line)
+            continue
+
+        # Exit at H1-H4 heading (not H5+)
+        if in_dq and re.match(r'^#{1,4}\s+', line) and not re.match(r'^#{5,}', line):
+            in_dq = False
+
+        # Insert group heading before each restart at 1.
+        if in_dq and re.match(r'^1\.\s+', line) and group_count < len(labels_cfg):
+            if group_count > 0:
+                out.append('')
+            out.append(labels_cfg[group_count])
+            out.append('')
+            group_count += 1
+
+        out.append(line)
+
     return '\n'.join(out)
 
 
 def fix_structural_labels(markdown: str) -> str:
     """
-    Remove purely structural/decorative labels that appear in the PDF as
-    schedule headers or activity labels but have no content value in markdown.
-    Examples: PRAYERS, CATECHISM, MUTUAL ENCOURAGEMENT, SONGS, etc.
+    Remove purely structural/decorative labels and fix Marker artifacts.
     """
     lines = markdown.splitlines()
     out = []
@@ -519,6 +597,11 @@ def fix_structural_labels(markdown: str) -> str:
         # Bullet character • alone on a line
         if s == '\u2022':
             continue
+        # Headings ending with colon = Marker body-text label artifacts
+        # (e.g. '### List of basic spiritual habits:' — real headings never end with :)
+        if re.match(r'^#{1,6}\s+\w.*:$', s):
+            out.append(re.sub(r'^#{1,6}\s+', '', line))  # demote to body text
+            continue
         # Convert • bullets to standard markdown
         if s.startswith('\u2022'):
             out.append(re.sub(r'^\u2022\s*', '- ', line))
@@ -530,10 +613,9 @@ def fix_structural_labels(markdown: str) -> str:
 def post_process(markdown: str, heading_map: dict, skip_set: set,
                  bq_set: set, cit_set: set, verse_map: dict, cfg: dict) -> str:
     markdown = markdown.replace('\r\n', '\n').replace('\r', '\n')
-    # Remove image links and long horizontal rules Marker sometimes emits
     markdown = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', markdown, flags=re.MULTILINE)
     markdown = re.sub(r'^-{20,}\s*$', '', markdown, flags=re.MULTILINE)
-    # Run fixes in order (pull-quotes before blockquotes to avoid false conversion)
+    # pull-quotes before blockquotes (to avoid converting them to '>' lines)
     markdown = fix_pullquote_fragments(markdown)
     markdown = fix_headings(markdown, heading_map, skip_set)
     markdown = fix_verse_labels(markdown, verse_map)
@@ -542,6 +624,8 @@ def post_process(markdown: str, heading_map: dict, skip_set: set,
     markdown = fix_citations(markdown, cfg)
     markdown = fix_bullet_numbers(markdown)
     markdown = fix_hyphenation(markdown)
+    markdown = fix_missing_section_headings(markdown, cfg)
+    markdown = fix_discussion_question_groups(markdown, cfg)
     markdown = fix_structural_labels(markdown)
     markdown = re.sub(r'\n{3,}', '\n\n', markdown)
     return markdown.strip() + '\n'
@@ -613,14 +697,14 @@ def main():
     parser.add_argument("output", nargs="?", help="Output .md path (optional)")
     parser.add_argument("--template", default="homestead",
                         help="Template name (default: homestead). "
-                             "Loads templates/<name>/pdf_config.yaml")
+                             "Loads templates/<n>/pdf_config.yaml")
     parser.add_argument("--page-range", default="",
                         help="0-indexed page range e.g. '62-200'")
     parser.add_argument("--dump-fonts", action="store_true",
                         help="Print font analysis table for calibration and exit")
     parser.add_argument("--save-raw", action="store_true",
                         help="Save Marker's raw output before post-processing "
-                             "as <output>.raw.md")
+                             "as <o>.raw.md")
     parser.add_argument("--postprocess", action="store_true",
                         help="Skip Marker — apply post-processing to an existing "
                              "raw .md file. "
@@ -640,7 +724,6 @@ def main():
         page_range = pages
         print(f"Page range: {page_range[0]}-{page_range[-1]} ({len(page_range)} pages)")
 
-    # ── --dump-fonts mode ──────────────────────────────────────────────────
     if args.dump_fonts:
         pdf_path = Path(args.input)
         if not pdf_path.exists():
@@ -652,7 +735,6 @@ def main():
     cfg = load_template(args.template)
     print(f"Template: {args.template}")
 
-    # ── --postprocess mode: skip Marker, re-run post-processing only ───────
     if args.postprocess:
         raw_md_path = Path(args.input)
         if not raw_md_path.exists():
@@ -692,7 +774,7 @@ def main():
         print(f"Done! Written to: {output_path} ({len(markdown.splitlines())} lines)")
         return
 
-    # ── Full conversion mode ──────────────────────────────────────────────
+    # Full conversion mode
     pdf_path = Path(args.input)
     if not pdf_path.exists():
         print(f"ERROR: File not found: {pdf_path}")
