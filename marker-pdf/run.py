@@ -352,6 +352,15 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
             else:
                 out.append(f"{m.group(1)} {content_clean}")
         else:
+            stripped = line.strip()
+            # Match bold-only lines: **Heading Text** (from relabeled Figure blocks)
+            bm = re.match(r'^\*\*(.+?)\*\*$', stripped)
+            if bm:
+                inner = bm.group(1)
+                clean = normalise_key(inner)
+                if clean in heading_map:
+                    out.append(f"{heading_map[clean]} {inner}")
+                    continue
             body_clean = normalise_key(line)
             if body_clean in heading_map and line.strip() and len(line.strip()) > 2:
                 out.append(f"{heading_map[body_clean]} {line.strip()}")
@@ -369,7 +378,7 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
     """
     if not verse_map:
         return re.sub(
-            r'^#{1,6}\s+\*?\*?VERSE\s+(\d+)\*?\*?\s*$',
+            r'^(?:#{1,6}\s+)?\*?\*?VERSE\s+(\d+)\*?\*?\s*$',
             lambda m: f"###### Verse {m.group(1)}",
             markdown, flags=re.MULTILINE | re.IGNORECASE
         )
@@ -379,7 +388,7 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
     used_nums: set = set()  # track verse numbers already replaced with PDF text
     while i < len(lines):
         line = lines[i]
-        m = re.match(r'^#{1,6}\s+\*?\*?VERSE\s+(\d+)\*?\*?\s*$', line, re.IGNORECASE)
+        m = re.match(r'^(?:#{1,6}\s+)?\*?\*?VERSE\s+(\d+)\*?\*?\s*$', line, re.IGNORECASE)
         if m:
             verse_num = m.group(1)
             out.append(f"###### Verse {verse_num}")
@@ -393,7 +402,8 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
                 used_nums.add(verse_num)
                 i += 1
                 while i < len(lines):
-                    if lines[i].lstrip().startswith('#'):
+                    nl = lines[i].strip()
+                    if nl.startswith('#') or re.match(r'^\*?\*?VERSE\s+\d+', nl, re.IGNORECASE):
                         break
                     i += 1
                 continue
@@ -463,16 +473,19 @@ def fix_citations(markdown: str, cfg: dict) -> str:
 
 
 def fix_bullet_numbers(markdown: str) -> str:
-    """Fix Marker bug: '- 1. Text' → '1. Text'"""
+    """Fix Marker bug: '- 1. Text' -> '1. Text'"""
     return re.sub(r'^- (\d+\.)\s', r'\1 ', markdown, flags=re.MULTILINE)
 
 
 def fix_hyphenation(markdown: str) -> str:
     """Merge column-break hyphenated words split across lines.
 
-    Does NOT merge when the next non-blank line is a heading (starts with #).
-    This prevents corruption like 'tem# God's care...' when a hyphenated word
-    is immediately followed by a pull-quote heading in the raw output.
+    Only merges when the next non-blank line starts with a lowercase letter,
+    indicating a mid-word continuation (e.g. 'wor-' + 'ship').  Does NOT
+    merge when the next line starts uppercase (new sentence/paragraph) or
+    with a heading marker.  This prevents artifacts like 'tem-' + 'God's
+    care...' being merged into 'temGod's care...' when a pull-quote callout
+    sits between a column-break hyphenation and its real continuation.
     """
     lines = markdown.splitlines()
     out = []
@@ -483,11 +496,13 @@ def fix_hyphenation(markdown: str) -> str:
             j = i + 1
             while j < len(lines) and not lines[j].strip():
                 j += 1
-            # Don't merge into headings or other structural lines
-            if j < len(lines) and not lines[j].lstrip().startswith('#'):
-                out.append(line.rstrip()[:-1] + lines[j].lstrip())
-                i = j + 1
-                continue
+            if j < len(lines):
+                next_line = lines[j].lstrip()
+                # Only merge if next starts lowercase (mid-word continuation)
+                if next_line and next_line[0].islower() and not next_line.startswith('#'):
+                    out.append(line.rstrip()[:-1] + lines[j].lstrip())
+                    i = j + 1
+                    continue
         out.append(line)
         i += 1
     return '\n'.join(out)
@@ -597,7 +612,7 @@ def fix_discussion_question_groups(markdown: str, cfg: dict) -> str:
     group_count = 0
 
     for line in lines:
-        if re.match(r'^####\s+Discussion Questions', line, re.IGNORECASE):
+        if re.match(r'^####\s+\*?\*?Discussion Questions\*?\*?', line, re.IGNORECASE):
             in_dq = True
             group_count = 0
             out.append(line)
@@ -641,18 +656,80 @@ def fix_structural_labels(markdown: str) -> str:
         # Italic pull-quote fragments from page margins (e.g. '*"As a father...*')
         if re.match(r'^\*".+\.\.\.\*$', s):
             continue
-        # Bullet character • alone on a line
+        # Bullet character alone on a line
         if s == '\u2022':
             continue
         # Headings ending with colon = Marker body-text label artifacts
         if re.match(r'^#{1,6}\s+\w.*:$', s):
             out.append(re.sub(r'^#{1,6}\s+', '', line))  # demote to body text
             continue
-        # Convert • bullets to standard markdown
+        # Convert bullet characters to standard markdown
         if s.startswith('\u2022'):
             out.append(re.sub(r'^\u2022\s*', '- ', line))
             continue
         out.append(line)
+    return '\n'.join(out)
+
+
+def fix_final_review_table(markdown: str) -> str:
+    """Convert Marker's table-formatted Final Review into proper questions.
+
+    When Figure blocks are relabeled to Text, the Final Review questions
+    sometimes come through as a single-column Marker table instead of
+    numbered list items.  Convert them back to proper markdown questions.
+    """
+    lines = markdown.splitlines()
+    out = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if '| Final Review' in line and i + 1 < len(lines) and '|---' in lines[i + 1]:
+            out.append("#### Final Review")
+            out.append("")
+            i += 2  # skip header + separator
+            while i < len(lines) and lines[i].strip().startswith('|'):
+                cell = lines[i].strip().strip('|').strip()
+                if cell and not cell.startswith('---'):
+                    text = re.sub(r'<br\s*/?>', ' ', cell).strip()
+                    m2 = re.match(r'^(\d+)\.\s+(.+)', text)
+                    if m2:
+                        out.append(f"{m2.group(1)}. {m2.group(2)}")
+                i += 1
+            out.append("")
+            continue
+        out.append(line)
+        i += 1
+    return '\n'.join(out)
+
+
+def fix_junk_content(markdown: str) -> str:
+    """Remove nav labels and decorative tables from relabeled Figure blocks.
+
+    When Figure/Picture blocks are relabeled to Text, some non-content
+    elements (navigation labels, decorative grid tables) now render as
+    text.  Remove them.
+    """
+    lines = markdown.splitlines()
+    out = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+        # Skip "Session N Community Study" / "Session N Weekly Disciplines" nav labels
+        if re.match(r'^Session \d+ (Community Study|Weekly Disciplines)', stripped):
+            i += 1
+            continue
+        # Skip the SEARCHING/SEEKING decorative grid table
+        if 'SEARCHING<br>' in stripped or '| SEARCHING' in stripped:
+            while i < len(lines) and lines[i].strip().startswith('|'):
+                i += 1
+            continue
+        # Skip artwork attribution metadata (from relabeled Figure blocks)
+        if stripped.startswith('Rijn, Rembrandt'):
+            i += 1
+            continue
+        out.append(line)
+        i += 1
     return '\n'.join(out)
 
 
@@ -669,6 +746,8 @@ def post_process(markdown: str, heading_map: dict, skip_set: set,
     markdown = fix_citations(markdown, cfg)
     markdown = fix_bullet_numbers(markdown)
     markdown = fix_hyphenation(markdown)
+    markdown = fix_final_review_table(markdown)
+    markdown = fix_junk_content(markdown)
     markdown = fix_missing_section_headings(markdown, cfg)
     markdown = fix_discussion_question_groups(markdown, cfg)
     markdown = fix_structural_labels(markdown)
@@ -751,7 +830,7 @@ def main():
                         help="Save Marker's raw output before post-processing "
                              "as <o>.raw.md")
     parser.add_argument("--postprocess", action="store_true",
-                        help="Skip Marker — apply post-processing to an existing "
+                        help="Skip Marker -- apply post-processing to an existing "
                              "raw .md file. "
                              "Usage: python run.py raw.md book.pdf --postprocess")
     args = parser.parse_args()
@@ -842,9 +921,9 @@ def main():
     google_api_key = os.environ.get("GOOGLE_API_KEY", "")
     use_llm = bool(google_api_key)
     if use_llm:
-        print("GOOGLE_API_KEY found — LLM heading correction enabled.")
+        print("GOOGLE_API_KEY found -- LLM heading correction enabled.")
     else:
-        print("No GOOGLE_API_KEY — font-based heading correction only.")
+        print("No GOOGLE_API_KEY -- font-based heading correction only.")
 
     patch_block_relabel()
 
@@ -860,11 +939,11 @@ def main():
         # ability to distinguish text regions from decorative icons.
         "lowres_image_dpi": 96,
 
-        # ── Critical fix: relabel Figure/Picture → Text ──────────────────
+        # ── Critical fix: relabel Figure/Picture to Text ─────────────────
         # ROOT CAUSE of dropped content: surya classifies icon-heavy page
         # regions as Figure/Picture.  Text lines ARE extracted and assigned
         # to those blocks, but Figure.assemble_html and Picture.assemble_html
-        # only render Reference children — all text is silently discarded.
+        # only render Reference children -- all text is silently discarded.
         # Relabeling to Text makes those blocks render their text normally.
         # Threshold 1.0 = relabel ALL Figure/Picture blocks (the condition
         # is "skip if confidence > threshold", and confidence is never > 1.0).
@@ -903,7 +982,7 @@ def main():
     # LLM processors are no-ops when use_llm=False.
     # BlankPageProcessor.filter_blank_pages defaults to False (does nothing).
     # IgnoreTextProcessor only marks first/last blocks on pages with >20%
-    # repetition — safe for running headers, won't touch mid-page content.
+    # repetition -- safe for running headers, won't touch mid-page content.
     processor_list = None  # None = use Marker's default_processors
 
     llm_service_cls = None
