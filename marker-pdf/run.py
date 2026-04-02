@@ -25,7 +25,7 @@ from pathlib import Path
 logging.basicConfig(level=logging.WARNING)
 
 
-# ── Font → Heading map for Homestead book ──────────────────────────────────
+# ── Font → Heading map for Homestead book ────────────────────────────────────
 HOMESTEAD_FONT_HEADINGS = {
     ("TimesNewRomanPSMT",        20.0): "#",
     ("TimesNewRomanPS-BoldMT",   20.0): "###",
@@ -480,33 +480,26 @@ def patch_block_relabel():
 
 
 def get_available_gemini_model(api_key: str) -> str:
-    """
-    Try model names in order until one works.
-    Returns the first working model name.
-    """
+    """Query the API to find the best available model for this key."""
     candidates = [
         "gemini-2.0-flash",
         "gemini-2.0-flash-lite",
         "gemini-1.5-flash",
-        "gemini-1.5-flash-latest",
         "gemini-1.5-pro",
     ]
     try:
         from google import genai
         client = genai.Client(api_key=api_key)
         available = {m.name.split("/")[-1] for m in client.models.list()}
+        print(f"  Available models: {sorted(m for m in available if 'gemini' in m and 'preview' not in m)}")
         for candidate in candidates:
             if candidate in available:
-                print(f"  Using Gemini model: {candidate}")
                 return candidate
-        # Fall back to first available model that contains 'flash'
-        flash_models = [m for m in available if 'flash' in m and 'preview' not in m]
+        flash_models = sorted(m for m in available if 'flash' in m and 'preview' not in m)
         if flash_models:
-            model = sorted(flash_models)[0]
-            print(f"  Using Gemini model: {model}")
-            return model
+            return flash_models[0]
     except Exception as e:
-        print(f"  Could not list models ({e}), defaulting to gemini-2.0-flash")
+        print(f"  Could not list models: {e}")
     return "gemini-2.0-flash"
 
 
@@ -591,13 +584,17 @@ def main():
         "marker.processors.blank_page.BlankPageProcessor",
     ]
 
+    # llm_service_cls is passed as a SEPARATE kwarg to PdfConverter (not in config).
+    # Per Marker docs: PdfConverter(artifact_dict=..., llm_service=..., config=...)
+    llm_service_cls = None
+
     if use_llm:
-        # Auto-detect the best available Gemini model for this API key
         model_name = get_available_gemini_model(google_api_key)
-        config["use_llm"] = True
+        # gemini_api_key and gemini_model_name go in config — they configure the service
         config["gemini_api_key"] = google_api_key
-        config["llm_service"] = "marker.services.gemini.GoogleGeminiService"
         config["gemini_model_name"] = model_name
+        # llm_service is the class string — passed as separate PdfConverter kwarg
+        llm_service_cls = "marker.services.gemini.GoogleGeminiService"
         sh_idx = processor_list.index("marker.processors.sectionheader.SectionHeaderProcessor")
         processor_list.insert(
             sh_idx + 1,
@@ -614,6 +611,7 @@ def main():
         artifact_dict=models,
         processor_list=processor_list,
         config=config,
+        llm_service=llm_service_cls,   # ← separate kwarg, not in config dict
     )
     rendered = converter(str(pdf_path))
 
