@@ -92,11 +92,10 @@ def detect_body_font(pdf_path: Path, page_range=None) -> tuple:
 
 def build_heading_map(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> dict:
     """Build heading map: {normalised_text: [level, level, ...]} in document order.
-    When the same heading text appears at different font sizes (e.g. 'Introduction'
-    at 14pt/H4 on one page and 12pt/H5 on another), all levels are stored so
-    fix_headings can assign the correct level to each occurrence."""
+    When the same heading text appears at different font sizes, all levels are
+    stored so fix_headings can assign the correct level to each occurrence."""
     import fitz
-    heading_map = {}  # {key: [level_str, ...]}
+    heading_map = {}
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [
         p for p in page_range if p < doc.page_count]
@@ -240,6 +239,38 @@ def build_verse_map(pdf_path: Path, cfg: dict, body_size: float, page_range=None
             if verse_num and lines_out and verse_num not in verse_map:
                 verse_map[verse_num] = lines_out
     return verse_map
+
+
+def build_inline_bold_set(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> list:
+    """Collect inline bold phrases from mixed-weight body-text blocks.
+    Only returns phrases from blocks that have BOTH bold and regular spans
+    at body size (i.e. inline bold, not standalone bold headings).
+    Minimum 5 chars to avoid false positives with short words."""
+    import fitz
+    doc = fitz.open(str(pdf_path))
+    pages = range(doc.page_count) if page_range is None else [
+        p for p in page_range if p < doc.page_count]
+    bold_phrases = set()
+    for page_idx in pages:
+        page = doc[page_idx]
+        for block in page.get_text("dict", sort=True)["blocks"]:
+            if block.get("type") != 0: continue
+            has_regular = has_bold = False
+            for line in block.get("lines", []):
+                for span in line.get("spans", []):
+                    if not span["text"].strip(): continue
+                    if size_bucket(span["size"]) != body_size: continue
+                    if "bold" in span["font"].lower(): has_bold = True
+                    else: has_regular = True
+            if not (has_bold and has_regular): continue
+            for line in block.get("lines", []):
+                for span in line.get("spans", []):
+                    if not span["text"].strip(): continue
+                    if size_bucket(span["size"]) == body_size and "bold" in span["font"].lower():
+                        phrase = span["text"].strip()
+                        if 5 <= len(phrase) <= 50:
+                            bold_phrases.add(phrase)
+    return sorted(bold_phrases, key=len, reverse=True)
 
 
 def build_callout_set(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> list:
@@ -542,6 +573,23 @@ def fix_structural_labels(markdown: str) -> str:
     return '\n'.join(out)
 
 
+def fix_inline_bold(markdown: str, bold_phrases: list) -> str:
+    """Restore inline bold in list items where Marker lost it (e.g. from tables).
+    Only applies to numbered/bulleted list lines to avoid false positives."""
+    if not bold_phrases: return markdown
+    lines = markdown.splitlines()
+    out = []
+    for line in lines:
+        if not (re.match(r'^\d+\.\s', line.strip()) or line.strip().startswith('- ')):
+            out.append(line); continue
+        for phrase in bold_phrases:
+            if f"**{phrase}**" in line: continue
+            pattern = r'(?<!\*)\b' + re.escape(phrase) + r'\b(?!\*)'
+            line = re.sub(pattern, f'**{phrase}**', line)
+        out.append(line)
+    return '\n'.join(out)
+
+
 def _normalise_for_callout_match(text: str) -> str:
     """Normalize text for fuzzy callout matching (quotes, em-dashes, whitespace)."""
     t = text.replace("\u2019", "'").replace("\u2018", "'")
@@ -564,8 +612,7 @@ def _callout_regex(callout_text: str):
 
 
 def fix_callouts(markdown: str, callout_texts: list) -> str:
-    """Two-pass callout system: remove standalone duplicates, tag inline matches.
-    callout_texts: from build_callout_set(), sorted longest-first."""
+    """Two-pass callout system: remove standalone duplicates, tag inline matches."""
     if not callout_texts: return markdown
     normalized = [(ct, _normalise_for_callout_match(ct)) for ct in callout_texts]
     regexes = [(ct, nc, _callout_regex(ct)) for ct, nc in normalized]
@@ -638,7 +685,7 @@ def fix_junk_content(markdown: str, cfg: dict) -> str:
 
 def post_process(markdown: str, heading_map: dict, skip_set: set,
                  bq_set: set, cit_set: set, verse_map: dict, cfg: dict,
-                 callout_texts: list = None) -> str:
+                 callout_texts: list = None, inline_bold: list = None) -> str:
     markdown = markdown.replace('\r\n', '\n').replace('\r', '\n')
     markdown = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', markdown, flags=re.MULTILINE)
     markdown = re.sub(r'^-{20,}\s*$', '', markdown, flags=re.MULTILINE)
@@ -650,6 +697,7 @@ def post_process(markdown: str, heading_map: dict, skip_set: set,
     markdown = fix_citations(markdown, cfg)
     markdown = fix_bullet_numbers(markdown)
     markdown = fix_hyphenation(markdown)
+    markdown = fix_inline_bold(markdown, inline_bold or [])
     markdown = fix_callouts(markdown, callout_texts or [])
     markdown = fix_final_review_table(markdown, cfg)
     markdown = fix_junk_content(markdown, cfg)
@@ -747,13 +795,14 @@ def main():
         bq_set, cit_set = build_blockquote_set(pdf_path, cfg, body_size, page_range)
         verse_map = build_verse_map(pdf_path, cfg, body_size, page_range)
         callout_texts = build_callout_set(pdf_path, cfg, body_size, page_range)
+        inline_bold = build_inline_bold_set(pdf_path, cfg, body_size, page_range)
         print(f"  {len(heading_map)} headings, {len(skip_set)} skips, "
               f"{len(bq_set)} bq, {len(cit_set)} cit, "
-              f"{len(verse_map)} verses, {len(callout_texts)} callouts.")
+              f"{len(verse_map)} verses, {len(callout_texts)} callouts, {len(inline_bold)} bold.")
         raw_markdown = raw_md_path.read_text(encoding="utf-8")
         print("Post-processing...")
         markdown = post_process(raw_markdown, heading_map, skip_set, bq_set, cit_set,
-                                verse_map, cfg, callout_texts)
+                                verse_map, cfg, callout_texts, inline_bold)
         output_path.write_text(markdown, encoding="utf-8")
         print(f"Done! {output_path} ({len(markdown.splitlines())} lines)")
         return
@@ -769,9 +818,10 @@ def main():
     bq_set, cit_set = build_blockquote_set(pdf_path, cfg, body_size, page_range)
     verse_map = build_verse_map(pdf_path, cfg, body_size, page_range)
     callout_texts = build_callout_set(pdf_path, cfg, body_size, page_range)
+    inline_bold = build_inline_bold_set(pdf_path, cfg, body_size, page_range)
     print(f"  {len(heading_map)} headings, {len(skip_set)} skips, "
           f"{len(bq_set)} bq, {len(cit_set)} cit, "
-          f"{len(verse_map)} verses, {len(callout_texts)} callouts.")
+          f"{len(verse_map)} verses, {len(callout_texts)} callouts, {len(inline_bold)} bold.")
 
     google_api_key = os.environ.get("GOOGLE_API_KEY", "")
     use_llm = bool(google_api_key)
@@ -815,7 +865,7 @@ def main():
 
     print("Post-processing...")
     markdown = post_process(rendered.markdown, heading_map, skip_set, bq_set, cit_set,
-                            verse_map, cfg, callout_texts)
+                            verse_map, cfg, callout_texts, inline_bold)
     output_path.write_text(markdown, encoding="utf-8")
     print(f"Done! {output_path} ({len(markdown.splitlines())} lines)")
 
