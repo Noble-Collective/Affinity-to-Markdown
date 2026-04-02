@@ -73,20 +73,14 @@ citation_patterns:
   - '^[A-Z][a-zA-Z]+\.\s+\d+:\d+[\d\-\u2013\u2014,;:\s]*$'
 
 # Missing section headings: Marker drops these large icon+heading blocks.
-#
-# Two detection modes:
-#   italic_snippet: insert heading just before the italic instruction paragraph
-#     that follows it (works when Marker keeps the italic para but drops the H3)
-#   before_heading: insert heading just before a specific target heading
-#     (works when Marker drops BOTH the H3 and its italic intro, e.g. Charting
-#     the Path Ahead, which is entirely absent from Marker's raw output)
+# Uses italic_snippet to insert heading just before the italic instruction
+# paragraph that follows it (works when Marker keeps the italic para but
+# drops the H3).
 missing_section_headings:
   - italic_snippet: "focus your thinking around the key idea"
     heading: "### Seeking God's Wisdom"
   - italic_snippet: "study god's word together"
     heading: "### Exploring the Biblical Text"
-  - before_heading: "#### Small Group Prayer"
-    heading: "### Charting the Path Ahead"
   - italic_snippet: "read the main biblical text studied"
     heading: "### Scripture Reading"
   - italic_snippet: "study the key themes of this session"
