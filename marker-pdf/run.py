@@ -479,6 +479,37 @@ def patch_block_relabel():
     BlockRelabelProcessor.__call__ = patched_call
 
 
+def get_available_gemini_model(api_key: str) -> str:
+    """
+    Try model names in order until one works.
+    Returns the first working model name.
+    """
+    candidates = [
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-pro",
+    ]
+    try:
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        available = {m.name.split("/")[-1] for m in client.models.list()}
+        for candidate in candidates:
+            if candidate in available:
+                print(f"  Using Gemini model: {candidate}")
+                return candidate
+        # Fall back to first available model that contains 'flash'
+        flash_models = [m for m in available if 'flash' in m and 'preview' not in m]
+        if flash_models:
+            model = sorted(flash_models)[0]
+            print(f"  Using Gemini model: {model}")
+            return model
+    except Exception as e:
+        print(f"  Could not list models ({e}), defaulting to gemini-2.0-flash")
+    return "gemini-2.0-flash"
+
+
 def main():
     parser = argparse.ArgumentParser(description="Convert PDF to Markdown using Marker.")
     parser.add_argument("input", help="Path to the PDF file")
@@ -561,17 +592,18 @@ def main():
     ]
 
     if use_llm:
+        # Auto-detect the best available Gemini model for this API key
+        model_name = get_available_gemini_model(google_api_key)
         config["use_llm"] = True
         config["gemini_api_key"] = google_api_key
         config["llm_service"] = "marker.services.gemini.GoogleGeminiService"
-        # Use gemini-1.5-flash — available to new API keys (gemini-2.0-flash is not)
-        config["gemini_model_name"] = "gemini-1.5-flash"
+        config["gemini_model_name"] = model_name
         sh_idx = processor_list.index("marker.processors.sectionheader.SectionHeaderProcessor")
         processor_list.insert(
             sh_idx + 1,
             "marker.processors.llm.llm_sectionheader.LLMSectionHeaderProcessor"
         )
-        print("LLMSectionHeaderProcessor added (model: gemini-1.5-flash).")
+        print(f"LLMSectionHeaderProcessor added (model: {model_name}).")
 
     if page_range:
         config["page_range"] = page_range
