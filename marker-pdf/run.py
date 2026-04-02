@@ -68,7 +68,10 @@ def detect_body_font(pdf_path, page_range=None):
     return max(freq, key=freq.get) if freq else ("unknown", 10.0)
 
 def build_heading_map(pdf_path, cfg, body_size, page_range=None):
-    """Build {normalised_text: [level, ...]} in document order."""
+    """Build {normalised_text: [level, ...]} in document order.
+    Only text whose font matches a heading rule gets included.
+    Text NOT in this map is not a heading — Marker's heading assignment
+    will be demoted to bold text by fix_headings."""
     import fitz
     hmap = {}
     doc = fitz.open(str(pdf_path))
@@ -277,7 +280,10 @@ def dump_fonts(pdf_path, page_range=None):
 # ---- Post-processing passes ----
 
 def fix_headings(markdown, heading_map, skip_set):
-    """Remap heading levels. heading_map values are lists in document order."""
+    """Remap heading levels using font-derived heading_map.
+    The heading_map is the source of truth for what IS a heading.
+    If Marker marks something as a heading but it's NOT in the map,
+    the font rules didn't identify it as a heading → demote to bold."""
     occ = {}
     def _gl(key):
         if key not in heading_map: return None
@@ -289,31 +295,28 @@ def fix_headings(markdown, heading_map, skip_set):
         if normalise_key(re.sub(r"[#>]","",line)) in skip_set: continue
         m = re.match(r'^(#{1,6})\s+(.+)$', line)
         if m:
-            c = m.group(2)
-            cc = re.sub(r'^\*\*(.+)\*\*$', r'\1', c.strip())
-            cc = re.sub(r'^\*(.+)\*$', r'\1', cc.strip())
-            cl = normalise_key(cc)
-            if cl in skip_set: continue
-            lv = _gl(cl)
-            out.append(f"{lv} {cc}" if lv else f"{m.group(1)} {cc}")
+            content = m.group(2)
+            content_clean = re.sub(r'^\*\*(.+)\*\*$', r'\1', content.strip())
+            content_clean = re.sub(r'^\*(.+)\*$', r'\1', content_clean.strip())
+            clean = normalise_key(content_clean)
+            if clean in skip_set: continue
+            level = _gl(clean)
+            if level:
+                out.append(f"{level} {content_clean}")
+            else:
+                # Not in heading_map: font rules say this isn't a heading.
+                # Demote Marker's incorrect heading to bold text.
+                out.append(f"**{content_clean}**")
         else:
-            s = line.strip()
-            bm = re.match(r'^\*\*(.+?)\*\*$', s)
+            stripped = line.strip()
+            bm = re.match(r'^\*\*(.+?)\*\*$', stripped)
             if bm:
-                inner = bm.group(1); cl = normalise_key(inner); lv = _gl(cl)
-                if lv: out.append(f"{lv} {inner}"); continue
-            bc = normalise_key(line); lv = _gl(bc)
-            if lv and s and len(s) > 2: out.append(f"{lv} {s}")
+                inner = bm.group(1); clean = normalise_key(inner)
+                level = _gl(clean)
+                if level: out.append(f"{level} {inner}"); continue
+            bc = normalise_key(line); level = _gl(bc)
+            if level and stripped and len(stripped) > 2: out.append(f"{level} {stripped}")
             else: out.append(line)
-    return '\n'.join(out)
-
-def fix_scripture_ref_headings(markdown):
-    """Convert heading-tagged scripture references back to bold text."""
-    pat = re.compile(r'^(#{1,6})\s+\*?\*?(\d?\s?[A-Z][a-zA-Z]+\.?\s+\d+[:\d\-\u2013\u2014,;\s]*)\*?\*?\s*$')
-    lines = markdown.splitlines(); out = []
-    for line in lines:
-        m = pat.match(line)
-        out.append(f"**{m.group(2).strip()}**" if m else line)
     return '\n'.join(out)
 
 def fix_verse_labels(markdown, verse_map):
@@ -461,7 +464,7 @@ def fix_structural_labels(md):
     return '\n'.join(out)
 
 def fix_bold_bullets(md):
-    """Convert **• Text**: ... → - **Text**: ..."""
+    """Convert **\u2022 Text**: ... \u2192 - **Text**: ..."""
     lines = md.splitlines(); out = []
     for line in lines:
         s = line.strip()
@@ -523,7 +526,7 @@ def fix_callouts(md, callout_texts):
     return '\n'.join(out)
 
 def fix_final_review_table(md, cfg):
-    rules = cfg.get("table_to_list",[]); 
+    rules = cfg.get("table_to_list",[])
     if not rules: return md
     lines = md.splitlines(); out = []; i = 0
     while i < len(lines):
@@ -564,7 +567,6 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = re.sub(r'^-{20,}\s*$', '', md, flags=re.MULTILINE)
     md = fix_pullquote_fragments(md)
     md = fix_headings(md, heading_map, skip_set)
-    md = fix_scripture_ref_headings(md)
     md = fix_verse_labels(md, verse_map)
     md = fix_double_blockquote_citations(md)
     md = fix_blockquotes(md, bq_set, cit_set)
