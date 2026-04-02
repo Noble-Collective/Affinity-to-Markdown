@@ -91,8 +91,12 @@ def detect_body_font(pdf_path: Path, page_range=None) -> tuple:
 
 
 def build_heading_map(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> dict:
+    """Build heading map: {normalised_text: [level, level, ...]} in document order.
+    When the same heading text appears at different font sizes (e.g. 'Introduction'
+    at 14pt/H4 on one page and 12pt/H5 on another), all levels are stored so
+    fix_headings can assign the correct level to each occurrence."""
     import fitz
-    heading_map = {}
+    heading_map = {}  # {key: [level_str, ...]}
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [
         p for p in page_range if p < doc.page_count]
@@ -127,7 +131,11 @@ def build_heading_map(pdf_path: Path, cfg: dict, body_size: float, page_range=No
                         text_parts.append(span["text"].strip())
             text = " ".join(" ".join(text_parts).split()).strip()
             if text and len(text) > 2:
-                heading_map[normalise_key(text)] = "#" * matched_level
+                key = normalise_key(text)
+                level = "#" * matched_level
+                if key not in heading_map:
+                    heading_map[key] = []
+                heading_map[key].append(level)
     return heading_map
 
 
@@ -310,6 +318,18 @@ def dump_fonts(pdf_path: Path, page_range=None) -> None:
 # ---- Post-processing passes ----
 
 def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
+    """Remap heading levels using font-derived heading_map.
+    heading_map values are lists of levels in document order, so the same
+    text at different font sizes gets the correct level per occurrence."""
+    occurrence: dict = {}
+
+    def _get_level(key):
+        if key not in heading_map: return None
+        levels = heading_map[key]
+        idx = occurrence.get(key, 0)
+        occurrence[key] = idx + 1
+        return levels[min(idx, len(levels) - 1)]
+
     lines = markdown.splitlines()
     out = []
     for line in lines:
@@ -321,8 +341,9 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
             content_clean = re.sub(r'^\*(.+)\*$', r'\1', content_clean.strip())
             clean = normalise_key(content_clean)
             if clean in skip_set: continue
-            if clean in heading_map:
-                out.append(f"{heading_map[clean]} {content_clean}")
+            level = _get_level(clean)
+            if level:
+                out.append(f"{level} {content_clean}")
             else:
                 out.append(f"{m.group(1)} {content_clean}")
         else:
@@ -331,11 +352,13 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
             if bm:
                 inner = bm.group(1)
                 clean = normalise_key(inner)
-                if clean in heading_map:
-                    out.append(f"{heading_map[clean]} {inner}"); continue
+                level = _get_level(clean)
+                if level:
+                    out.append(f"{level} {inner}"); continue
             body_clean = normalise_key(line)
-            if body_clean in heading_map and line.strip() and len(line.strip()) > 2:
-                out.append(f"{heading_map[body_clean]} {line.strip()}")
+            level = _get_level(body_clean)
+            if level and line.strip() and len(line.strip()) > 2:
+                out.append(f"{level} {line.strip()}")
             else:
                 out.append(line)
     return '\n'.join(out)
