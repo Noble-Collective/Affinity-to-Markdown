@@ -7,11 +7,12 @@ The conversion logic is fully generic — font ratios and weight patterns are
 used instead of hardcoded font names or absolute sizes.
 
 Usage:
-  python run.py path/to/book.pdf
+  python run.py path/to/book.pdf                    # full conversion
+  python run.py path/to/book.pdf --save-raw         # save Marker output before post-processing
+  python run.py --postprocess raw.md book.pdf       # re-run post-processing only (fast)
   python run.py path/to/book.pdf --template homestead
   python run.py path/to/book.pdf --page-range 62-200
-  python run.py path/to/book.pdf output.md
-  python run.py path/to/book.pdf --dump-fonts   (calibration mode)
+  python run.py path/to/book.pdf --dump-fonts       # calibration mode
 
 To enable LLM heading correction:
   export GOOGLE_API_KEY="your-key-here"
@@ -29,22 +30,19 @@ logging.basicConfig(level=logging.WARNING)
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 
-# ── Minimal YAML parser (no PyYAML dependency) ────────────────────────────────
+# ── YAML loader ───────────────────────────────────────────────────────────────
 def _load_yaml(path: Path) -> dict:
-    """Parse a simple YAML file into a Python dict. Supports nested dicts and lists."""
     import yaml
     with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
-# ── Template config loader ────────────────────────────────────────────────────
 def load_template(template_name: str) -> dict:
     path = SCRIPT_DIR / "templates" / template_name / "pdf_config.yaml"
     if not path.exists():
         print(f"ERROR: Template config not found: {path}")
         sys.exit(1)
     config = _load_yaml(path)
-    # Compile citation regexes
     config["_citation_res"] = [
         re.compile(p) for p in config.get("citation_patterns", [])
     ]
@@ -57,7 +55,6 @@ def size_bucket(size: float) -> float:
 
 
 def font_weight(font_name: str) -> str:
-    """Derive weight from font name string."""
     n = font_name.lower()
     if "bolditalic" in n or ("bold" in n and "italic" in n):
         return "bold-italic"
@@ -69,7 +66,6 @@ def font_weight(font_name: str) -> str:
 
 
 def normalise_key(text: str) -> str:
-    """Normalise text for lookup: strip markers, lowercase, normalise quotes."""
     t = re.sub(r"\*+", "", text)
     t = t.replace("\u2018", "'").replace("\u2019", "'")
     t = t.replace("\u201c", '"').replace("\u201d", '"')
@@ -78,12 +74,15 @@ def normalise_key(text: str) -> str:
     return t[:60]
 
 
+def _match_rule(weight: str, ratio: float, rule: dict) -> bool:
+    return (
+        rule["weight"] == weight
+        and rule["min_ratio"] <= ratio <= rule["max_ratio"]
+    )
+
+
 # ── Body font auto-detection ──────────────────────────────────────────────────
 def detect_body_font(pdf_path: Path, page_range=None) -> tuple:
-    """
-    Return (font_name, font_size) of the most frequent font by character count.
-    This is the body text font.
-    """
     import fitz
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [
@@ -107,18 +106,8 @@ def detect_body_font(pdf_path: Path, page_range=None) -> tuple:
 
 
 # ── PyMuPDF scanning ──────────────────────────────────────────────────────────
-def _match_rule(weight: str, ratio: float, rule: dict) -> bool:
-    return (
-        rule["weight"] == weight
-        and rule["min_ratio"] <= ratio <= rule["max_ratio"]
-    )
-
-
 def build_heading_map(pdf_path: Path, cfg: dict, body_size: float,
                       page_range=None) -> dict:
-    """
-    Build {normalised_text -> '##...'} using ratio-based heading rules.
-    """
     import fitz
     heading_map = {}
     doc = fitz.open(str(pdf_path))
@@ -133,8 +122,6 @@ def build_heading_map(pdf_path: Path, cfg: dict, body_size: float,
         for block in page.get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0:
                 continue
-
-            # Find dominant font for this block
             font_chars: dict = {}
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
@@ -144,16 +131,11 @@ def build_heading_map(pdf_path: Path, cfg: dict, body_size: float,
                         font_chars[key] = font_chars.get(key, 0) + len(t)
             if not font_chars:
                 continue
-
             dom_font, dom_size = max(font_chars, key=font_chars.get)
             ratio = dom_size / body_size
             weight = font_weight(dom_font)
-
-            # Skip decorative large text
             if ratio > skip_ratio:
                 continue
-
-            # Match against heading rules
             matched_level = None
             for rule in rules:
                 if _match_rule(weight, ratio, rule):
@@ -161,17 +143,13 @@ def build_heading_map(pdf_path: Path, cfg: dict, body_size: float,
                     break
             if matched_level is None:
                 continue
-
-            # Collect text from dominant font spans only
             text_parts = []
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
                     sk = (span["font"], size_bucket(span["size"]))
                     if sk == (dom_font, dom_size) and span["text"].strip():
                         text_parts.append(span["text"].strip())
-            text = " ".join(text_parts).strip()
-            text = " ".join(text.split())
-
+            text = " ".join(" ".join(text_parts).split()).strip()
             if text and len(text) > 2:
                 heading_map[normalise_key(text)] = "#" * matched_level
 
@@ -180,12 +158,6 @@ def build_heading_map(pdf_path: Path, cfg: dict, body_size: float,
 
 def build_skip_set(pdf_path: Path, cfg: dict, body_size: float,
                    page_range=None) -> set:
-    """
-    Build set of text snippets to remove:
-    - Blocks matching the running_header_signature (ALL entries must match)
-    - Page numbers (short all-digit blocks)
-    - Decorative large text (ratio > skip_large_ratio)
-    """
     import fitz
     skip_set = set()
     doc = fitz.open(str(pdf_path))
@@ -200,8 +172,6 @@ def build_skip_set(pdf_path: Path, cfg: dict, body_size: float,
         for block in page.get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0:
                 continue
-
-            # Collect all (weight, ratio) pairs in this block
             wr_pairs = set()
             text = ""
             for line in block.get("lines", []):
@@ -211,22 +181,15 @@ def build_skip_set(pdf_path: Path, cfg: dict, body_size: float,
                         ratio = size_bucket(span["size"]) / body_size
                         wr_pairs.add((font_weight(span["font"]), ratio))
                         text += span["text"]
-
             text = " ".join(text.split()).strip()
             if not text:
                 continue
-
-            # Page numbers
             if re.match(r"^\d{1,3}$", text):
                 skip_set.add(normalise_key(text))
                 continue
-
-            # Decorative large text
             if any(r > skip_ratio for _, r in wr_pairs):
                 skip_set.add(normalise_key(text))
                 continue
-
-            # Running headers: block must contain ALL signature entries
             if rh_sig and all(
                 any(_match_rule(w, r, rule) for w, r in wr_pairs)
                 for rule in rh_sig
@@ -238,11 +201,6 @@ def build_skip_set(pdf_path: Path, cfg: dict, body_size: float,
 
 def build_blockquote_set(pdf_path: Path, cfg: dict, body_size: float,
                          page_range=None) -> tuple:
-    """
-    Find blocks whose dominant font size ratio <= quote_max_ratio.
-    Long ones (> citation_max_chars) → blockquotes.
-    Short ones → citations.
-    """
     import fitz
     bq_set = set()
     cit_set = set()
@@ -258,7 +216,6 @@ def build_blockquote_set(pdf_path: Path, cfg: dict, body_size: float,
         for block in page.get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0:
                 continue
-
             font_chars: dict = {}
             text = ""
             for line in block.get("lines", []):
@@ -268,19 +225,14 @@ def build_blockquote_set(pdf_path: Path, cfg: dict, body_size: float,
                         key = (span["font"], size_bucket(span["size"]))
                         font_chars[key] = font_chars.get(key, 0) + len(t.strip())
                     text += t
-
             if not font_chars:
                 continue
-
             _, dom_size = max(font_chars, key=font_chars.get)
-            ratio = dom_size / body_size
-            if ratio > max_ratio:
+            if dom_size / body_size > max_ratio:
                 continue
-
             text = " ".join(text.split()).strip()
             if not text or not any(c.isalpha() for c in text):
                 continue
-
             key = normalise_key(text[:60])
             if len(text) > cit_max:
                 bq_set.add(key)
@@ -292,11 +244,6 @@ def build_blockquote_set(pdf_path: Path, cfg: dict, body_size: float,
 
 def build_verse_map(pdf_path: Path, cfg: dict, body_size: float,
                     page_range=None) -> dict:
-    """
-    Find hymn verse label blocks (containing ALL entries in verse_label_signature)
-    and extract verse number + line text.
-    Returns {verse_num_str: [line1, line2, ...]}
-    """
     import fitz
     verse_map = {}
     doc = fitz.open(str(pdf_path))
@@ -312,20 +259,17 @@ def build_verse_map(pdf_path: Path, cfg: dict, body_size: float,
         for block in page.get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0:
                 continue
-
             wr_pairs = set()
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
                     if span["text"].strip():
                         ratio = size_bucket(span["size"]) / body_size
                         wr_pairs.add((font_weight(span["font"]), ratio))
-
-            if not sig or not all(
+            if not all(
                 any(_match_rule(w, r, rule) for w, r in wr_pairs)
                 for rule in sig
             ):
                 continue
-
             lines_out = []
             verse_num = None
             for line in block.get("lines", []):
@@ -341,19 +285,14 @@ def build_verse_map(pdf_path: Path, cfg: dict, body_size: float,
                         lines_out.append(rest)
                 elif verse_num is not None:
                     lines_out.append(line_text)
-
             if verse_num and lines_out and verse_num not in verse_map:
                 verse_map[verse_num] = lines_out
 
     return verse_map
 
 
-# ── Dump fonts mode (calibration) ─────────────────────────────────────────────
+# ── Dump fonts calibration mode ───────────────────────────────────────────────
 def dump_fonts(pdf_path: Path, page_range=None) -> None:
-    """
-    Print all fonts found in the PDF with frequency and size ratio.
-    Used to calibrate pdf_config.yaml for a new book.
-    """
     import fitz
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [
@@ -384,8 +323,8 @@ def dump_fonts(pdf_path: Path, page_range=None) -> None:
         weight = font_weight(font)
         sample = samples.get((font, size), "")
         print(f"{font:<40} {size:>6.1f} {ratio:>6.2f} {weight:>10} {count:>8}  {sample}")
-    print(f"\nTotal unique font+size combinations: {len(freq)}")
-    print("\nUse these ratios to configure headings: in pdf_config.yaml.")
+    print(f"\nTotal: {len(freq)} font+size combinations")
+    print("Use these ratios to configure headings in pdf_config.yaml.")
 
 
 # ── Post-processing passes ────────────────────────────────────────────────────
@@ -393,14 +332,11 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
     lines = markdown.splitlines()
     out = []
     for line in lines:
-        # Remove skip-set lines
         if normalise_key(re.sub(r"[#>]", "", line)) in skip_set:
             continue
-
         m = re.match(r'^(#{1,6})\s+(.+)$', line)
         if m:
             content = m.group(2)
-            # Strip bold/italic wrappers Marker adds to heading text
             content_clean = re.sub(r'^\*\*(.+)\*\*$', r'\1', content.strip())
             content_clean = re.sub(r'^\*(.+)\*$', r'\1', content_clean.strip())
             clean = normalise_key(content_clean)
@@ -411,14 +347,11 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
             else:
                 out.append(f"{m.group(1)} {content_clean}")
         else:
-            # Promote body text lines that should be headings
-            # (Marker classified them as Text rather than SectionHeader)
             body_clean = normalise_key(line)
             if body_clean in heading_map and line.strip() and len(line.strip()) > 2:
                 out.append(f"{heading_map[body_clean]} {line.strip()}")
             else:
                 out.append(line)
-
     return '\n'.join(out)
 
 
@@ -429,7 +362,6 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
             lambda m: f"###### Verse {m.group(1)}",
             markdown, flags=re.MULTILINE | re.IGNORECASE
         )
-
     lines = markdown.splitlines()
     out = []
     i = 0
@@ -444,7 +376,6 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
                 vlines = verse_map[verse_num]
                 for j, vl in enumerate(vlines):
                     out.append(f"{vl}  " if j < len(vlines) - 1 else vl)
-                # Skip Marker's merged verse text
                 i += 1
                 while i < len(lines) and lines[i].strip():
                     i += 1
@@ -475,7 +406,6 @@ def fix_blockquotes(markdown: str, bq_set: set, cit_set: set) -> str:
 
 
 def fix_citations(markdown: str, cfg: dict) -> str:
-    """Convert standalone short lines to << citations using configured patterns."""
     patterns = cfg.get("_citation_res", [])
     cit_max = cfg.get("citation_max_chars", 80)
     lines = markdown.splitlines()
@@ -487,19 +417,14 @@ def fix_citations(markdown: str, cfg: dict) -> str:
                 or stripped.startswith('*') or len(stripped) > 120:
             out.append(line)
             continue
-
         prev_blank = (i == 0) or (lines[i-1].strip() == '')
         next_blank = (i == len(lines)-1) or (lines[i+1].strip() == '')
         if not (prev_blank and next_blank):
             out.append(line)
             continue
-
-        # Match configured citation patterns
         if any(p.match(stripped) for p in patterns):
             out.append(f"<< {stripped}")
             continue
-
-        # Short attribution after a blockquote or existing citation
         prev_content = next(
             (lines[j].strip() for j in range(i-1, -1, -1) if lines[j].strip()), ""
         )
@@ -507,18 +432,15 @@ def fix_citations(markdown: str, cfg: dict) -> str:
                 and len(stripped) < cit_max:
             out.append(f"<< {stripped}")
             continue
-
         out.append(line)
     return '\n'.join(out)
 
 
 def fix_bullet_numbers(markdown: str) -> str:
-    """Fix Marker bug: '- 1. Text' → '1. Text'"""
     return re.sub(r'^- (\d+\.)\s', r'\1 ', markdown, flags=re.MULTILINE)
 
 
 def fix_hyphenation(markdown: str) -> str:
-    """Merge column-break hyphenated lines."""
     lines = markdown.splitlines()
     out = []
     i = 0
@@ -554,11 +476,9 @@ def post_process(markdown: str, heading_map: dict, skip_set: set,
 
 # ── Marker bug patch ──────────────────────────────────────────────────────────
 def patch_block_relabel():
-    """Patch Marker bug: BlockRelabelProcessor crashes when top_k returns None."""
     from copy import deepcopy
     from marker.processors.block_relabel import BlockRelabelProcessor
     from marker.schema.registry import get_block_class
-    from marker.schema.blocks import BlockId
 
     def patched_call(self, document):
         if len(self.block_relabel_map) == 0:
@@ -570,7 +490,7 @@ def patch_block_relabel():
                 confidence_thresh, relabel_block_type = self.block_relabel_map[block.block_type]
                 confidence = block.top_k.get(block.block_type)
                 if confidence is None:
-                    continue  # BUG FIX: skip blocks with no confidence score
+                    continue
                 if confidence > confidence_thresh:
                     continue
                 new_block_cls = get_block_class(relabel_block_type)
@@ -588,7 +508,6 @@ def patch_block_relabel():
     BlockRelabelProcessor.__call__ = patched_call
 
 
-# ── Gemini model detection ────────────────────────────────────────────────────
 def get_available_gemini_model(api_key: str) -> str:
     candidates = ["gemini-2.0-flash", "gemini-2.0-flash-lite",
                   "gemini-1.5-flash", "gemini-1.5-pro"]
@@ -596,8 +515,7 @@ def get_available_gemini_model(api_key: str) -> str:
         from google import genai
         client = genai.Client(api_key=api_key)
         available = {m.name.split("/")[-1] for m in client.models.list()}
-        print(f"  Available Gemini models: "
-              f"{sorted(m for m in available if 'gemini' in m and 'preview' not in m)}")
+        print(f"  Available: {sorted(m for m in available if 'gemini' in m and 'preview' not in m)}")
         for c in candidates:
             if c in available:
                 return c
@@ -614,21 +532,24 @@ def main():
     parser = argparse.ArgumentParser(
         description="Convert PDF to Markdown using Marker + font-based post-processing."
     )
-    parser.add_argument("input", help="Path to the PDF file")
+    parser.add_argument("input", help="Path to the PDF file OR raw Marker .md file (with --postprocess)")
+    parser.add_argument("pdf", nargs="?",
+                        help="Path to PDF (required with --postprocess, for font scanning)")
     parser.add_argument("output", nargs="?", help="Output .md path (optional)")
     parser.add_argument("--template", default="homestead",
-                        help="Template name (default: homestead). "
-                             "Loads templates/<name>/pdf_config.yaml")
+                        help="Template name (default: homestead)")
     parser.add_argument("--page-range", default="",
                         help="0-indexed page range e.g. '62-200'")
     parser.add_argument("--dump-fonts", action="store_true",
-                        help="Print font analysis for calibration and exit")
+                        help="Print font table for calibration and exit")
+    parser.add_argument("--save-raw", action="store_true",
+                        help="Also save Marker's raw output before post-processing "
+                             "(saved as <output>.raw.md)")
+    parser.add_argument("--postprocess", action="store_true",
+                        help="Skip Marker entirely — apply post-processing to an "
+                             "existing raw Marker .md file. "
+                             "Usage: python run.py raw.md book.pdf --postprocess")
     args = parser.parse_args()
-
-    pdf_path = Path(args.input)
-    if not pdf_path.exists():
-        print(f"ERROR: File not found: {pdf_path}")
-        sys.exit(1)
 
     page_range = None
     if args.page_range.strip():
@@ -643,27 +564,69 @@ def main():
         page_range = pages
         print(f"Page range: {page_range[0]}-{page_range[-1]} ({len(page_range)} pages)")
 
-    # Calibration mode
+    # ── --dump-fonts mode ─────────────────────────────────────────────────────
     if args.dump_fonts:
+        pdf_path = Path(args.input)
+        if not pdf_path.exists():
+            print(f"ERROR: File not found: {pdf_path}")
+            sys.exit(1)
         dump_fonts(pdf_path, page_range)
         return
 
-    # Load template config
     cfg = load_template(args.template)
     print(f"Template: {args.template}")
 
-    output_path = Path(args.output) if args.output else pdf_path.with_suffix(".md")
+    # ── --postprocess mode: skip Marker, re-run post-processing only ──────────
+    if args.postprocess:
+        raw_md_path = Path(args.input)
+        if not raw_md_path.exists():
+            print(f"ERROR: Raw markdown file not found: {raw_md_path}")
+            sys.exit(1)
+        if not args.pdf:
+            print("ERROR: --postprocess requires a PDF path as the second argument")
+            print("  Usage: python run.py raw.md book.pdf --postprocess")
+            sys.exit(1)
+        pdf_path = Path(args.pdf)
+        if not pdf_path.exists():
+            print(f"ERROR: PDF not found: {pdf_path}")
+            sys.exit(1)
 
-    # Auto-detect body font
-    body_font_name, body_size = detect_body_font(pdf_path, page_range)
-    if cfg.get("body_font", "auto") != "auto":
-        # Manual override: find the size for the specified font
-        body_size_override = cfg["body_font"]
-        print(f"Body font (manual): {body_size_override}")
-    else:
+        output_path = Path(args.output) if args.output else raw_md_path.with_suffix(".md")
+        if output_path == raw_md_path:
+            output_path = raw_md_path.with_stem(raw_md_path.stem + "_processed")
+
+        body_font_name, body_size = detect_body_font(pdf_path, page_range)
         print(f"Body font (auto): {body_font_name} @ {body_size}pt")
 
-    # Build PyMuPDF maps
+        print("Building font maps from PDF...")
+        heading_map = build_heading_map(pdf_path, cfg, body_size, page_range)
+        skip_set = build_skip_set(pdf_path, cfg, body_size, page_range)
+        bq_set, cit_set = build_blockquote_set(pdf_path, cfg, body_size, page_range)
+        verse_map = build_verse_map(pdf_path, cfg, body_size, page_range)
+        print(f"  {len(heading_map)} headings, {len(skip_set)} skips, "
+              f"{len(bq_set)} blockquotes, {len(cit_set)} citations, "
+              f"{len(verse_map)} verses.")
+
+        raw_markdown = raw_md_path.read_text(encoding="utf-8")
+        print("Post-processing...")
+        markdown = post_process(
+            raw_markdown, heading_map, skip_set, bq_set, cit_set, verse_map, cfg
+        )
+        output_path.write_text(markdown, encoding="utf-8")
+        print(f"Done! Written to: {output_path} ({len(markdown.splitlines())} lines)")
+        return
+
+    # ── Full conversion mode ──────────────────────────────────────────────────
+    pdf_path = Path(args.input)
+    if not pdf_path.exists():
+        print(f"ERROR: File not found: {pdf_path}")
+        sys.exit(1)
+
+    output_path = Path(args.output) if args.output else pdf_path.with_suffix(".md")
+
+    body_font_name, body_size = detect_body_font(pdf_path, page_range)
+    print(f"Body font (auto): {body_font_name} @ {body_size}pt")
+
     print("Building font maps from PDF...")
     heading_map = build_heading_map(pdf_path, cfg, body_size, page_range)
     skip_set = build_skip_set(pdf_path, cfg, body_size, page_range)
@@ -673,7 +636,6 @@ def main():
           f"{len(bq_set)} blockquotes, {len(cit_set)} citations, "
           f"{len(verse_map)} verses found.")
 
-    # LLM setup
     google_api_key = os.environ.get("GOOGLE_API_KEY", "")
     use_llm = bool(google_api_key)
     if use_llm:
@@ -744,6 +706,12 @@ def main():
         llm_service=llm_service_cls,
     )
     rendered = converter(str(pdf_path))
+
+    # Optionally save raw Marker output before post-processing
+    if args.save_raw:
+        raw_path = output_path.with_suffix(".raw.md")
+        raw_path.write_text(rendered.markdown, encoding="utf-8")
+        print(f"Raw Marker output saved: {raw_path}")
 
     print("Post-processing...")
     markdown = post_process(
