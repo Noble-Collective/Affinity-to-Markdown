@@ -855,40 +855,56 @@ def main():
     print("Models loaded.")
 
     marker_config = {
+        # ── Layout detection ─────────────────────────────────────────────
+        # DPI 96 = Marker default. Was 72, but lower DPI degrades surya's
+        # ability to distinguish text regions from decorative icons.
+        "lowres_image_dpi": 96,
+
+        # ── Critical fix: relabel Figure/Picture → Text ──────────────────
+        # ROOT CAUSE of dropped content: surya classifies icon-heavy page
+        # regions as Figure/Picture.  Text lines ARE extracted and assigned
+        # to those blocks, but Figure.assemble_html and Picture.assemble_html
+        # only render Reference children — all text is silently discarded.
+        # Relabeling to Text makes those blocks render their text normally.
+        # Threshold 1.0 = relabel ALL Figure/Picture blocks (the condition
+        # is "skip if confidence > threshold", and confidence is never > 1.0).
+        # SectionHeader:Text:0.6 demotes low-confidence headings as before.
+        "block_relabel_str": "SectionHeader:Text:0.6,Figure:Text:1.0,Picture:Text:1.0",
+
+        # ── Heading detection ────────────────────────────────────────────
         "level_count": 4,
         "default_level": 3,
+
+        # ── Running header / common element suppression ──────────────────
         "common_element_threshold": 0.15,
         "text_match_threshold": 85,
+
+        # ── Blockquote detection ─────────────────────────────────────────
         "BlockquoteProcessor_min_x_indent": 0.01,
         "BlockquoteProcessor_x_start_tolerance": 0.05,
         "BlockquoteProcessor_x_end_tolerance": 0.05,
+
+        # ── Text / column joining ────────────────────────────────────────
         "TextProcessor_column_gap_ratio": 0.06,
+
+        # ── General ──────────────────────────────────────────────────────
         "disable_links": True,
         "disable_ocr": True,
         "pdftext_workers": 1,
-        "DocumentBuilder_lowres_image_dpi": 72,
         "disable_image_extraction": True,
         "extract_images": False,
     }
 
-    # IgnoreTextProcessor and BlankPageProcessor are intentionally excluded.
-    # IgnoreTextProcessor removes blocks it classifies as "common elements"
-    # (running headers, repeated page furniture) — but it also misclassifies
-    # the large icon+heading blocks (e.g. "Charting the Path Ahead") as
-    # decorative and silently drops them, along with their content.
-    # BlankPageProcessor can skip icon-heavy pages that appear sparse.
-    # Our PyMuPDF skip_set already handles running header removal in post-processing,
-    # so we don't need IgnoreTextProcessor for that purpose.
-    processor_list = [
-        "marker.processors.order.OrderProcessor",
-        "marker.processors.line_merge.LineMergeProcessor",
-        "marker.processors.blockquote.BlockquoteProcessor",
-        # "marker.processors.ignoretext.IgnoreTextProcessor",  # excluded: drops content blocks
-        "marker.processors.list.ListProcessor",
-        "marker.processors.sectionheader.SectionHeaderProcessor",
-        "marker.processors.text.TextProcessor",
-        # "marker.processors.blank_page.BlankPageProcessor",   # excluded: may skip icon-heavy pages
-    ]
+    # ── Processor list: use Marker's full defaults ───────────────────────
+    # Previously we used a stripped-down list that excluded IgnoreTextProcessor
+    # and BlankPageProcessor, believing they caused the content drops.
+    # The actual root cause was Figure/Picture block rendering (fixed above
+    # via block_relabel_str).  The default list includes all processors;
+    # LLM processors are no-ops when use_llm=False.
+    # BlankPageProcessor.filter_blank_pages defaults to False (does nothing).
+    # IgnoreTextProcessor only marks first/last blocks on pages with >20%
+    # repetition — safe for running headers, won't touch mid-page content.
+    processor_list = None  # None = use Marker's default_processors
 
     llm_service_cls = None
     if use_llm:
@@ -896,14 +912,7 @@ def main():
         marker_config["gemini_api_key"] = google_api_key
         marker_config["gemini_model_name"] = model_name
         llm_service_cls = "marker.services.gemini.GoogleGeminiService"
-        sh_idx = processor_list.index(
-            "marker.processors.sectionheader.SectionHeaderProcessor"
-        )
-        processor_list.insert(
-            sh_idx + 1,
-            "marker.processors.llm.llm_sectionheader.LLMSectionHeaderProcessor"
-        )
-        print(f"LLMSectionHeaderProcessor added (model: {model_name}).")
+        print(f"LLM enabled (model: {model_name}).")
 
     if page_range:
         marker_config["page_range"] = page_range
