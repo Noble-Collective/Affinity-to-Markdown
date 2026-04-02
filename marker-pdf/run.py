@@ -68,12 +68,13 @@ def detect_body_font(pdf_path, page_range=None):
     return max(freq, key=freq.get) if freq else ("unknown", 10.0)
 
 def build_heading_map(pdf_path, cfg, body_size, page_range=None):
-    """Build {normalised_text: [level, ...]} in document order.
-    Only text whose font matches a heading rule gets included.
-    Text NOT in this map is not a heading -- Marker's heading assignment
-    will be demoted by fix_headings."""
+    """Returns (heading_map, heading_order).
+    heading_map: {key: [level, ...]} for fix_headings level correction.
+    heading_order: [(original_text, level_str), ...] in document order
+                   for fix_missing_headings gap detection."""
     import fitz
     hmap = {}
+    horder = []
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
     rules = cfg.get("headings",[])
@@ -108,7 +109,8 @@ def build_heading_map(pdf_path, cfg, body_size, page_range=None):
                 lvl = "#" * level
                 if key not in hmap: hmap[key] = []
                 hmap[key].append(lvl)
-    return hmap
+                horder.append((text, lvl))
+    return hmap, horder
 
 def build_skip_set(pdf_path, cfg, body_size, page_range=None):
     import fitz
@@ -281,10 +283,8 @@ def dump_fonts(pdf_path, page_range=None):
 
 def fix_headings(markdown, heading_map, skip_set):
     """Remap heading levels using font-derived heading_map.
-    The heading_map is the source of truth for what IS a heading.
     If Marker marks something as a heading but it's NOT in the map,
-    the font rules didn't identify it as a heading -> demote.
-    Preserves Marker's bold only if Marker's content was bold."""
+    demote it. Preserves bold only if Marker's content was bold."""
     occ = {}
     def _gl(key):
         if key not in heading_map: return None
@@ -403,7 +403,50 @@ def fix_pullquote_fragments(md):
         out.append(line)
     return '\n'.join(out)
 
+def fix_missing_headings(md, heading_order, skip_set):
+    """Insert headings found in PDF scan but missing from Marker output.
+    heading_order: [(original_text, level_str), ...] in document order.
+    Compares against headings present in md and inserts missing ones
+    before their next surviving neighbor. Fully font-data-driven."""
+    if not heading_order: return md
+    lines = md.splitlines()
+    output_heads = []
+    for i, line in enumerate(lines):
+        m = re.match(r'^(#{1,6})\s+(.+)$', line)
+        if m: output_heads.append((i, normalise_key(m.group(2))))
+    oi = 0
+    matched = []
+    for orig, level in heading_order:
+        key = normalise_key(orig)
+        if key in skip_set: matched.append((True, -1)); continue
+        found_line = -1
+        for j in range(oi, len(output_heads)):
+            if output_heads[j][1] == key:
+                found_line = output_heads[j][0]; oi = j + 1; break
+        matched.append((found_line >= 0, found_line))
+    insertions = {}
+    for hi, (orig, level) in enumerate(heading_order):
+        is_found, _ = matched[hi]
+        if is_found: continue
+        key = normalise_key(orig)
+        if key in skip_set: continue
+        insert_before = None
+        for fhi in range(hi + 1, len(heading_order)):
+            is_f, li = matched[fhi]
+            if is_f and li >= 0: insert_before = li; break
+        if insert_before is not None:
+            if insert_before not in insertions: insertions[insert_before] = []
+            insertions[insert_before].append(f"{level} {orig}")
+    if not insertions: return md
+    out = []
+    for i, line in enumerate(lines):
+        if i in insertions:
+            for h in insertions[i]: out.append(""); out.append(h)
+        out.append(line)
+    return '\n'.join(out)
+
 def fix_missing_section_headings(md, cfg):
+    """Legacy config-based heading insertion (fallback)."""
     ins = cfg.get("missing_section_headings",[])
     if not ins: return md
     ie = [e for e in ins if "italic_snippet" in e]
@@ -583,7 +626,7 @@ def fix_junk_content(md, cfg):
     return '\n'.join(out)
 
 def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
-                 callout_texts=None, inline_bold=None):
+                 callout_texts=None, inline_bold=None, heading_order=None):
     md = md.replace('\r\n','\n').replace('\r','\n')
     md = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', md, flags=re.MULTILINE)
     md = re.sub(r'^-{20,}\s*$', '', md, flags=re.MULTILINE)
@@ -600,6 +643,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = fix_final_review_table(md, cfg)
     md = fix_inline_bold(md, inline_bold or [])
     md = fix_junk_content(md, cfg)
+    md = fix_missing_headings(md, heading_order or [], skip_set)
     md = fix_missing_section_headings(md, cfg)
     md = fix_discussion_question_groups(md, cfg)
     md = fix_structural_labels(md)
@@ -678,17 +722,17 @@ def main():
         bfn, bs = detect_body_font(pp, page_range)
         print(f"Body font: {bfn} @ {bs}pt")
         print("Building font maps...")
-        hm = build_heading_map(pp, cfg, bs, page_range)
+        hm, ho = build_heading_map(pp, cfg, bs, page_range)
         ss = build_skip_set(pp, cfg, bs, page_range)
         bq, ci = build_blockquote_set(pp, cfg, bs, page_range)
         vm = build_verse_map(pp, cfg, bs, page_range)
         ct = build_callout_set(pp, cfg, bs, page_range)
         ib = build_inline_bold_set(pp, cfg, bs, page_range)
-        print(f"  {len(hm)} headings, {len(ss)} skips, {len(bq)} bq, {len(ci)} cit, "
-              f"{len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
+        print(f"  {len(hm)} headings, {len(ho)} ordered, {len(ss)} skips, "
+              f"{len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
         raw = rp.read_text(encoding="utf-8")
         print("Post-processing...")
-        md = post_process(raw, hm, ss, bq, ci, vm, cfg, ct, ib)
+        md = post_process(raw, hm, ss, bq, ci, vm, cfg, ct, ib, ho)
         op.write_text(md, encoding="utf-8")
         print(f"Done! {op} ({len(md.splitlines())} lines)")
         return
@@ -699,14 +743,14 @@ def main():
     bfn, bs = detect_body_font(pp, page_range)
     print(f"Body font: {bfn} @ {bs}pt")
     print("Building font maps...")
-    hm = build_heading_map(pp, cfg, bs, page_range)
+    hm, ho = build_heading_map(pp, cfg, bs, page_range)
     ss = build_skip_set(pp, cfg, bs, page_range)
     bq, ci = build_blockquote_set(pp, cfg, bs, page_range)
     vm = build_verse_map(pp, cfg, bs, page_range)
     ct = build_callout_set(pp, cfg, bs, page_range)
     ib = build_inline_bold_set(pp, cfg, bs, page_range)
-    print(f"  {len(hm)} headings, {len(ss)} skips, {len(bq)} bq, {len(ci)} cit, "
-          f"{len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
+    print(f"  {len(hm)} headings, {len(ho)} ordered, {len(ss)} skips, "
+          f"{len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
 
     patch_block_relabel()
     print("Loading models...")
@@ -743,7 +787,7 @@ def main():
         print(f"Raw saved: {rp2}")
 
     print("Post-processing...")
-    md = post_process(rendered.markdown, hm, ss, bq, ci, vm, cfg, ct, ib)
+    md = post_process(rendered.markdown, hm, ss, bq, ci, vm, cfg, ct, ib, ho)
     op.write_text(md, encoding="utf-8")
     print(f"Done! {op} ({len(md.splitlines())} lines)")
 

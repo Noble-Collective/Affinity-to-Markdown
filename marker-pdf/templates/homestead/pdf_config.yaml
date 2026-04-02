@@ -59,30 +59,9 @@ citation_patterns:
   - '^[A-Z][a-zA-Z]+\s+\d+:\d+[\d\-\u2013\u2014,;:\s]*$'
   - '^[A-Z][a-zA-Z]+\.\s+\d+:\d+[\d\-\u2013\u2014,;:\s]*$'
 
-missing_section_headings:
-  - italic_snippet: "focus your thinking around the key idea"
-    heading: "### Seeking God's Wisdom"
-  - italic_snippet: "study god's word together"
-    heading: "### Exploring the Biblical Text"
-  - italic_snippet: "read the main biblical text studied"
-    heading: "### Scripture Reading"
-  - italic_snippet: "study the key themes of this session"
-    heading: "### Topical Study"
-  - italic_snippet: "use the artwork on the following page"
-    heading: "### Art Observation"
-  - italic_snippet: "use the following activity as a concrete"
-    heading: "### Spiritual Practice"
-  - italic_snippet: "journal your thoughts on this week"
-    heading: "### Journal Reflection"
-  - italic_snippet: "the following activity helps you internalize"
-    heading: "### Personal Project"
-  - italic_snippet: "the role of a parent is to cultivate"
-    heading: "### Parenting Project"
-  - before_heading: "#### Final Review"
-    heading: "### Charting the Path Ahead"
-    insert_lines:
-      - ""
-      - "*Reflect on the session and envision next steps. Record key takeaways from the lesson. Conclude your time by praying as small groups and a whole community. Review next steps.*"
+# missing_section_headings: removed — now auto-detected by
+# fix_missing_headings which compares PDF heading_order against
+# Marker output and inserts any headings Marker dropped.
 
 discussion_question_labels:
   - "##### Searching the Text"
