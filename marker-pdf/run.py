@@ -14,411 +14,326 @@ Usage:
   python run.py path/to/book.pdf --page-range 62-200
   python run.py path/to/book.pdf --dump-fonts       # calibration mode
 """
-import os
-import sys
-import re
-import argparse
-import logging
+import os, sys, re, argparse, logging
 from pathlib import Path
 
 logging.basicConfig(level=logging.WARNING)
-
 SCRIPT_DIR = Path(__file__).resolve().parent
 
-
-def _load_yaml(path: Path) -> dict:
+def _load_yaml(path):
     import yaml
-    with open(path, encoding="utf-8") as f:
-        return yaml.safe_load(f)
+    with open(path, encoding="utf-8") as f: return yaml.safe_load(f)
 
+def load_template(name):
+    path = SCRIPT_DIR / "templates" / name / "pdf_config.yaml"
+    if not path.exists(): print(f"ERROR: {path}"); sys.exit(1)
+    cfg = _load_yaml(path)
+    cfg["_citation_res"] = [re.compile(p) for p in cfg.get("citation_patterns", [])]
+    return cfg
 
-def load_template(template_name: str) -> dict:
-    path = SCRIPT_DIR / "templates" / template_name / "pdf_config.yaml"
-    if not path.exists():
-        print(f"ERROR: Template config not found: {path}")
-        sys.exit(1)
-    config = _load_yaml(path)
-    config["_citation_res"] = [
-        re.compile(p) for p in config.get("citation_patterns", [])
-    ]
-    return config
+def size_bucket(s): return round(float(s) * 2) / 2
 
-
-def size_bucket(size: float) -> float:
-    return round(float(size) * 2) / 2
-
-
-def font_weight(font_name: str) -> str:
-    n = font_name.lower()
+def font_weight(f):
+    n = f.lower()
     if "bolditalic" in n or ("bold" in n and "italic" in n): return "bold-italic"
     if "bold" in n: return "bold"
     if "italic" in n: return "italic"
     return "regular"
 
-
-def normalise_key(text: str) -> str:
+def normalise_key(text):
     t = re.sub(r"\*+", "", text)
-    t = t.replace("\u2018", "'").replace("\u2019", "'")
-    t = t.replace("\u201c", '"').replace("\u201d", '"')
-    t = t.replace("\u2013", "-").replace("\u2014", "-")
-    t = " ".join(t.split()).strip().lower()
-    return t[:60]
+    t = t.replace("\u2018","'").replace("\u2019","'").replace("\u201c",'"').replace("\u201d",'"')
+    t = t.replace("\u2013","-").replace("\u2014","-")
+    return " ".join(t.split()).strip().lower()[:60]
 
-
-def _match_rule(weight: str, ratio: float, rule: dict) -> bool:
-    return (rule["weight"] == weight
-            and rule["min_ratio"] <= ratio <= rule["max_ratio"])
-
+def _match_rule(w, r, rule):
+    return rule["weight"] == w and rule["min_ratio"] <= r <= rule["max_ratio"]
 
 # ---- PDF font scanning ----
 
-def detect_body_font(pdf_path: Path, page_range=None) -> tuple:
+def detect_body_font(pdf_path, page_range=None):
     import fitz
     doc = fitz.open(str(pdf_path))
-    pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count]
-    freq: dict = {}
-    for page_idx in pages:
-        page = doc[page_idx]
-        for block in page.get_text("dict")["blocks"]:
+    pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
+    freq = {}
+    for pi in pages:
+        for block in doc[pi].get_text("dict")["blocks"]:
             if block.get("type") != 0: continue
-            for line in block.get("lines", []):
-                for span in line.get("spans", []):
+            for line in block.get("lines",[]):
+                for span in line.get("spans",[]):
                     t = span["text"].strip()
                     if any(c.isalpha() for c in t):
-                        key = (span["font"], size_bucket(span["size"]))
-                        freq[key] = freq.get(key, 0) + len(t)
-    if not freq: return ("unknown", 10.0)
-    return max(freq, key=freq.get)
+                        k = (span["font"], size_bucket(span["size"]))
+                        freq[k] = freq.get(k,0) + len(t)
+    return max(freq, key=freq.get) if freq else ("unknown", 10.0)
 
-
-def build_heading_map(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> dict:
-    """Build {normalised_text: [level, ...]} in document order.
-    Each occurrence gets the level matching its actual font size."""
+def build_heading_map(pdf_path, cfg, body_size, page_range=None):
+    """Build {normalised_text: [level, ...]} in document order."""
     import fitz
-    heading_map = {}
+    hmap = {}
     doc = fitz.open(str(pdf_path))
-    pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count]
-    rules = cfg.get("headings", [])
+    pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
+    rules = cfg.get("headings",[])
     skip_ratio = cfg.get("skip_large_ratio", 2.4)
-    for page_idx in pages:
-        page = doc[page_idx]
-        for block in page.get_text("dict", sort=True)["blocks"]:
+    for pi in pages:
+        for block in doc[pi].get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0: continue
-            font_chars: dict = {}
-            for line in block.get("lines", []):
-                for span in line.get("spans", []):
+            fc = {}
+            for line in block.get("lines",[]):
+                for span in line.get("spans",[]):
                     t = span["text"].strip()
                     if any(c.isalpha() for c in t):
-                        key = (span["font"], size_bucket(span["size"]))
-                        font_chars[key] = font_chars.get(key, 0) + len(t)
-            if not font_chars: continue
-            dom_font, dom_size = max(font_chars, key=font_chars.get)
-            ratio = dom_size / body_size
-            weight = font_weight(dom_font)
+                        k = (span["font"], size_bucket(span["size"]))
+                        fc[k] = fc.get(k,0) + len(t)
+            if not fc: continue
+            df, ds = max(fc, key=fc.get)
+            ratio = ds / body_size
+            w = font_weight(df)
             if ratio > skip_ratio: continue
-            matched_level = None
+            level = None
             for rule in rules:
-                if _match_rule(weight, ratio, rule):
-                    matched_level = rule["level"]; break
-            if matched_level is None: continue
-            text_parts = []
-            for line in block.get("lines", []):
-                for span in line.get("spans", []):
+                if _match_rule(w, ratio, rule): level = rule["level"]; break
+            if level is None: continue
+            parts = []
+            for line in block.get("lines",[]):
+                for span in line.get("spans",[]):
                     sk = (span["font"], size_bucket(span["size"]))
-                    if sk == (dom_font, dom_size) and span["text"].strip():
-                        text_parts.append(span["text"].strip())
-            text = " ".join(" ".join(text_parts).split()).strip()
+                    if sk == (df, ds) and span["text"].strip(): parts.append(span["text"].strip())
+            text = " ".join(" ".join(parts).split()).strip()
             if text and len(text) > 2:
                 key = normalise_key(text)
-                level = "#" * matched_level
-                if key not in heading_map:
-                    heading_map[key] = []
-                heading_map[key].append(level)
-    return heading_map
+                lvl = "#" * level
+                if key not in hmap: hmap[key] = []
+                hmap[key].append(lvl)
+    return hmap
 
-
-def build_skip_set(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> set:
+def build_skip_set(pdf_path, cfg, body_size, page_range=None):
     import fitz
-    skip_set = set()
+    skip = set()
     doc = fitz.open(str(pdf_path))
-    pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count]
-    rh_sig = cfg.get("running_header_signature", [])
+    pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
+    rh_sig = cfg.get("running_header_signature",[])
     skip_ratio = cfg.get("skip_large_ratio", 2.4)
-    for page_idx in pages:
-        page = doc[page_idx]
-        for block in page.get_text("dict", sort=True)["blocks"]:
+    for pi in pages:
+        for block in doc[pi].get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0: continue
-            wr_pairs = set()
-            text = ""
-            for line in block.get("lines", []):
-                for span in line.get("spans", []):
+            wr = set(); text = ""
+            for line in block.get("lines",[]):
+                for span in line.get("spans",[]):
                     t = span["text"].strip()
                     if t:
-                        ratio = size_bucket(span["size"]) / body_size
-                        wr_pairs.add((font_weight(span["font"]), ratio))
-                        text += span["text"]
+                        r = size_bucket(span["size"]) / body_size
+                        wr.add((font_weight(span["font"]), r)); text += span["text"]
             text = " ".join(text.split()).strip()
             if not text: continue
-            if re.match(r"^\d{1,3}$", text):
-                skip_set.add(normalise_key(text)); continue
-            if any(r > skip_ratio for _, r in wr_pairs):
-                skip_set.add(normalise_key(text)); continue
-            if rh_sig and all(
-                any(_match_rule(w, r, rule) for w, r in wr_pairs) for rule in rh_sig):
-                skip_set.add(normalise_key(text))
-    return skip_set
+            if re.match(r"^\d{1,3}$", text): skip.add(normalise_key(text)); continue
+            if any(r > skip_ratio for _,r in wr): skip.add(normalise_key(text)); continue
+            if rh_sig and all(any(_match_rule(w,r,rule) for w,r in wr) for rule in rh_sig):
+                skip.add(normalise_key(text))
+    return skip
 
-
-def build_blockquote_set(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> tuple:
+def build_blockquote_set(pdf_path, cfg, body_size, page_range=None):
     import fitz
-    bq_set = set()
-    cit_set = set()
+    bq, cit = set(), set()
     doc = fitz.open(str(pdf_path))
-    pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count]
-    max_ratio = cfg.get("quote_max_ratio", 0.88)
-    cit_max = cfg.get("citation_max_chars", 80)
-    for page_idx in pages:
-        page = doc[page_idx]
-        for block in page.get_text("dict", sort=True)["blocks"]:
+    pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
+    mr = cfg.get("quote_max_ratio", 0.88)
+    cm = cfg.get("citation_max_chars", 80)
+    for pi in pages:
+        for block in doc[pi].get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0: continue
-            font_chars: dict = {}
-            text = ""
-            for line in block.get("lines", []):
-                for span in line.get("spans", []):
+            fc = {}; text = ""
+            for line in block.get("lines",[]):
+                for span in line.get("spans",[]):
                     t = span["text"]
                     if t.strip():
-                        key = (span["font"], size_bucket(span["size"]))
-                        font_chars[key] = font_chars.get(key, 0) + len(t.strip())
+                        k = (span["font"], size_bucket(span["size"]))
+                        fc[k] = fc.get(k,0) + len(t.strip())
                     text += t
-            if not font_chars: continue
-            _, dom_size = max(font_chars, key=font_chars.get)
-            if dom_size / body_size > max_ratio: continue
+            if not fc: continue
+            _, ds = max(fc, key=fc.get)
+            if ds / body_size > mr: continue
             text = " ".join(text.split()).strip()
             if not text or not any(c.isalpha() for c in text): continue
             key = normalise_key(text[:60])
-            if len(text) > cit_max: bq_set.add(key)
-            else: cit_set.add(key)
-    return bq_set, cit_set
+            if len(text) > cm: bq.add(key)
+            else: cit.add(key)
+    return bq, cit
 
-
-def build_verse_map(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> dict:
+def build_verse_map(pdf_path, cfg, body_size, page_range=None):
     import fitz
-    verse_map = {}
+    vm = {}
     doc = fitz.open(str(pdf_path))
-    pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count]
-    sig = cfg.get("verse_label_signature", [])
-    if not sig: return verse_map
-    for page_idx in pages:
-        page = doc[page_idx]
-        for block in page.get_text("dict", sort=True)["blocks"]:
+    pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
+    sig = cfg.get("verse_label_signature",[])
+    if not sig: return vm
+    for pi in pages:
+        for block in doc[pi].get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0: continue
-            wr_pairs = set()
-            for line in block.get("lines", []):
-                for span in line.get("spans", []):
+            wr = set()
+            for line in block.get("lines",[]):
+                for span in line.get("spans",[]):
                     if span["text"].strip():
-                        ratio = size_bucket(span["size"]) / body_size
-                        wr_pairs.add((font_weight(span["font"]), ratio))
-            if not all(any(_match_rule(w, r, rule) for w, r in wr_pairs) for rule in sig):
-                continue
-            lines_out = []
-            verse_num = None
-            for line in block.get("lines", []):
-                line_text = "".join(s["text"] for s in line.get("spans", [])).strip()
-                if not line_text: continue
-                m = re.match(r"^VERSE\s*(\d+)\s*(.*)", line_text, re.IGNORECASE)
-                if m and verse_num is None:
-                    verse_num = m.group(1)
+                        r = size_bucket(span["size"]) / body_size
+                        wr.add((font_weight(span["font"]), r))
+            if not all(any(_match_rule(w,r,rule) for w,r in wr) for rule in sig): continue
+            lo = []; vn = None
+            for line in block.get("lines",[]):
+                lt = "".join(s["text"] for s in line.get("spans",[])).strip()
+                if not lt: continue
+                m = re.match(r"^VERSE\s*(\d+)\s*(.*)", lt, re.IGNORECASE)
+                if m and vn is None:
+                    vn = m.group(1)
                     rest = m.group(2).strip()
-                    if rest: lines_out.append(rest)
-                elif verse_num is not None:
-                    lines_out.append(line_text)
-            if verse_num and lines_out and verse_num not in verse_map:
-                verse_map[verse_num] = lines_out
-    return verse_map
+                    if rest: lo.append(rest)
+                elif vn is not None: lo.append(lt)
+            if vn and lo and vn not in vm: vm[vn] = lo
+    return vm
 
-
-def build_inline_bold_set(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> list:
-    """Collect inline bold phrases from mixed-weight body-text blocks.
-    Only from blocks with BOTH bold and regular spans at body size.
-    Min 5 chars to avoid false positives with short words."""
+def build_inline_bold_set(pdf_path, cfg, body_size, page_range=None):
+    """Collect inline bold phrases from mixed-weight body blocks (min 5 chars)."""
     import fitz
     doc = fitz.open(str(pdf_path))
-    pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count]
-    bold_phrases = set()
-    for page_idx in pages:
-        page = doc[page_idx]
-        for block in page.get_text("dict", sort=True)["blocks"]:
+    pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
+    phrases = set()
+    for pi in pages:
+        for block in doc[pi].get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0: continue
-            has_regular = has_bold = False
-            for line in block.get("lines", []):
-                for span in line.get("spans", []):
+            hr = hb = False
+            for line in block.get("lines",[]):
+                for span in line.get("spans",[]):
                     if not span["text"].strip(): continue
                     if size_bucket(span["size"]) != body_size: continue
-                    if "bold" in span["font"].lower(): has_bold = True
-                    else: has_regular = True
-            if not (has_bold and has_regular): continue
-            for line in block.get("lines", []):
-                for span in line.get("spans", []):
+                    if "bold" in span["font"].lower(): hb = True
+                    else: hr = True
+            if not (hb and hr): continue
+            for line in block.get("lines",[]):
+                for span in line.get("spans",[]):
                     if not span["text"].strip(): continue
                     if size_bucket(span["size"]) == body_size and "bold" in span["font"].lower():
-                        phrase = span["text"].strip()
-                        if 5 <= len(phrase) <= 50:
-                            bold_phrases.add(phrase)
-    return sorted(bold_phrases, key=len, reverse=True)
+                        p = span["text"].strip()
+                        if 5 <= len(p) <= 50: phrases.add(p)
+    return sorted(phrases, key=len, reverse=True)
 
-
-def build_callout_set(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> list:
-    """Scan PDF for callout-styled text. Adjacent callout blocks per page joined."""
+def build_callout_set(pdf_path, cfg, body_size, page_range=None):
+    """Scan PDF for callout-styled text. Adjacent blocks per page joined."""
     import fitz
     doc = fitz.open(str(pdf_path))
-    pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count]
-    sig = cfg.get("callout_signature", [])
+    pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
+    sig = cfg.get("callout_signature",[])
     if not sig: return []
-    callout_texts = []
-    for page_idx in pages:
-        page = doc[page_idx]
-        page_blocks = []
-        for block in page.get_text("dict", sort=True)["blocks"]:
+    ct = []
+    for pi in pages:
+        pb = []
+        for block in doc[pi].get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0: continue
-            wr_pairs = set()
-            text = ""
-            for line in block.get("lines", []):
-                for span in line.get("spans", []):
+            wr = set(); text = ""
+            for line in block.get("lines",[]):
+                for span in line.get("spans",[]):
                     if span["text"].strip():
-                        ratio = size_bucket(span["size"]) / body_size
-                        wr_pairs.add((font_weight(span["font"]), ratio))
+                        r = size_bucket(span["size"]) / body_size
+                        wr.add((font_weight(span["font"]), r))
                     text += span["text"]
             text = " ".join(text.split()).strip()
-            if not text or not wr_pairs: continue
-            is_callout = all(
-                any(_match_rule(w, r, rule) for rule in sig) for w, r in wr_pairs)
-            page_blocks.append((is_callout, text))
-        current = []
-        for is_co, text in page_blocks:
-            if is_co: current.append(text)
+            if not text or not wr: continue
+            ic = all(any(_match_rule(w,r,rule) for rule in sig) for w,r in wr)
+            pb.append((ic, text))
+        cur = []
+        for ic, text in pb:
+            if ic: cur.append(text)
             else:
-                if current:
-                    joined = " ".join(current)
-                    if len(joined) > 15: callout_texts.append(joined)
-                    current = []
-        if current:
-            joined = " ".join(current)
-            if len(joined) > 15: callout_texts.append(joined)
-    return sorted(set(callout_texts), key=len, reverse=True)
+                if cur:
+                    j = " ".join(cur)
+                    if len(j) > 15: ct.append(j)
+                    cur = []
+        if cur:
+            j = " ".join(cur)
+            if len(j) > 15: ct.append(j)
+    return sorted(set(ct), key=len, reverse=True)
 
-
-def dump_fonts(pdf_path: Path, page_range=None) -> None:
+def dump_fonts(pdf_path, page_range=None):
     import fitz
     doc = fitz.open(str(pdf_path))
-    pages = range(doc.page_count) if page_range is None else [
-        p for p in page_range if p < doc.page_count]
-    freq: dict = {}
-    samples: dict = {}
-    for page_idx in pages:
-        page = doc[page_idx]
-        for block in page.get_text("dict")["blocks"]:
+    pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
+    freq = {}; samples = {}
+    for pi in pages:
+        for block in doc[pi].get_text("dict")["blocks"]:
             if block.get("type") != 0: continue
-            for line in block.get("lines", []):
-                for span in line.get("spans", []):
+            for line in block.get("lines",[]):
+                for span in line.get("spans",[]):
                     t = span["text"].strip()
                     if any(c.isalpha() for c in t):
-                        key = (span["font"], size_bucket(span["size"]))
-                        freq[key] = freq.get(key, 0) + len(t)
-                        if key not in samples: samples[key] = t[:50]
-    body_font, body_size = max(freq, key=freq.get)
-    print(f"\nBody font (most frequent): {body_font} @ {body_size}pt")
+                        k = (span["font"], size_bucket(span["size"]))
+                        freq[k] = freq.get(k,0) + len(t)
+                        if k not in samples: samples[k] = t[:50]
+    bf, bs = max(freq, key=freq.get)
+    print(f"\nBody font: {bf} @ {bs}pt")
     print(f"\n{'Font':<40} {'Size':>6} {'Ratio':>6} {'Weight':>10} {'Chars':>8}  Sample")
-    print("-" * 100)
-    for (font, size), count in sorted(freq.items(), key=lambda x: -x[1]):
-        ratio = size / body_size
-        weight = font_weight(font)
-        sample = samples.get((font, size), "")
-        print(f"{font:<40} {size:>6.1f} {ratio:>6.2f} {weight:>10} {count:>8}  {sample}")
+    print("-"*100)
+    for (f,s),c in sorted(freq.items(), key=lambda x:-x[1]):
+        print(f"{f:<40} {s:>6.1f} {s/bs:>6.2f} {font_weight(f):>10} {c:>8}  {samples.get((f,s),'')}")
     print(f"\nTotal: {len(freq)} font+size combinations")
-
 
 # ---- Post-processing passes ----
 
-def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
+def fix_headings(markdown, heading_map, skip_set):
     """Remap heading levels. heading_map values are lists in document order."""
-    occurrence: dict = {}
-
-    def _get_level(key):
+    occ = {}
+    def _gl(key):
         if key not in heading_map: return None
         levels = heading_map[key]
-        idx = occurrence.get(key, 0)
-        occurrence[key] = idx + 1
-        return levels[min(idx, len(levels) - 1)]
-
-    lines = markdown.splitlines()
-    out = []
+        idx = occ.get(key, 0); occ[key] = idx + 1
+        return levels[min(idx, len(levels)-1)]
+    lines = markdown.splitlines(); out = []
     for line in lines:
-        if normalise_key(re.sub(r"[#>]", "", line)) in skip_set: continue
+        if normalise_key(re.sub(r"[#>]","",line)) in skip_set: continue
         m = re.match(r'^(#{1,6})\s+(.+)$', line)
         if m:
-            content = m.group(2)
-            content_clean = re.sub(r'^\*\*(.+)\*\*$', r'\1', content.strip())
-            content_clean = re.sub(r'^\*(.+)\*$', r'\1', content_clean.strip())
-            clean = normalise_key(content_clean)
-            if clean in skip_set: continue
-            level = _get_level(clean)
-            if level:
-                out.append(f"{level} {content_clean}")
-            else:
-                out.append(f"{m.group(1)} {content_clean}")
+            c = m.group(2)
+            cc = re.sub(r'^\*\*(.+)\*\*$', r'\1', c.strip())
+            cc = re.sub(r'^\*(.+)\*$', r'\1', cc.strip())
+            cl = normalise_key(cc)
+            if cl in skip_set: continue
+            lv = _gl(cl)
+            out.append(f"{lv} {cc}" if lv else f"{m.group(1)} {cc}")
         else:
-            stripped = line.strip()
-            bm = re.match(r'^\*\*(.+?)\*\*$', stripped)
+            s = line.strip()
+            bm = re.match(r'^\*\*(.+?)\*\*$', s)
             if bm:
-                inner = bm.group(1)
-                clean = normalise_key(inner)
-                level = _get_level(clean)
-                if level:
-                    out.append(f"{level} {inner}"); continue
-            body_clean = normalise_key(line)
-            level = _get_level(body_clean)
-            if level and line.strip() and len(line.strip()) > 2:
-                out.append(f"{level} {line.strip()}")
-            else:
-                out.append(line)
+                inner = bm.group(1); cl = normalise_key(inner); lv = _gl(cl)
+                if lv: out.append(f"{lv} {inner}"); continue
+            bc = normalise_key(line); lv = _gl(bc)
+            if lv and s and len(s) > 2: out.append(f"{lv} {s}")
+            else: out.append(line)
     return '\n'.join(out)
 
+def fix_scripture_ref_headings(markdown):
+    """Convert heading-tagged scripture references back to bold text."""
+    pat = re.compile(r'^(#{1,6})\s+\*?\*?(\d?\s?[A-Z][a-zA-Z]+\.?\s+\d+[:\d\-\u2013\u2014,;\s]*)\*?\*?\s*$')
+    lines = markdown.splitlines(); out = []
+    for line in lines:
+        m = pat.match(line)
+        out.append(f"**{m.group(2).strip()}**" if m else line)
+    return '\n'.join(out)
 
-def fix_verse_labels(markdown: str, verse_map: dict) -> str:
+def fix_verse_labels(markdown, verse_map):
     if not verse_map:
-        return re.sub(
-            r'^(?:#{1,6}\s+)?\*?\*?VERSE\s+(\d+)\*?\*?\s*$',
-            lambda m: f"###### Verse {m.group(1)}",
-            markdown, flags=re.MULTILINE | re.IGNORECASE)
-    lines = markdown.splitlines()
-    out = []
-    i = 0
-    used_nums: set = set()
+        return re.sub(r'^(?:#{1,6}\s+)?\*?\*?VERSE\s+(\d+)\*?\*?\s*$',
+            lambda m: f"###### Verse {m.group(1)}", markdown, flags=re.MULTILINE|re.IGNORECASE)
+    lines = markdown.splitlines(); out = []; i = 0; used = set()
     while i < len(lines):
         line = lines[i]
         m = re.match(r'^(?:#{1,6}\s+)?\*?\*?VERSE\s+(\d+)\*?\*?\s*$', line, re.IGNORECASE)
         if m:
-            verse_num = m.group(1)
-            out.append(f"###### Verse {verse_num}")
-            if verse_num in verse_map and verse_num not in used_nums:
+            vn = m.group(1); out.append(f"###### Verse {vn}")
+            if vn in verse_map and vn not in used:
                 out.append("")
-                vlines = verse_map[verse_num]
-                for j, vl in enumerate(vlines):
-                    out.append(f"{vl}  " if j < len(vlines) - 1 else vl)
-                out.append("")
-                used_nums.add(verse_num)
-                i += 1
+                vl = verse_map[vn]
+                for j,v in enumerate(vl): out.append(f"{v}  " if j < len(vl)-1 else v)
+                out.append(""); used.add(vn); i += 1
                 while i < len(lines):
                     nl = lines[i].strip()
-                    if nl.startswith('#') or re.match(r'^\*?\*?VERSE\s+\d+', nl, re.IGNORECASE):
-                        break
+                    if nl.startswith('#') or re.match(r'^\*?\*?VERSE\s+\d+', nl, re.IGNORECASE): break
                     i += 1
                 continue
             else: out.append("")
@@ -426,131 +341,110 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
         i += 1
     return '\n'.join(out)
 
+def fix_double_blockquote_citations(md):
+    return re.sub(r'^> > (.+)$', r'<< \1', md, flags=re.MULTILINE)
 
-def fix_double_blockquote_citations(markdown: str) -> str:
-    return re.sub(r'^> > (.+)$', r'<< \1', markdown, flags=re.MULTILINE)
-
-def fix_blockquotes(markdown: str, bq_set: set, cit_set: set) -> str:
-    lines = markdown.splitlines()
-    out = []
+def fix_blockquotes(md, bq_set, cit_set):
+    lines = md.splitlines(); out = []
     for line in lines:
-        stripped = line.strip()
-        if not stripped or line.startswith('>') or line.startswith('<<') or line.startswith('#'):
+        s = line.strip()
+        if not s or line.startswith('>') or line.startswith('<<') or line.startswith('#'):
             out.append(line); continue
-        key = normalise_key(stripped[:60])
-        if key in bq_set: out.append(f"> {stripped}")
-        elif key in cit_set: out.append(f"<< {stripped}")
+        k = normalise_key(s[:60])
+        if k in bq_set: out.append(f"> {s}")
+        elif k in cit_set: out.append(f"<< {s}")
         else: out.append(line)
     return '\n'.join(out)
 
-def fix_citations(markdown: str, cfg: dict) -> str:
-    patterns = cfg.get("_citation_res", [])
-    cit_max = cfg.get("citation_max_chars", 80)
-    lines = markdown.splitlines()
-    out = []
-    for i, line in enumerate(lines):
-        stripped = line.strip()
-        if not stripped or stripped.startswith('#') or stripped.startswith('>') \
-                or stripped.startswith('<<') or stripped.startswith('-') \
-                or stripped.startswith('*') or len(stripped) > 120:
+def fix_citations(md, cfg):
+    pats = cfg.get("_citation_res",[]); cm = cfg.get("citation_max_chars",80)
+    lines = md.splitlines(); out = []
+    for i,line in enumerate(lines):
+        s = line.strip()
+        if not s or s.startswith('#') or s.startswith('>') or s.startswith('<<') \
+                or s.startswith('-') or s.startswith('*') or len(s)>120:
             out.append(line); continue
-        prev_blank = (i == 0) or (lines[i-1].strip() == '')
-        next_blank = (i == len(lines)-1) or (lines[i+1].strip() == '')
-        if not (prev_blank and next_blank): out.append(line); continue
-        if any(p.match(stripped) for p in patterns):
-            out.append(f"<< {stripped}"); continue
-        prev_content = next(
-            (lines[j].strip() for j in range(i-1, -1, -1) if lines[j].strip()), "")
-        if (prev_content.startswith('>') or prev_content.startswith('<<')) and len(stripped) < cit_max:
-            out.append(f"<< {stripped}"); continue
+        pb = (i==0) or (lines[i-1].strip()=='')
+        nb = (i==len(lines)-1) or (lines[i+1].strip()=='')
+        if not (pb and nb): out.append(line); continue
+        if any(p.match(s) for p in pats): out.append(f"<< {s}"); continue
+        pc = next((lines[j].strip() for j in range(i-1,-1,-1) if lines[j].strip()),"")
+        if (pc.startswith('>') or pc.startswith('<<')) and len(s)<cm:
+            out.append(f"<< {s}"); continue
         out.append(line)
     return '\n'.join(out)
 
-def fix_bullet_numbers(markdown: str) -> str:
-    return re.sub(r'^- (\d+\.)\s', r'\1 ', markdown, flags=re.MULTILINE)
+def fix_bullet_numbers(md):
+    return re.sub(r'^- (\d+\.)\s', r'\1 ', md, flags=re.MULTILINE)
 
-def fix_hyphenation(markdown: str) -> str:
-    lines = markdown.splitlines()
-    out = []
-    i = 0
+def fix_hyphenation(md):
+    lines = md.splitlines(); out = []; i = 0
     while i < len(lines):
         line = lines[i]
         if line.rstrip().endswith('-') and len(line.strip()) > 5:
-            j = i + 1
+            j = i+1
             while j < len(lines) and not lines[j].strip(): j += 1
             if j < len(lines):
-                next_line = lines[j].lstrip()
-                if next_line and next_line[0].islower() and not next_line.startswith('#'):
-                    out.append(line.rstrip()[:-1] + lines[j].lstrip())
-                    i = j + 1; continue
+                nl = lines[j].lstrip()
+                if nl and nl[0].islower() and not nl.startswith('#'):
+                    out.append(line.rstrip()[:-1] + lines[j].lstrip()); i = j+1; continue
         out.append(line); i += 1
     return '\n'.join(out)
 
-def fix_pullquote_fragments(markdown: str) -> str:
-    lines = markdown.splitlines()
-    out = []
+def fix_pullquote_fragments(md):
+    lines = md.splitlines(); out = []
     for line in lines:
         if line.startswith(' ') and len(line.strip()) < 120 and line.strip():
             s = line.strip()
-            if not any(s.startswith(c) for c in ['-', '*', '#', '>']): continue
+            if not any(s.startswith(c) for c in ['-','*','#','>']): continue
         out.append(line)
     return '\n'.join(out)
 
-def fix_missing_section_headings(markdown: str, cfg: dict) -> str:
-    insertions = cfg.get("missing_section_headings", [])
-    if not insertions: return markdown
-    italic_entries = [e for e in insertions if "italic_snippet" in e]
-    before_entries = [e for e in insertions if "before_heading" in e]
-    lines = markdown.splitlines()
-    out = []
-    for i, line in enumerate(lines):
-        stripped = line.strip()
-        for entry in before_entries:
-            target = entry["before_heading"].strip()
-            if stripped == target:
-                heading = entry["heading"]
-                heading_text = re.sub(r'^#+\s+', '', heading).strip().lower()
-                prev = '\n'.join(lines[max(0, i-6):i]).lower()
-                if heading_text not in prev:
-                    out.append(""); out.append(heading)
-                    for extra in entry.get("insert_lines", []): out.append(extra)
+def fix_missing_section_headings(md, cfg):
+    ins = cfg.get("missing_section_headings",[])
+    if not ins: return md
+    ie = [e for e in ins if "italic_snippet" in e]
+    be = [e for e in ins if "before_heading" in e]
+    lines = md.splitlines(); out = []
+    for i,line in enumerate(lines):
+        s = line.strip()
+        for entry in be:
+            if s == entry["before_heading"].strip():
+                h = entry["heading"]; ht = re.sub(r'^#+\s+','',h).strip().lower()
+                prev = '\n'.join(lines[max(0,i-6):i]).lower()
+                if ht not in prev:
+                    out.append(""); out.append(h)
+                    for x in entry.get("insert_lines",[]): out.append(x)
                     if entry.get("insert_lines"): out.append("")
                 break
-        if stripped.startswith('*') and stripped.endswith('*') and len(stripped) > 30:
-            text_lower = stripped.lower()
-            for entry in italic_entries:
-                if entry["italic_snippet"].lower() in text_lower:
-                    heading = entry["heading"]
-                    heading_text = re.sub(r'^#+\s+', '', heading).strip().lower()
-                    prev = '\n'.join(lines[max(0, i-6):i]).lower()
-                    if heading_text not in prev:
-                        out.append(""); out.append(heading)
+        if s.startswith('*') and s.endswith('*') and len(s) > 30:
+            tl = s.lower()
+            for entry in ie:
+                if entry["italic_snippet"].lower() in tl:
+                    h = entry["heading"]; ht = re.sub(r'^#+\s+','',h).strip().lower()
+                    prev = '\n'.join(lines[max(0,i-6):i]).lower()
+                    if ht not in prev: out.append(""); out.append(h)
                     break
         out.append(line)
     return '\n'.join(out)
 
-def fix_discussion_question_groups(markdown: str, cfg: dict) -> str:
-    labels_cfg = cfg.get("discussion_question_labels", [])
-    if not labels_cfg: return markdown
-    markdown = re.sub(r'\n+\*\*[A-Z][A-Z\s]+\*\*\n+(?=\n*#{1,4}\s+Discussion)', '\n\n', markdown)
-    lines = markdown.splitlines()
-    out = []
-    in_dq = False
-    group_count = 0
+def fix_discussion_question_groups(md, cfg):
+    lc = cfg.get("discussion_question_labels",[])
+    if not lc: return md
+    md = re.sub(r'\n+\*\*[A-Z][A-Z\s]+\*\*\n+(?=\n*#{1,4}\s+Discussion)', '\n\n', md)
+    lines = md.splitlines(); out = []; indq = False; gc = 0
     for line in lines:
         if re.match(r'^####\s+\*?\*?Discussion Questions\*?\*?', line, re.IGNORECASE):
-            in_dq = True; group_count = 0; out.append(line); continue
-        if in_dq and re.match(r'^#{1,4}\s+', line) and not re.match(r'^#{5,}', line):
-            in_dq = False
-        if in_dq and re.match(r'^1\.\s+', line) and group_count < len(labels_cfg):
-            if group_count > 0: out.append('')
-            out.append(labels_cfg[group_count]); out.append(''); group_count += 1
+            indq = True; gc = 0; out.append(line); continue
+        if indq and re.match(r'^#{1,4}\s+', line) and not re.match(r'^#{5,}', line): indq = False
+        if indq and re.match(r'^1\.\s+', line) and gc < len(lc):
+            if gc > 0: out.append('')
+            out.append(lc[gc]); out.append(''); gc += 1
         out.append(line)
     return '\n'.join(out)
 
-def fix_structural_labels(markdown: str) -> str:
-    lines = markdown.splitlines()
-    out = []
+def fix_structural_labels(md):
+    lines = md.splitlines(); out = []
     for line in lines:
         s = line.strip()
         if re.match(r'^#{1,6}\s+[A-Z][A-Z\s]+$', s): continue
@@ -566,85 +460,79 @@ def fix_structural_labels(markdown: str) -> str:
         out.append(line)
     return '\n'.join(out)
 
+def fix_bold_bullets(md):
+    """Convert **• Text**: ... → - **Text**: ..."""
+    lines = md.splitlines(); out = []
+    for line in lines:
+        s = line.strip()
+        m = re.match(r'^\*\*[\u2022\u00b7]\s*(.+?)\*\*(.*)', s)
+        if m: out.append(f"- **{m.group(1).strip()}**{m.group(2)}"); continue
+        out.append(line)
+    return '\n'.join(out)
 
-def fix_inline_bold(markdown: str, bold_phrases: list) -> str:
-    """Restore inline bold in list items where Marker lost it (e.g. from tables).
-    Only applies to numbered/bulleted list lines to avoid false positives."""
-    if not bold_phrases: return markdown
-    lines = markdown.splitlines()
-    out = []
+def fix_inline_bold(md, bold_phrases):
+    """Restore inline bold in list items where Marker lost it."""
+    if not bold_phrases: return md
+    lines = md.splitlines(); out = []
     for line in lines:
         if not (re.match(r'^\d+\.\s', line.strip()) or line.strip().startswith('- ')):
             out.append(line); continue
-        for phrase in bold_phrases:
-            if f"**{phrase}**" in line: continue
-            pattern = r'(?<!\*)\b' + re.escape(phrase) + r'\b(?!\*)'
-            line = re.sub(pattern, f'**{phrase}**', line)
+        for p in bold_phrases:
+            if f"**{p}**" in line: continue
+            pat = r'(?<!\*)\b' + re.escape(p) + r'\b(?!\*)'
+            line = re.sub(pat, f'**{p}**', line)
         out.append(line)
     return '\n'.join(out)
 
-
-def _normalise_for_callout_match(text: str) -> str:
-    t = text.replace("\u2019", "'").replace("\u2018", "'")
-    t = t.replace("\u201c", '"').replace("\u201d", '"')
-    t = t.replace("\u2014", " ").replace("\u2013", " ")
+def _normalise_for_callout_match(text):
+    t = text.replace("\u2019","'").replace("\u2018","'").replace("\u201c",'"').replace("\u201d",'"')
+    t = t.replace("\u2014"," ").replace("\u2013"," ")
     return " ".join(t.split()).strip()
 
-def _callout_regex(callout_text: str):
-    text = callout_text.rstrip('.')
-    pattern = re.escape(text)
+def _callout_regex(ct):
+    text = ct.rstrip('.')
+    pat = re.escape(text)
     _EM = "\u2014"
-    pattern = pattern.replace(re.escape(_EM), "\\s*[" + _EM + "\u2014]?\\s*")
-    _RQ = "\u2019"
-    _LQ = "\u2018"
-    pattern = pattern.replace(re.escape(_RQ), "['" + _RQ + "]")
-    pattern = pattern.replace(re.escape(_LQ), "['" + _LQ + "]")
-    return re.compile(pattern)
+    pat = pat.replace(re.escape(_EM), "\\s*[" + _EM + "\u2014]?\\s*")
+    _RQ = "\u2019"; _LQ = "\u2018"
+    pat = pat.replace(re.escape(_RQ), "['" + _RQ + "]")
+    pat = pat.replace(re.escape(_LQ), "['" + _LQ + "]")
+    return re.compile(pat)
 
-def fix_callouts(markdown: str, callout_texts: list) -> str:
-    """Two-pass: remove standalone duplicates, tag inline matches."""
-    if not callout_texts: return markdown
+def fix_callouts(md, callout_texts):
+    if not callout_texts: return md
     normalized = [(ct, _normalise_for_callout_match(ct)) for ct in callout_texts]
     regexes = [(ct, nc, _callout_regex(ct)) for ct, nc in normalized]
-    lines = markdown.splitlines()
-    out = []
+    lines = md.splitlines(); out = []
     for line in lines:
-        stripped = line.strip()
-        if stripped and len(stripped) < 120 and not stripped.startswith('#') \
-                and not stripped.startswith('>') and not stripped.startswith('<<'):
-            norm_line = _normalise_for_callout_match(stripped)
+        s = line.strip()
+        if s and len(s) < 120 and not s.startswith('#') and not s.startswith('>') and not s.startswith('<<'):
+            nl = _normalise_for_callout_match(s)
             skip = False
             for ct, nc, rx in regexes:
-                if norm_line == nc or norm_line == nc.rstrip('.'):
-                    skip = True; break
+                if nl == nc or nl == nc.rstrip('.'): skip = True; break
             if skip: continue
         out.append(line)
-    for idx, line in enumerate(out):
-        if not line or line.startswith('#') or line.startswith('>') \
-                or line.startswith('<<') or line.startswith('-'):
+    for idx in range(len(out)):
+        line = out[idx]
+        if not line or line.startswith('#') or line.startswith('>') or line.startswith('<<') or line.startswith('-'):
             continue
         for ct, nc, rx in regexes:
             m = rx.search(out[idx])
-            if m:
-                out[idx] = out[idx][:m.start()] + f"<Callout>{m.group()}</Callout>" + out[idx][m.end():]
+            if m: out[idx] = out[idx][:m.start()] + f"<Callout>{m.group()}</Callout>" + out[idx][m.end():]
     return '\n'.join(out)
 
-
-def fix_final_review_table(markdown: str, cfg: dict) -> str:
-    rules = cfg.get("table_to_list", [])
-    if not rules: return markdown
-    lines = markdown.splitlines()
-    out = []
-    i = 0
+def fix_final_review_table(md, cfg):
+    rules = cfg.get("table_to_list",[]); 
+    if not rules: return md
+    lines = md.splitlines(); out = []; i = 0
     while i < len(lines):
-        line = lines[i]
-        matched_rule = None
-        if line.strip().startswith('|') and i + 1 < len(lines) and '|---' in lines[i + 1]:
+        line = lines[i]; mr = None
+        if line.strip().startswith('|') and i+1 < len(lines) and '|---' in lines[i+1]:
             for rule in rules:
-                if rule["header_contains"] in line: matched_rule = rule; break
-        if matched_rule:
-            out.append(matched_rule["output_heading"]); out.append("")
-            i += 2
+                if rule["header_contains"] in line: mr = rule; break
+        if mr:
+            out.append(mr["output_heading"]); out.append(""); i += 2
             while i < len(lines) and lines[i].strip().startswith('|'):
                 cell = lines[i].strip().strip('|').strip()
                 if cell and not cell.startswith('---'):
@@ -656,47 +544,43 @@ def fix_final_review_table(markdown: str, cfg: dict) -> str:
         out.append(line); i += 1
     return '\n'.join(out)
 
-def fix_junk_content(markdown: str, cfg: dict) -> str:
-    line_pats = [re.compile(p) for p in cfg.get("skip_line_patterns", [])]
-    table_markers = cfg.get("skip_table_markers", [])
-    lines = markdown.splitlines()
-    out = []
-    i = 0
+def fix_junk_content(md, cfg):
+    lp = [re.compile(p) for p in cfg.get("skip_line_patterns",[])]
+    tm = cfg.get("skip_table_markers",[])
+    lines = md.splitlines(); out = []; i = 0
     while i < len(lines):
-        line = lines[i]
-        stripped = line.strip()
-        if any(p.match(stripped) for p in line_pats): i += 1; continue
-        if stripped.startswith('|') and any(m in stripped for m in table_markers):
+        line = lines[i]; s = line.strip()
+        if any(p.match(s) for p in lp): i += 1; continue
+        if s.startswith('|') and any(m in s for m in tm):
             while i < len(lines) and lines[i].strip().startswith('|'): i += 1
             continue
         out.append(line); i += 1
     return '\n'.join(out)
 
-
-def post_process(markdown: str, heading_map: dict, skip_set: set,
-                 bq_set: set, cit_set: set, verse_map: dict, cfg: dict,
-                 callout_texts: list = None, inline_bold: list = None) -> str:
-    markdown = markdown.replace('\r\n', '\n').replace('\r', '\n')
-    markdown = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', markdown, flags=re.MULTILINE)
-    markdown = re.sub(r'^-{20,}\s*$', '', markdown, flags=re.MULTILINE)
-    markdown = fix_pullquote_fragments(markdown)
-    markdown = fix_headings(markdown, heading_map, skip_set)
-    markdown = fix_verse_labels(markdown, verse_map)
-    markdown = fix_double_blockquote_citations(markdown)
-    markdown = fix_blockquotes(markdown, bq_set, cit_set)
-    markdown = fix_citations(markdown, cfg)
-    markdown = fix_bullet_numbers(markdown)
-    markdown = fix_hyphenation(markdown)
-    markdown = fix_callouts(markdown, callout_texts or [])
-    markdown = fix_final_review_table(markdown, cfg)
-    markdown = fix_inline_bold(markdown, inline_bold or [])
-    markdown = fix_junk_content(markdown, cfg)
-    markdown = fix_missing_section_headings(markdown, cfg)
-    markdown = fix_discussion_question_groups(markdown, cfg)
-    markdown = fix_structural_labels(markdown)
-    markdown = re.sub(r'\n{3,}', '\n\n', markdown)
-    return markdown.strip() + '\n'
-
+def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
+                 callout_texts=None, inline_bold=None):
+    md = md.replace('\r\n','\n').replace('\r','\n')
+    md = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', md, flags=re.MULTILINE)
+    md = re.sub(r'^-{20,}\s*$', '', md, flags=re.MULTILINE)
+    md = fix_pullquote_fragments(md)
+    md = fix_headings(md, heading_map, skip_set)
+    md = fix_scripture_ref_headings(md)
+    md = fix_verse_labels(md, verse_map)
+    md = fix_double_blockquote_citations(md)
+    md = fix_blockquotes(md, bq_set, cit_set)
+    md = fix_citations(md, cfg)
+    md = fix_bullet_numbers(md)
+    md = fix_hyphenation(md)
+    md = fix_callouts(md, callout_texts or [])
+    md = fix_final_review_table(md, cfg)
+    md = fix_inline_bold(md, inline_bold or [])
+    md = fix_junk_content(md, cfg)
+    md = fix_missing_section_headings(md, cfg)
+    md = fix_discussion_question_groups(md, cfg)
+    md = fix_structural_labels(md)
+    md = fix_bold_bullets(md)
+    md = re.sub(r'\n{3,}', '\n\n', md)
+    return md.strip() + '\n'
 
 # ---- Marker bug patch ----
 
@@ -709,45 +593,36 @@ def patch_block_relabel():
         for page in document.pages:
             for block in page.structure_blocks(document):
                 if block.block_type not in self.block_relabel_map: continue
-                confidence_thresh, relabel_block_type = self.block_relabel_map[block.block_type]
-                confidence = block.top_k.get(block.block_type)
-                if confidence is None: continue
-                if confidence > confidence_thresh: continue
-                new_block_cls = get_block_class(relabel_block_type)
-                new_block = new_block_cls(
-                    polygon=deepcopy(block.polygon), page_id=block.page_id,
-                    structure=deepcopy(block.structure),
-                    text_extraction_method=block.text_extraction_method,
+                ct, rt = self.block_relabel_map[block.block_type]
+                conf = block.top_k.get(block.block_type)
+                if conf is None or conf > ct: continue
+                nc = get_block_class(rt)
+                nb = nc(polygon=deepcopy(block.polygon), page_id=block.page_id,
+                    structure=deepcopy(block.structure), text_extraction_method=block.text_extraction_method,
                     source="heuristics", top_k=block.top_k, metadata=block.metadata)
-                page.replace_block(block, new_block)
+                page.replace_block(block, nb)
     BlockRelabelProcessor.__call__ = patched_call
 
-
-def get_available_gemini_model(api_key: str) -> str:
-    candidates = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-pro"]
+def get_available_gemini_model(api_key):
+    candidates = ["gemini-2.0-flash","gemini-2.0-flash-lite","gemini-1.5-flash","gemini-1.5-pro"]
     try:
         from google import genai
         client = genai.Client(api_key=api_key)
-        available = {m.name.split("/")[-1] for m in client.models.list()}
+        avail = {m.name.split("/")[-1] for m in client.models.list()}
         for c in candidates:
-            if c in available: return c
+            if c in avail: return c
     except Exception: pass
     return "gemini-2.0-flash"
-
 
 # ---- Main ----
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert PDF to Markdown.")
-    parser.add_argument("input", help="Path to PDF, OR raw .md file (with --postprocess)")
-    parser.add_argument("pdf", nargs="?", help="PDF path (required with --postprocess)")
-    parser.add_argument("output", nargs="?", help="Output .md path")
-    parser.add_argument("--template", default="homestead")
-    parser.add_argument("--page-range", default="")
-    parser.add_argument("--dump-fonts", action="store_true")
-    parser.add_argument("--save-raw", action="store_true")
-    parser.add_argument("--postprocess", action="store_true")
-    args = parser.parse_args()
+    ap = argparse.ArgumentParser(description="Convert PDF to Markdown.")
+    ap.add_argument("input"); ap.add_argument("pdf", nargs="?"); ap.add_argument("output", nargs="?")
+    ap.add_argument("--template", default="homestead"); ap.add_argument("--page-range", default="")
+    ap.add_argument("--dump-fonts", action="store_true"); ap.add_argument("--save-raw", action="store_true")
+    ap.add_argument("--postprocess", action="store_true")
+    args = ap.parse_args()
 
     page_range = None
     if args.page_range.strip():
@@ -755,66 +630,58 @@ def main():
         for part in args.page_range.split(","):
             part = part.strip()
             if "-" in part:
-                s, e = part.split("-", 1)
-                pages.extend(range(int(s), int(e) + 1))
+                s,e = part.split("-",1); pages.extend(range(int(s),int(e)+1))
             else: pages.append(int(part))
         page_range = pages
 
     if args.dump_fonts:
-        pdf_path = Path(args.input)
-        if not pdf_path.exists(): print(f"ERROR: {pdf_path}"); sys.exit(1)
-        dump_fonts(pdf_path, page_range); return
+        p = Path(args.input)
+        if not p.exists(): print(f"ERROR: {p}"); sys.exit(1)
+        dump_fonts(p, page_range); return
 
     cfg = load_template(args.template)
     print(f"Template: {args.template}")
 
     if args.postprocess:
-        raw_md_path = Path(args.input)
-        if not raw_md_path.exists(): print(f"ERROR: {raw_md_path}"); sys.exit(1)
+        rp = Path(args.input)
+        if not rp.exists(): print(f"ERROR: {rp}"); sys.exit(1)
         if not args.pdf: print("ERROR: --postprocess requires PDF as second arg"); sys.exit(1)
-        pdf_path = Path(args.pdf)
-        if not pdf_path.exists(): print(f"ERROR: {pdf_path}"); sys.exit(1)
-        output_path = Path(args.output) if args.output else raw_md_path.with_suffix(".md")
-        if output_path == raw_md_path:
-            output_path = raw_md_path.with_stem(raw_md_path.stem + "_processed")
-        body_font_name, body_size = detect_body_font(pdf_path, page_range)
-        print(f"Body font: {body_font_name} @ {body_size}pt")
+        pp = Path(args.pdf)
+        if not pp.exists(): print(f"ERROR: {pp}"); sys.exit(1)
+        op = Path(args.output) if args.output else rp.with_suffix(".md")
+        if op == rp: op = rp.with_stem(rp.stem + "_processed")
+        bfn, bs = detect_body_font(pp, page_range)
+        print(f"Body font: {bfn} @ {bs}pt")
         print("Building font maps...")
-        heading_map = build_heading_map(pdf_path, cfg, body_size, page_range)
-        skip_set = build_skip_set(pdf_path, cfg, body_size, page_range)
-        bq_set, cit_set = build_blockquote_set(pdf_path, cfg, body_size, page_range)
-        verse_map = build_verse_map(pdf_path, cfg, body_size, page_range)
-        callout_texts = build_callout_set(pdf_path, cfg, body_size, page_range)
-        inline_bold = build_inline_bold_set(pdf_path, cfg, body_size, page_range)
-        print(f"  {len(heading_map)} headings, {len(skip_set)} skips, "
-              f"{len(bq_set)} bq, {len(cit_set)} cit, "
-              f"{len(verse_map)} verses, {len(callout_texts)} callouts, {len(inline_bold)} bold.")
-        raw_markdown = raw_md_path.read_text(encoding="utf-8")
+        hm = build_heading_map(pp, cfg, bs, page_range)
+        ss = build_skip_set(pp, cfg, bs, page_range)
+        bq, ci = build_blockquote_set(pp, cfg, bs, page_range)
+        vm = build_verse_map(pp, cfg, bs, page_range)
+        ct = build_callout_set(pp, cfg, bs, page_range)
+        ib = build_inline_bold_set(pp, cfg, bs, page_range)
+        print(f"  {len(hm)} headings, {len(ss)} skips, {len(bq)} bq, {len(ci)} cit, "
+              f"{len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
+        raw = rp.read_text(encoding="utf-8")
         print("Post-processing...")
-        markdown = post_process(raw_markdown, heading_map, skip_set, bq_set, cit_set,
-                                verse_map, cfg, callout_texts, inline_bold)
-        output_path.write_text(markdown, encoding="utf-8")
-        print(f"Done! {output_path} ({len(markdown.splitlines())} lines)")
+        md = post_process(raw, hm, ss, bq, ci, vm, cfg, ct, ib)
+        op.write_text(md, encoding="utf-8")
+        print(f"Done! {op} ({len(md.splitlines())} lines)")
         return
 
-    pdf_path = Path(args.input)
-    if not pdf_path.exists(): print(f"ERROR: {pdf_path}"); sys.exit(1)
-    output_path = Path(args.output) if args.output else pdf_path.with_suffix(".md")
-    body_font_name, body_size = detect_body_font(pdf_path, page_range)
-    print(f"Body font: {body_font_name} @ {body_size}pt")
+    pp = Path(args.input)
+    if not pp.exists(): print(f"ERROR: {pp}"); sys.exit(1)
+    op = Path(args.output) if args.output else pp.with_suffix(".md")
+    bfn, bs = detect_body_font(pp, page_range)
+    print(f"Body font: {bfn} @ {bs}pt")
     print("Building font maps...")
-    heading_map = build_heading_map(pdf_path, cfg, body_size, page_range)
-    skip_set = build_skip_set(pdf_path, cfg, body_size, page_range)
-    bq_set, cit_set = build_blockquote_set(pdf_path, cfg, body_size, page_range)
-    verse_map = build_verse_map(pdf_path, cfg, body_size, page_range)
-    callout_texts = build_callout_set(pdf_path, cfg, body_size, page_range)
-    inline_bold = build_inline_bold_set(pdf_path, cfg, body_size, page_range)
-    print(f"  {len(heading_map)} headings, {len(skip_set)} skips, "
-          f"{len(bq_set)} bq, {len(cit_set)} cit, "
-          f"{len(verse_map)} verses, {len(callout_texts)} callouts, {len(inline_bold)} bold.")
-
-    google_api_key = os.environ.get("GOOGLE_API_KEY", "")
-    use_llm = bool(google_api_key)
+    hm = build_heading_map(pp, cfg, bs, page_range)
+    ss = build_skip_set(pp, cfg, bs, page_range)
+    bq, ci = build_blockquote_set(pp, cfg, bs, page_range)
+    vm = build_verse_map(pp, cfg, bs, page_range)
+    ct = build_callout_set(pp, cfg, bs, page_range)
+    ib = build_inline_bold_set(pp, cfg, bs, page_range)
+    print(f"  {len(hm)} headings, {len(ss)} skips, {len(bq)} bq, {len(ci)} cit, "
+          f"{len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
 
     patch_block_relabel()
     print("Loading models...")
@@ -822,7 +689,7 @@ def main():
     from marker.models import create_model_dict
     models = create_model_dict(device="cpu", dtype=torch.float32)
 
-    marker_config = {
+    mcfg = {
         "lowres_image_dpi": 96,
         "block_relabel_str": "SectionHeader:Text:0.6,Figure:Text:1.0,Picture:Text:1.0",
         "level_count": 4, "default_level": 3,
@@ -834,31 +701,26 @@ def main():
         "disable_links": True, "disable_ocr": True, "pdftext_workers": 1,
         "disable_image_extraction": True, "extract_images": False,
     }
-    processor_list = None
-    llm_service_cls = None
-    if use_llm:
-        model_name = get_available_gemini_model(google_api_key)
-        marker_config["gemini_api_key"] = google_api_key
-        marker_config["gemini_model_name"] = model_name
-        llm_service_cls = "marker.services.gemini.GoogleGeminiService"
-    if page_range: marker_config["page_range"] = page_range
+    gak = os.environ.get("GOOGLE_API_KEY","")
+    llm = None
+    if gak:
+        mn = get_available_gemini_model(gak)
+        mcfg["gemini_api_key"] = gak; mcfg["gemini_model_name"] = mn
+        llm = "marker.services.gemini.GoogleGeminiService"
+    if page_range: mcfg["page_range"] = page_range
 
     from marker.converters.pdf import PdfConverter
-    print(f"Converting {pdf_path.name}...")
-    converter = PdfConverter(artifact_dict=models, processor_list=processor_list,
-                             config=marker_config, llm_service=llm_service_cls)
-    rendered = converter(str(pdf_path))
+    print(f"Converting {pp.name}...")
+    conv = PdfConverter(artifact_dict=models, processor_list=None, config=mcfg, llm_service=llm)
+    rendered = conv(str(pp))
     if args.save_raw:
-        raw_path = output_path.with_suffix(".raw.md")
-        raw_path.write_text(rendered.markdown, encoding="utf-8")
-        print(f"Raw saved: {raw_path}")
+        rp2 = op.with_suffix(".raw.md"); rp2.write_text(rendered.markdown, encoding="utf-8")
+        print(f"Raw saved: {rp2}")
 
     print("Post-processing...")
-    markdown = post_process(rendered.markdown, heading_map, skip_set, bq_set, cit_set,
-                            verse_map, cfg, callout_texts, inline_bold)
-    output_path.write_text(markdown, encoding="utf-8")
-    print(f"Done! {output_path} ({len(markdown.splitlines())} lines)")
-
+    md = post_process(rendered.markdown, hm, ss, bq, ci, vm, cfg, ct, ib)
+    op.write_text(md, encoding="utf-8")
+    print(f"Done! {op} ({len(md.splitlines())} lines)")
 
 if __name__ == "__main__":
     main()
