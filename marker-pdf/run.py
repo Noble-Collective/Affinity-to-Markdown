@@ -281,26 +281,52 @@ def dump_fonts(pdf_path, page_range=None):
 
 # ---- Post-processing passes ----
 
-def fix_headings(markdown, heading_map, skip_set):
+def _build_section_maps(heading_order):
+    """Split heading_order into sections at H1 boundaries.
+    Returns (section_maps, h1_keys_ordered).
+    section_maps: [(h1_key, {key: [levels]}), ...]
+    h1_keys_ordered: [key, ...] for sequential H1 detection."""
+    sections = []
+    cur_h1 = None; cur_map = {}; h1_keys = []
+    for text, level in heading_order:
+        key = normalise_key(text)
+        if level == '#':
+            if cur_map: sections.append((cur_h1, cur_map))
+            cur_h1 = key; h1_keys.append(key); cur_map = {}
+        if key not in cur_map: cur_map[key] = []
+        cur_map[key].append(level)
+    if cur_map: sections.append((cur_h1, cur_map))
+    return sections, h1_keys
+
+def fix_headings(markdown, heading_map, skip_set, heading_order=None):
     """Remap heading levels using font-derived heading_map.
-    If Marker marks something as a heading but it's NOT in the map,
-    demote it. Preserves bold only if Marker's content was bold."""
-    occ = {}
+    Session-aware: resets occurrence counters at H1 boundaries using
+    per-section maps built from heading_order."""
+    section_maps, h1_list = _build_section_maps(heading_order) if heading_order else ([], [])
+    h1_queue = list(h1_list)
+    si = -1; active_map = heading_map; occ = {}
     def _gl(key):
-        if key not in heading_map: return None
-        levels = heading_map[key]
+        if key not in active_map: return None
+        levels = active_map[key]
         idx = occ.get(key, 0); occ[key] = idx + 1
         return levels[min(idx, len(levels)-1)]
+    def _check_section(key):
+        nonlocal si, active_map, occ, h1_queue
+        if h1_queue and key == h1_queue[0]:
+            h1_queue.pop(0); si += 1; occ.clear()
+            if si < len(section_maps): _, active_map = section_maps[si]
     lines = markdown.splitlines(); out = []
     for line in lines:
-        if normalise_key(re.sub(r"[#>]","",line)) in skip_set: continue
         m = re.match(r'^(#{1,6})\s+(.+)$', line)
         if m:
             content = m.group(2)
             content_clean = re.sub(r'^\*\*(.+)\*\*$', r'\1', content.strip())
             content_clean = re.sub(r'^\*(.+)\*$', r'\1', content_clean.strip())
             clean = normalise_key(content_clean)
+            # Check section BEFORE skip — H1 markers may be in skip_set
+            _check_section(clean)
             if clean in skip_set: continue
+            if normalise_key(re.sub(r"[#>]","",line)) in skip_set: continue
             was_bold = content.strip().startswith('**') and content.strip().endswith('**')
             level = _gl(clean)
             if level:
@@ -308,13 +334,17 @@ def fix_headings(markdown, heading_map, skip_set):
             else:
                 out.append(f"**{content_clean}**" if was_bold else content_clean)
         else:
+            if normalise_key(re.sub(r"[#>]","",line)) in skip_set: continue
             stripped = line.strip()
             bm = re.match(r'^\*\*(.+?)\*\*$', stripped)
             if bm:
                 inner = bm.group(1); clean = normalise_key(inner)
+                _check_section(clean)
                 level = _gl(clean)
                 if level: out.append(f"{level} {inner}"); continue
-            bc = normalise_key(line); level = _gl(bc)
+            bc = normalise_key(line)
+            _check_section(bc)
+            level = _gl(bc)
             if level and stripped and len(stripped) > 2: out.append(f"{level} {stripped}")
             else: out.append(line)
     return '\n'.join(out)
@@ -404,51 +434,50 @@ def fix_pullquote_fragments(md):
     return '\n'.join(out)
 
 def fix_missing_headings(md, heading_order, skip_set):
-    """Insert headings found in PDF scan but missing from Marker output.
-    heading_order: [(original_text, level_str), ...] in document order.
-    Compares against headings present in md and inserts missing ones
-    before their next surviving neighbor. Walks backward past italic
-    instruction paragraphs that belong under the missing heading."""
+    """Insert headings from PDF scan that Marker dropped.
+    Session-aware: splits heading_order into sections at H1 and matches
+    each section sequentially against the flat output heading list."""
     if not heading_order: return md
     lines = md.splitlines()
     output_heads = []
     for i, line in enumerate(lines):
         m = re.match(r'^(#{1,6})\s+(.+)$', line)
         if m: output_heads.append((i, normalise_key(m.group(2))))
-    oi = 0
-    matched = []
-    for orig, level in heading_order:
-        key = normalise_key(orig)
-        if key in skip_set: matched.append((True, -1)); continue
-        found_line = -1
-        for j in range(oi, len(output_heads)):
-            if output_heads[j][1] == key:
-                found_line = output_heads[j][0]; oi = j + 1; break
-        matched.append((found_line >= 0, found_line))
-    insertions = {}
-    for hi, (orig, level) in enumerate(heading_order):
-        is_found, _ = matched[hi]
-        if is_found: continue
-        key = normalise_key(orig)
-        if key in skip_set: continue
-        insert_before = None
-        for fhi in range(hi + 1, len(heading_order)):
-            is_f, li = matched[fhi]
-            if is_f and li >= 0: insert_before = li; break
-        if insert_before is not None:
-            # Walk backward past blank lines and italic instruction
-            # paragraphs that belong under the missing heading
-            actual = insert_before
-            while actual > 0:
-                prev = lines[actual - 1].strip()
-                if not prev:
-                    actual -= 1
-                elif prev.startswith('*') and prev.endswith('*') and len(prev) > 30:
-                    actual -= 1
-                else:
-                    break
-            if actual not in insertions: insertions[actual] = []
-            insertions[actual].append(f"{level} {orig}")
+    ho_sections = []; cur = []
+    for text, level in heading_order:
+        if level == '#' and cur: ho_sections.append(cur); cur = []
+        cur.append((text, level))
+    if cur: ho_sections.append(cur)
+    insertions = {}; oi = 0
+    for ho_sec in ho_sections:
+        matched = []; sec_oi = oi
+        for text, level in ho_sec:
+            key = normalise_key(text)
+            if key in skip_set: matched.append((True, -1)); continue
+            found = -1
+            for k in range(sec_oi, len(output_heads)):
+                if output_heads[k][1] == key:
+                    found = output_heads[k][0]; sec_oi = k + 1; break
+            matched.append((found >= 0, found))
+        oi = sec_oi
+        for hi in range(len(ho_sec)):
+            is_found, _ = matched[hi]
+            if is_found: continue
+            text, level = ho_sec[hi]
+            if normalise_key(text) in skip_set: continue
+            insert_before = None
+            for fhi in range(hi + 1, len(ho_sec)):
+                is_f, li = matched[fhi]
+                if is_f and li >= 0: insert_before = li; break
+            if insert_before is not None:
+                actual = insert_before
+                while actual > 0:
+                    prev = lines[actual - 1].strip()
+                    if not prev: actual -= 1
+                    elif prev.startswith('*') and prev.endswith('*') and len(prev) > 30: actual -= 1
+                    else: break
+                if actual not in insertions: insertions[actual] = []
+                insertions[actual].append(f"{level} {text}")
     if not insertions: return md
     out = []
     for i, line in enumerate(lines):
@@ -483,6 +512,17 @@ def fix_missing_section_headings(md, cfg):
                     prev = '\n'.join(lines[max(0,i-6):i]).lower()
                     if ht not in prev: out.append(""); out.append(h)
                     break
+        out.append(line)
+    return '\n'.join(out)
+
+def fix_dedup_headings(md):
+    """Remove consecutive duplicate heading lines."""
+    lines = md.splitlines(); out = []; prev = ""
+    for line in lines:
+        if re.match(r'^#{1,6}\s+', line.strip()):
+            if line.strip() == prev: continue
+            prev = line.strip()
+        else: prev = ""
         out.append(line)
     return '\n'.join(out)
 
@@ -643,7 +683,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', md, flags=re.MULTILINE)
     md = re.sub(r'^-{20,}\s*$', '', md, flags=re.MULTILINE)
     md = fix_pullquote_fragments(md)
-    md = fix_headings(md, heading_map, skip_set)
+    md = fix_headings(md, heading_map, skip_set, heading_order)
     md = fix_verse_labels(md, verse_map)
     md = fix_double_blockquote_citations(md)
     md = fix_blockquotes(md, bq_set, cit_set)
@@ -656,6 +696,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = fix_inline_bold(md, inline_bold or [])
     md = fix_junk_content(md, cfg)
     md = fix_missing_headings(md, heading_order or [], skip_set)
+    md = fix_dedup_headings(md)
     md = fix_missing_section_headings(md, cfg)
     md = fix_discussion_question_groups(md, cfg)
     md = fix_structural_labels(md)
