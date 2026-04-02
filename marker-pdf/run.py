@@ -512,29 +512,62 @@ def fix_pullquote_fragments(markdown: str) -> str:
 def fix_missing_section_headings(markdown: str, cfg: dict) -> str:
     """
     Insert H3 section headings that Marker drops (large icon+heading blocks).
-    Detects their location by the italic instruction paragraphs that follow them.
-    Configured via missing_section_headings in pdf_config.yaml.
+
+    Two detection modes, both configured via missing_section_headings in
+    pdf_config.yaml:
+
+    1. italic_snippet: insert heading just before an italic instruction paragraph
+       containing the given text snippet. Used when Marker drops the heading
+       but keeps the italic intro paragraph.
+
+    2. before_heading: insert heading just before a specific target heading.
+       Used when Marker drops both the H3 heading AND its italic intro paragraph,
+       so there's no italic anchor to detect from (e.g. Charting the Path Ahead
+       which Marker skips entirely).
     """
     insertions = cfg.get("missing_section_headings", [])
     if not insertions:
         return markdown
+
+    # Split entries by type
+    italic_entries = [e for e in insertions if "italic_snippet" in e]
+    before_entries = [e for e in insertions if "before_heading" in e]
+
     lines = markdown.splitlines()
     out = []
     for i, line in enumerate(lines):
         stripped = line.strip()
-        # Italic instruction paragraphs: start and end with *
+
+        # before_heading: insert before a specific target heading
+        for entry in before_entries:
+            target = entry["before_heading"].strip()
+            if stripped == target:
+                heading = entry["heading"]
+                heading_text = re.sub(r'^#+\s+', '', heading).strip().lower()
+                prev = '\n'.join(lines[max(0, i-6):i]).lower()
+                if heading_text not in prev:
+                    out.append("")
+                    out.append(heading)
+                    # Also insert any static content lines after the heading
+                    for extra in entry.get("insert_lines", []):
+                        out.append(extra)
+                    if entry.get("insert_lines"):
+                        out.append("")
+                break
+
+        # italic_snippet: insert before italic instruction paragraphs
         if stripped.startswith('*') and stripped.endswith('*') and len(stripped) > 30:
             text_lower = stripped.lower()
-            for entry in insertions:
+            for entry in italic_entries:
                 if entry["italic_snippet"].lower() in text_lower:
                     heading = entry["heading"]
                     heading_text = re.sub(r'^#+\s+', '', heading).strip().lower()
-                    # Only insert if not already present in preceding lines
                     prev = '\n'.join(lines[max(0, i-6):i]).lower()
                     if heading_text not in prev:
                         out.append("")
                         out.append(heading)
                     break
+
         out.append(line)
     return '\n'.join(out)
 
@@ -606,14 +639,12 @@ def fix_structural_labels(markdown: str) -> str:
         if re.match(r'^\*\*[A-Z]\*\*$', s):
             continue
         # Italic pull-quote fragments from page margins (e.g. '*"As a father...*')
-        # These are decorative callout quotes that bleed into Marker's text flow.
         if re.match(r'^\*".+\.\.\.\*$', s):
             continue
         # Bullet character • alone on a line
         if s == '\u2022':
             continue
         # Headings ending with colon = Marker body-text label artifacts
-        # (e.g. '### List of basic spiritual habits:' — real headings never end with :)
         if re.match(r'^#{1,6}\s+\w.*:$', s):
             out.append(re.sub(r'^#{1,6}\s+', '', line))  # demote to body text
             continue
@@ -630,7 +661,6 @@ def post_process(markdown: str, heading_map: dict, skip_set: set,
     markdown = markdown.replace('\r\n', '\n').replace('\r', '\n')
     markdown = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', markdown, flags=re.MULTILINE)
     markdown = re.sub(r'^-{20,}\s*$', '', markdown, flags=re.MULTILINE)
-    # pull-quotes before blockquotes (to avoid converting them to '>' lines)
     markdown = fix_pullquote_fragments(markdown)
     markdown = fix_headings(markdown, heading_map, skip_set)
     markdown = fix_verse_labels(markdown, verse_map)
