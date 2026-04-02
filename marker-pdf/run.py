@@ -332,7 +332,6 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
                 out.append("")
                 for j, vl in enumerate(verse_lines):
                     out.append(f"{vl}  " if j < len(verse_lines) - 1 else vl)
-                # Skip Marker's merged verse text block
                 i += 1
                 while i < len(lines) and lines[i].strip():
                     i += 1
@@ -562,16 +561,17 @@ def main():
     ]
 
     if use_llm:
-        # FIX: Marker's internal config key is 'gemini_api_key', not 'GOOGLE_API_KEY'
         config["use_llm"] = True
         config["gemini_api_key"] = google_api_key
         config["llm_service"] = "marker.services.gemini.GoogleGeminiService"
+        # Use gemini-1.5-flash — available to new API keys (gemini-2.0-flash is not)
+        config["gemini_model_name"] = "gemini-1.5-flash"
         sh_idx = processor_list.index("marker.processors.sectionheader.SectionHeaderProcessor")
         processor_list.insert(
             sh_idx + 1,
             "marker.processors.llm.llm_sectionheader.LLMSectionHeaderProcessor"
         )
-        print("LLMSectionHeaderProcessor added to pipeline.")
+        print("LLMSectionHeaderProcessor added (model: gemini-1.5-flash).")
 
     if page_range:
         config["page_range"] = page_range
