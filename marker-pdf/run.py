@@ -25,7 +25,7 @@ from pathlib import Path
 logging.basicConfig(level=logging.WARNING)
 
 
-# ── Font → Heading map for Homestead book ────────────────────────────────────
+# ── Font → Heading map for Homestead book ──────────────────────────────────
 HOMESTEAD_FONT_HEADINGS = {
     ("TimesNewRomanPSMT",        20.0): "#",
     ("TimesNewRomanPS-BoldMT",   20.0): "###",
@@ -508,7 +508,6 @@ def main():
         page_range = pages
         print(f"Page range: {page_range[0]}-{page_range[-1]} ({len(page_range)} pages)")
 
-    # Check for Google API key — enables LLM heading correction
     google_api_key = os.environ.get("GOOGLE_API_KEY", "")
     use_llm = bool(google_api_key)
     if use_llm:
@@ -534,7 +533,6 @@ def main():
     models = create_model_dict(device="cpu", dtype=torch.float32)
     print("Models loaded.")
 
-    # ── Marker configuration — iteration 9 ───────────────────────────────
     config = {
         "level_count": 4,
         "default_level": 3,
@@ -552,11 +550,6 @@ def main():
         "extract_images": False,
     }
 
-    # ── LLM heading correction (Gemini) ──────────────────────────────────
-    # When GOOGLE_API_KEY is set, add LLMSectionHeaderProcessor which uses
-    # Gemini to re-examine ambiguous heading blocks and assign correct levels.
-    # This is what datalab.to's "Accurate" mode uses and is the main reason
-    # their H1 count is correct (=1) while ours has false positives.
     processor_list = [
         "marker.processors.order.OrderProcessor",
         "marker.processors.line_merge.LineMergeProcessor",
@@ -569,10 +562,10 @@ def main():
     ]
 
     if use_llm:
+        # FIX: Marker's internal config key is 'gemini_api_key', not 'GOOGLE_API_KEY'
         config["use_llm"] = True
-        config["GOOGLE_API_KEY"] = google_api_key
+        config["gemini_api_key"] = google_api_key
         config["llm_service"] = "marker.services.gemini.GoogleGeminiService"
-        # Insert LLMSectionHeaderProcessor right after SectionHeaderProcessor
         sh_idx = processor_list.index("marker.processors.sectionheader.SectionHeaderProcessor")
         processor_list.insert(
             sh_idx + 1,
