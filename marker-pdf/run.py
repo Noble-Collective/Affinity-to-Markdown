@@ -70,6 +70,8 @@ def _match_rule(weight: str, ratio: float, rule: dict) -> bool:
             and rule["min_ratio"] <= ratio <= rule["max_ratio"])
 
 
+# ---- PDF font scanning ----
+
 def detect_body_font(pdf_path: Path, page_range=None) -> tuple:
     import fitz
     doc = fitz.open(str(pdf_path))
@@ -91,9 +93,8 @@ def detect_body_font(pdf_path: Path, page_range=None) -> tuple:
 
 
 def build_heading_map(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> dict:
-    """Build heading map: {normalised_text: [level, level, ...]} in document order.
-    When the same heading text appears at different font sizes, all levels are
-    stored so fix_headings can assign the correct level to each occurrence."""
+    """Build {normalised_text: [level, ...]} in document order.
+    Each occurrence gets the level matching its actual font size."""
     import fitz
     heading_map = {}
     doc = fitz.open(str(pdf_path))
@@ -243,9 +244,8 @@ def build_verse_map(pdf_path: Path, cfg: dict, body_size: float, page_range=None
 
 def build_inline_bold_set(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> list:
     """Collect inline bold phrases from mixed-weight body-text blocks.
-    Only returns phrases from blocks that have BOTH bold and regular spans
-    at body size (i.e. inline bold, not standalone bold headings).
-    Minimum 5 chars to avoid false positives with short words."""
+    Only from blocks with BOTH bold and regular spans at body size.
+    Min 5 chars to avoid false positives with short words."""
     import fitz
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [
@@ -274,9 +274,7 @@ def build_inline_bold_set(pdf_path: Path, cfg: dict, body_size: float, page_rang
 
 
 def build_callout_set(pdf_path: Path, cfg: dict, body_size: float, page_range=None) -> list:
-    """Scan PDF for callout-styled text (pull-quotes in commentary sections).
-    Returns list of callout strings sorted longest-first for greedy matching.
-    Adjacent callout blocks on the same page are joined into a single text."""
+    """Scan PDF for callout-styled text. Adjacent callout blocks per page joined."""
     import fitz
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [
@@ -349,9 +347,7 @@ def dump_fonts(pdf_path: Path, page_range=None) -> None:
 # ---- Post-processing passes ----
 
 def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
-    """Remap heading levels using font-derived heading_map.
-    heading_map values are lists of levels in document order, so the same
-    text at different font sizes gets the correct level per occurrence."""
+    """Remap heading levels. heading_map values are lists in document order."""
     occurrence: dict = {}
 
     def _get_level(key):
@@ -425,10 +421,8 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
                         break
                     i += 1
                 continue
-            else:
-                out.append("")
-        else:
-            out.append(line)
+            else: out.append("")
+        else: out.append(line)
         i += 1
     return '\n'.join(out)
 
@@ -591,15 +585,12 @@ def fix_inline_bold(markdown: str, bold_phrases: list) -> str:
 
 
 def _normalise_for_callout_match(text: str) -> str:
-    """Normalize text for fuzzy callout matching (quotes, em-dashes, whitespace)."""
     t = text.replace("\u2019", "'").replace("\u2018", "'")
     t = t.replace("\u201c", '"').replace("\u201d", '"')
     t = t.replace("\u2014", " ").replace("\u2013", " ")
     return " ".join(t.split()).strip()
 
-
 def _callout_regex(callout_text: str):
-    """Build flexible regex: em-dashes optional, curly quotes match straight."""
     text = callout_text.rstrip('.')
     pattern = re.escape(text)
     _EM = "\u2014"
@@ -610,9 +601,8 @@ def _callout_regex(callout_text: str):
     pattern = pattern.replace(re.escape(_LQ), "['" + _LQ + "]")
     return re.compile(pattern)
 
-
 def fix_callouts(markdown: str, callout_texts: list) -> str:
-    """Two-pass callout system: remove standalone duplicates, tag inline matches."""
+    """Two-pass: remove standalone duplicates, tag inline matches."""
     if not callout_texts: return markdown
     normalized = [(ct, _normalise_for_callout_match(ct)) for ct in callout_texts]
     regexes = [(ct, nc, _callout_regex(ct)) for ct, nc in normalized]
@@ -697,9 +687,9 @@ def post_process(markdown: str, heading_map: dict, skip_set: set,
     markdown = fix_citations(markdown, cfg)
     markdown = fix_bullet_numbers(markdown)
     markdown = fix_hyphenation(markdown)
-    markdown = fix_inline_bold(markdown, inline_bold or [])
     markdown = fix_callouts(markdown, callout_texts or [])
     markdown = fix_final_review_table(markdown, cfg)
+    markdown = fix_inline_bold(markdown, inline_bold or [])
     markdown = fix_junk_content(markdown, cfg)
     markdown = fix_missing_section_headings(markdown, cfg)
     markdown = fix_discussion_question_groups(markdown, cfg)
