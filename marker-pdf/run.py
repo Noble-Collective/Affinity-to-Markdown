@@ -871,15 +871,23 @@ def main():
         "extract_images": False,
     }
 
+    # IgnoreTextProcessor and BlankPageProcessor are intentionally excluded.
+    # IgnoreTextProcessor removes blocks it classifies as "common elements"
+    # (running headers, repeated page furniture) — but it also misclassifies
+    # the large icon+heading blocks (e.g. "Charting the Path Ahead") as
+    # decorative and silently drops them, along with their content.
+    # BlankPageProcessor can skip icon-heavy pages that appear sparse.
+    # Our PyMuPDF skip_set already handles running header removal in post-processing,
+    # so we don't need IgnoreTextProcessor for that purpose.
     processor_list = [
         "marker.processors.order.OrderProcessor",
         "marker.processors.line_merge.LineMergeProcessor",
         "marker.processors.blockquote.BlockquoteProcessor",
-        "marker.processors.ignoretext.IgnoreTextProcessor",
+        # "marker.processors.ignoretext.IgnoreTextProcessor",  # excluded: drops content blocks
         "marker.processors.list.ListProcessor",
         "marker.processors.sectionheader.SectionHeaderProcessor",
         "marker.processors.text.TextProcessor",
-        "marker.processors.blank_page.BlankPageProcessor",
+        # "marker.processors.blank_page.BlankPageProcessor",   # excluded: may skip icon-heavy pages
     ]
 
     llm_service_cls = None
