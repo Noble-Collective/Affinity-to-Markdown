@@ -2,17 +2,20 @@
 """
 run.py - Local runner for PDF to Markdown conversion.
 
-Architecture (iteration 8):
+Architecture (iteration 9):
   - Marker: text extraction, paragraph joining, list/blockquote detection.
+  - LLMSectionHeaderProcessor (optional): Gemini API corrects heading levels.
+    Enable by setting GOOGLE_API_KEY environment variable before running:
+      export GOOGLE_API_KEY="your-key-here"
   - PyMuPDF: heading map, skip set, blockquote/citation sets, verse map.
-  - Post-processing: heading remap, bold-strip from headings, verse label
-    extraction, blockquote/citation detection, hyphenation, spacing fixes.
+  - Post-processing: heading remap, verse labels, blockquotes, citations, cleanup.
 
 Usage:
   python run.py path/to/book.pdf
   python run.py path/to/book.pdf --page-range 62-200
   python run.py path/to/book.pdf output.md
 """
+import os
 import sys
 import re
 import argparse
@@ -34,7 +37,6 @@ HOMESTEAD_FONT_HEADINGS = {
     ("TimesNewRomanPSMT",        28.0): "SKIP",
 }
 
-# Verse label block: BoldMT@10 (drop-cap V) + BoldMT@7 (small-caps ERSE) + body
 _VERSE_BLOCK_FONTS = {
     ("TimesNewRomanPS-BoldMT", 10.0),
     ("TimesNewRomanPS-BoldMT", 7.0),
@@ -105,7 +107,6 @@ def build_heading_map(pdf_path: Path, page_range=None) -> dict:
             if prefix == "SKIP":
                 continue
 
-            # Only spans from the dominant font (ignore mixed small-caps etc.)
             text_parts = []
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
@@ -225,11 +226,7 @@ def build_blockquote_set(pdf_path: Path, page_range=None) -> tuple:
 
 
 def build_verse_map(pdf_path: Path, page_range=None) -> dict:
-    """
-    Extract hymn verse structure from PyMuPDF.
-    Verse blocks have mixed BoldMT@10 (drop-cap V) + BoldMT@7 (ERSE).
-    Returns {verse_number_str: [line1, line2, ...]}
-    """
+    """Extract hymn verse structure: {verse_num_str: [line1, line2, ...]}"""
     try:
         import fitz
     except ImportError:
@@ -253,11 +250,9 @@ def build_verse_map(pdf_path: Path, page_range=None) -> dict:
                     if span["text"].strip():
                         font_set.add((span["font"], size_bucket(span["size"])))
 
-            # Verse label blocks have BOTH 10pt Bold AND 7pt Bold
             if not _VERSE_BLOCK_FONTS.issubset(font_set):
                 continue
 
-            # Extract lines, separating verse label from verse text
             lines_out = []
             verse_num = None
             for line in block.get("lines", []):
@@ -266,7 +261,6 @@ def build_verse_map(pdf_path: Path, page_range=None) -> dict:
                 if not line_text:
                     continue
 
-                # First line usually starts with "VERSE N" (V at 10pt, ERSE at 7pt)
                 m = re.match(r"^VERSE\s*(\d+)\s*(.*)", line_text, re.IGNORECASE)
                 if m and verse_num is None:
                     verse_num = m.group(1)
@@ -277,7 +271,6 @@ def build_verse_map(pdf_path: Path, page_range=None) -> dict:
                     lines_out.append(line_text)
 
             if verse_num and lines_out:
-                # Don't overwrite — keep first occurrence of each verse number
                 if verse_num not in verse_map:
                     verse_map[verse_num] = lines_out
 
@@ -285,16 +278,9 @@ def build_verse_map(pdf_path: Path, page_range=None) -> dict:
 
 
 def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
-    """
-    1. Remove skip_set lines (running headers, page numbers)
-    2. Remap existing headings to correct levels
-    3. Strip bold/italic markers from heading content
-    4. Promote body text lines that match heading_map
-    """
     lines = markdown.splitlines()
     out = []
     for line in lines:
-        # Skip running headers / page numbers
         clean_check = normalise_key(re.sub(r"[#>]", "", line))
         if clean_check in skip_set:
             continue
@@ -302,8 +288,6 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
         m = re.match(r'^(#{1,6})\s+(.+)$', line)
         if m:
             content = m.group(2)
-            # Strip bold/italic markers from heading content
-            # "#### **Overview**" → "#### Overview"
             content_clean = re.sub(r'^\*\*(.+)\*\*$', r'\1', content.strip())
             content_clean = re.sub(r'^\*(.+)\*$', r'\1', content_clean.strip())
             clean = normalise_key(content_clean)
@@ -314,7 +298,6 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
             else:
                 out.append(f"{m.group(1)} {content_clean}")
         else:
-            # Promote body text to heading if it matches the heading map
             body_clean = normalise_key(line)
             if body_clean in heading_map and line.strip() and len(line.strip()) > 2:
                 prefix = heading_map[body_clean]
@@ -326,17 +309,7 @@ def fix_headings(markdown: str, heading_map: dict, skip_set: set) -> str:
 
 
 def fix_verse_labels(markdown: str, verse_map: dict) -> str:
-    """
-    Replace verse label headings (#### **VERSE N** or # **VERSE N**) with:
-      ###### Verse N
-      line1  
-      line2  
-      line3
-    Uses the verse structure extracted by PyMuPDF.
-    Falls back to just fixing the heading level if no verse_map entry.
-    """
     if not verse_map:
-        # Still fix heading level even without verse map
         markdown = re.sub(
             r'^#{1,6}\s+\*?\*?VERSE\s+(\d+)\*?\*?\s*$',
             lambda m: f"###### Verse {m.group(1)}",
@@ -353,24 +326,17 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
         m = re.match(r'^#{1,6}\s+\*?\*?VERSE\s+(\d+)\*?\*?\s*$', line, re.IGNORECASE)
         if m:
             verse_num = m.group(1)
-            # Output the correct H6 label
             out.append(f"###### Verse {verse_num}")
-            # If we have verse text from PyMuPDF, output it with hard line breaks
             if verse_num in verse_map:
                 verse_lines = verse_map[verse_num]
                 out.append("")
                 for j, vl in enumerate(verse_lines):
-                    if j < len(verse_lines) - 1:
-                        out.append(f"{vl}  ")  # hard line break
-                    else:
-                        out.append(vl)
-                # Skip the next block of body text that Marker output for this verse
-                # (it will be a merged single line — skip it)
+                    out.append(f"{vl}  " if j < len(verse_lines) - 1 else vl)
+                # Skip Marker's merged verse text block
                 i += 1
                 while i < len(lines) and lines[i].strip():
                     i += 1
                 continue
-            # No verse map — keep Marker's verse text as-is
         else:
             out.append(line)
         i += 1
@@ -379,7 +345,6 @@ def fix_verse_labels(markdown: str, verse_map: dict) -> str:
 
 
 def fix_blockquotes(markdown: str, bq_set: set, cit_set: set) -> str:
-    """Convert body text to > blockquotes or << citations via 8pt font map."""
     if not bq_set and not cit_set:
         return markdown
 
@@ -404,7 +369,6 @@ def fix_blockquotes(markdown: str, bq_set: set, cit_set: set) -> str:
 
 
 def fix_citations(markdown: str) -> str:
-    """Convert standalone scripture references to << citations."""
     lines = markdown.splitlines()
     out = []
     for i, line in enumerate(lines):
@@ -544,6 +508,15 @@ def main():
         page_range = pages
         print(f"Page range: {page_range[0]}-{page_range[-1]} ({len(page_range)} pages)")
 
+    # Check for Google API key — enables LLM heading correction
+    google_api_key = os.environ.get("GOOGLE_API_KEY", "")
+    use_llm = bool(google_api_key)
+    if use_llm:
+        print("GOOGLE_API_KEY found — LLM heading correction enabled.")
+    else:
+        print("No GOOGLE_API_KEY — using font-based heading correction only.")
+        print("  To enable LLM: export GOOGLE_API_KEY='your-key' before running.")
+
     print("Building font maps from PDF...")
     heading_map = build_heading_map(pdf_path, page_range)
     skip_set = build_skip_set(pdf_path, page_range)
@@ -561,12 +534,7 @@ def main():
     models = create_model_dict(device="cpu", dtype=torch.float32)
     print("Models loaded.")
 
-    # ── Marker configuration — iteration 8 ───────────────────────────────
-    # Key change: removed PageHeaderProcessor.
-    # PageHeaderProcessor was classifying movement titles (Seeking God's Wisdom,
-    # Exploring the Biblical Text etc.) as page headers and dropping them,
-    # because they appear at the very top of their pages. Our PyMuPDF skip_set
-    # already handles running header removal — we don't need PageHeaderProcessor.
+    # ── Marker configuration — iteration 9 ───────────────────────────────
     config = {
         "level_count": 4,
         "default_level": 3,
@@ -584,17 +552,33 @@ def main():
         "extract_images": False,
     }
 
+    # ── LLM heading correction (Gemini) ──────────────────────────────────
+    # When GOOGLE_API_KEY is set, add LLMSectionHeaderProcessor which uses
+    # Gemini to re-examine ambiguous heading blocks and assign correct levels.
+    # This is what datalab.to's "Accurate" mode uses and is the main reason
+    # their H1 count is correct (=1) while ours has false positives.
     processor_list = [
         "marker.processors.order.OrderProcessor",
         "marker.processors.line_merge.LineMergeProcessor",
         "marker.processors.blockquote.BlockquoteProcessor",
         "marker.processors.ignoretext.IgnoreTextProcessor",
         "marker.processors.list.ListProcessor",
-        # PageHeaderProcessor REMOVED — was dropping movement titles at top of pages
         "marker.processors.sectionheader.SectionHeaderProcessor",
         "marker.processors.text.TextProcessor",
         "marker.processors.blank_page.BlankPageProcessor",
     ]
+
+    if use_llm:
+        config["use_llm"] = True
+        config["GOOGLE_API_KEY"] = google_api_key
+        config["llm_service"] = "marker.services.gemini.GoogleGeminiService"
+        # Insert LLMSectionHeaderProcessor right after SectionHeaderProcessor
+        sh_idx = processor_list.index("marker.processors.sectionheader.SectionHeaderProcessor")
+        processor_list.insert(
+            sh_idx + 1,
+            "marker.processors.llm.llm_sectionheader.LLMSectionHeaderProcessor"
+        )
+        print("LLMSectionHeaderProcessor added to pipeline.")
 
     if page_range:
         config["page_range"] = page_range
