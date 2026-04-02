@@ -407,7 +407,8 @@ def fix_missing_headings(md, heading_order, skip_set):
     """Insert headings found in PDF scan but missing from Marker output.
     heading_order: [(original_text, level_str), ...] in document order.
     Compares against headings present in md and inserts missing ones
-    before their next surviving neighbor. Fully font-data-driven."""
+    before their next surviving neighbor. Walks backward past italic
+    instruction paragraphs that belong under the missing heading."""
     if not heading_order: return md
     lines = md.splitlines()
     output_heads = []
@@ -435,8 +436,19 @@ def fix_missing_headings(md, heading_order, skip_set):
             is_f, li = matched[fhi]
             if is_f and li >= 0: insert_before = li; break
         if insert_before is not None:
-            if insert_before not in insertions: insertions[insert_before] = []
-            insertions[insert_before].append(f"{level} {orig}")
+            # Walk backward past blank lines and italic instruction
+            # paragraphs that belong under the missing heading
+            actual = insert_before
+            while actual > 0:
+                prev = lines[actual - 1].strip()
+                if not prev:
+                    actual -= 1
+                elif prev.startswith('*') and prev.endswith('*') and len(prev) > 30:
+                    actual -= 1
+                else:
+                    break
+            if actual not in insertions: insertions[actual] = []
+            insertions[actual].append(f"{level} {orig}")
     if not insertions: return md
     out = []
     for i, line in enumerate(lines):
