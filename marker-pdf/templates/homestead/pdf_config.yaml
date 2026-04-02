@@ -1,45 +1,29 @@
 # Homestead book PDF conversion config
-# ─────────────────────────────────────────────────────────────────────────────
 # All size thresholds are expressed as RATIOS relative to body text size.
-# This makes the config portable across different font families and sizes.
-#
-# To calibrate for a new book:
-# 1. Run: python run.py book.pdf --dump-fonts
-# 2. Set body_font to "auto" (uses most frequent font) or specify explicitly.
-# 3. Adjust heading rules to match the visual hierarchy.
-# ─────────────────────────────────────────────────────────────────────────────
 
 body_font: auto
 
-# Heading level rules: (weight, size_ratio) → heading level
-# Homestead body = 10pt. Ratios: 2.0=20pt, 1.4=14pt, 1.2=12pt
 headings:
   - weight: regular
     min_ratio: 1.85
     max_ratio: 2.15
     level: 1
-
   - weight: bold
     min_ratio: 1.85
     max_ratio: 2.15
     level: 3
-
   - weight: italic
     min_ratio: 1.35
     max_ratio: 1.55
     level: 2
-
-  # 18pt bold ("Next Steps") — larger than normal H4 but same semantic role
   - weight: bold
     min_ratio: 1.70
     max_ratio: 1.85
     level: 4
-
   - weight: bold
     min_ratio: 1.35
     max_ratio: 1.55
     level: 4
-
   - weight: bold
     min_ratio: 1.15
     max_ratio: 1.30
@@ -47,7 +31,6 @@ headings:
 
 skip_large_ratio: 2.4
 
-# Running headers: blocks containing ALL of these weight+ratio combinations
 running_header_signature:
   - weight: bold
     min_ratio: 1.35
@@ -59,7 +42,6 @@ running_header_signature:
 quote_max_ratio: 0.88
 citation_max_chars: 80
 
-# Verse label detection
 verse_label_signature:
   - weight: bold
     min_ratio: 0.95
@@ -68,9 +50,6 @@ verse_label_signature:
     min_ratio: 0.62
     max_ratio: 0.75
 
-# Callout detection: larger regular-weight teal text used for pull-quotes
-# in the commentary section. Detected via PyMuPDF font scanning.
-# Homestead: TimesNewRomanPSMT @ 16pt (ratio 1.6), color #607a5b
 callout_signature:
   - weight: regular
     min_ratio: 1.55
@@ -80,10 +59,6 @@ citation_patterns:
   - '^[A-Z][a-zA-Z]+\s+\d+:\d+[\d\-\u2013\u2014,;:\s]*$'
   - '^[A-Z][a-zA-Z]+\.\s+\d+:\d+[\d\-\u2013\u2014,;:\s]*$'
 
-# Missing section headings: Marker drops these large icon+heading blocks.
-# Uses italic_snippet to insert heading just before the italic instruction
-# paragraph that follows it (works when Marker keeps the italic para but
-# drops the H3).
 missing_section_headings:
   - italic_snippet: "focus your thinking around the key idea"
     heading: "### Seeking God's Wisdom"
@@ -103,25 +78,24 @@ missing_section_headings:
     heading: "### Personal Project"
   - italic_snippet: "the role of a parent is to cultivate"
     heading: "### Parenting Project"
+  - before_heading: "#### Final Review"
+    heading: "### Charting the Path Ahead"
+    insert_lines:
+      - ""
+      - "*Reflect on the session and envision next steps. Record key takeaways from the lesson. Conclude your time by praying as small groups and a whole community. Review next steps.*"
 
-# Discussion question group labels (inserted before each group of 4 questions)
-# The PDF has these as sideways column headers; Marker can't reliably extract them.
 discussion_question_labels:
   - "##### Searching the Text"
   - "##### Seeking the Truth"
   - "##### Evaluating Our Lives"
 
-# ── Content cleanup (generic, config-driven) ─────────────────────────────────
-# Lines matching these regexes are removed from the output.
 skip_line_patterns:
   - '^Session \d+ (Community Study|Weekly Disciplines)'
   - '^Rijn, Rembrandt'
 
-# Tables whose first row contains any of these strings are removed entirely.
 skip_table_markers:
   - 'SEARCHING'
 
-# Single-column tables matching these rules are converted to headed lists.
 table_to_list:
   - header_contains: "Final Review"
     output_heading: "#### Final Review"

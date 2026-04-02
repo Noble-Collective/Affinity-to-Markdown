@@ -70,8 +70,8 @@ def detect_body_font(pdf_path, page_range=None):
 def build_heading_map(pdf_path, cfg, body_size, page_range=None):
     """Build {normalised_text: [level, ...]} in document order.
     Only text whose font matches a heading rule gets included.
-    Text NOT in this map is not a heading — Marker's heading assignment
-    will be demoted to bold text by fix_headings."""
+    Text NOT in this map is not a heading -- Marker's heading assignment
+    will be demoted by fix_headings."""
     import fitz
     hmap = {}
     doc = fitz.open(str(pdf_path))
@@ -283,7 +283,8 @@ def fix_headings(markdown, heading_map, skip_set):
     """Remap heading levels using font-derived heading_map.
     The heading_map is the source of truth for what IS a heading.
     If Marker marks something as a heading but it's NOT in the map,
-    the font rules didn't identify it as a heading -> demote to bold."""
+    the font rules didn't identify it as a heading -> demote.
+    Preserves Marker's bold only if Marker's content was bold."""
     occ = {}
     def _gl(key):
         if key not in heading_map: return None
@@ -300,11 +301,12 @@ def fix_headings(markdown, heading_map, skip_set):
             content_clean = re.sub(r'^\*(.+)\*$', r'\1', content_clean.strip())
             clean = normalise_key(content_clean)
             if clean in skip_set: continue
+            was_bold = content.strip().startswith('**') and content.strip().endswith('**')
             level = _gl(clean)
             if level:
                 out.append(f"{level} {content_clean}")
             else:
-                out.append(f"**{content_clean}**")
+                out.append(f"**{content_clean}**" if was_bold else content_clean)
         else:
             stripped = line.strip()
             bm = re.match(r'^\*\*(.+?)\*\*$', stripped)
@@ -524,8 +526,7 @@ def fix_callouts(md, callout_texts):
     return '\n'.join(out)
 
 def fix_empty_tables(md, threshold=0.7):
-    """Remove tables where most cells are empty (blank worksheets/forms).
-    A table with >threshold fraction of empty cells is a fillable form, not content."""
+    """Remove tables where most cells are empty (blank worksheets/forms)."""
     lines = md.splitlines(); out = []; i = 0
     while i < len(lines):
         line = lines[i]
@@ -557,7 +558,8 @@ def fix_final_review_table(md, cfg):
         if mr:
             out.append(mr["output_heading"]); out.append(""); i += 2
             while i < len(lines) and lines[i].strip().startswith('|'):
-                cell = lines[i].strip().strip('|').strip()
+                cells = [c.strip() for c in lines[i].strip().strip('|').split('|')]
+                cell = cells[0] if cells else ''
                 if cell and not cell.startswith('---'):
                     text = re.sub(r'<br\s*/?>', ' ', cell).strip()
                     m2 = re.match(r'^(\d+)\.\s+(.+)', text)
