@@ -68,6 +68,14 @@ verse_label_signature:
     min_ratio: 0.62
     max_ratio: 0.75
 
+# Callout detection: larger regular-weight teal text used for pull-quotes
+# in the commentary section. Detected via PyMuPDF font scanning.
+# Homestead: TimesNewRomanPSMT @ 16pt (ratio 1.6), color #607a5b
+callout_signature:
+  - weight: regular
+    min_ratio: 1.55
+    max_ratio: 1.65
+
 citation_patterns:
   - '^[A-Z][a-zA-Z]+\s+\d+:\d+[\d\-\u2013\u2014,;:\s]*$'
   - '^[A-Z][a-zA-Z]+\.\s+\d+:\d+[\d\-\u2013\u2014,;:\s]*$'
@@ -105,21 +113,15 @@ discussion_question_labels:
 
 # ── Content cleanup (generic, config-driven) ─────────────────────────────────
 # Lines matching these regexes are removed from the output.
-# Used for navigation labels, attribution metadata, and other non-content
-# text that renders after Figure/Picture blocks are relabeled to Text.
 skip_line_patterns:
   - '^Session \d+ (Community Study|Weekly Disciplines)'
   - '^Rijn, Rembrandt'
 
 # Tables whose first row contains any of these strings are removed entirely.
-# Used for decorative grid tables (e.g. discussion question grids with
-# rotated column headers) that render as junk markdown tables.
 skip_table_markers:
   - 'SEARCHING'
 
 # Single-column tables matching these rules are converted to headed lists.
-# Handles content that Marker renders as a table instead of a section
-# (common when Figure blocks are relabeled to Text).
 table_to_list:
   - header_contains: "Final Review"
     output_heading: "#### Final Review"
