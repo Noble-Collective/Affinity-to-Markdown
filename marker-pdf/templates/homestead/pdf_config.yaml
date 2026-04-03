@@ -76,6 +76,36 @@ table_to_list:
   - header_contains: "Final Review"
     output_heading: "#### Final Review"
 
+# Front matter corrections: fix formatting issues in title/copyright pages.
+# Everything before ends_before is treated as front matter.
+front_matter_corrections:
+  ends_before: "## Series' Preface"
+  remove_lines:
+    - 'This rite of passage belongs to'
+  text_replacements:
+    # Title page: split to line breaks matching the book layout
+    - match: "<< HomeStead: A Rite of Passage into Christian Hearth and Home"
+      replace: "HomeStead:\nA Rite of Passage into Christian\nHearth and Home"
+    # Publisher info: split to separate lines
+    - match: "> York, Pennsylvania Noble Imprint 2026"
+      replace: "York, Pennsylvania\nNoble Imprint\n2026"
+    # Authors: split to separate bold lines
+    - match: "**Matthew R. Lynskey Bryan D. Platania**"
+      replace: "**Matthew R. Lynskey**\n**Bryan D. Platania**"
+    # Copyright page: strip blockquote/citation markers (prefix matches)
+    - match: "<< *HomeStead:"
+      replace: "*HomeStead:"
+    - match: "<< Series:"
+      replace: "Series:"
+    - match: "> © 2026"
+      replace: "© 2026"
+    - match: "<< Published"
+      replace: "Published"
+    - match: "> This book is published"
+      replace: "This book is published"
+    - match: "> Scripture quotations"
+      replace: "Scripture quotations"
+
 # Heading hierarchy restructuring: maps font-based levels to semantic levels.
 # Runs as final pass after all other heading fixes.
 heading_hierarchy:
