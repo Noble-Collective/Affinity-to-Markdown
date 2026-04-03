@@ -70,7 +70,8 @@ discussion_question_labels:
 
 skip_line_patterns:
   - '^Session \d+ (Community Study|Weekly Disciplines)'
-  - '^Rijn, Rembrandt'
+  - '^Session \d+ .+\*\*'
+  - '^(<< )?(Source: )?[A-Z][a-z].*\d{4}.*Oil on (canvas|panel|wood|linen)'
 
 skip_table_markers:
   - 'SEARCHING'

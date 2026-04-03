@@ -288,7 +288,6 @@ def fix_headings(markdown, heading_map, skip_set, heading_order=None):
     Phase 2: applies matched levels, with fallback to heading_map occurrence
     counter for headings not in heading_order."""
     lines = markdown.splitlines()
-    # Phase 1: sequential matching against heading_order
     line_level = {}
     if heading_order:
         hoi = 0
@@ -315,7 +314,6 @@ def fix_headings(markdown, heading_map, skip_set, heading_order=None):
                         if ho_key in skip_set: continue
                         if ho_key == clean:
                             line_level[i] = heading_order[j][1]; hoi = j + 1; break
-    # Phase 2: apply levels with fallback
     occ = {}
     def _gl(key):
         if key not in heading_map: return None
@@ -454,7 +452,6 @@ def fix_missing_headings(md, heading_order, skip_set):
         if m: output_heads.append((i, normalise_key(m.group(2))))
     if not output_heads: return md
     out_len = len(output_heads)
-    # Pass 1: match non-skip H1 anchors sequentially
     ho_h1s = [(hi, normalise_key(t)) for hi, (t, l) in enumerate(heading_order)
               if l == '#' and normalise_key(t) not in skip_set]
     out_h1s = [(oi, output_heads[oi][1]) for oi in range(out_len)
@@ -468,7 +465,6 @@ def fix_missing_headings(md, heading_order, skip_set):
                 oj = j + 1; break
     anchor_ho = [ap[0] for ap in anchor_pairs]
     anchor_out = [ap[1] for ap in anchor_pairs]
-    # Build bounded segments from anchor pairs
     segments = []
     if anchor_ho and anchor_ho[0] > 0:
         segments.append((0, anchor_ho[0], 0, anchor_out[0]))
@@ -476,7 +472,6 @@ def fix_missing_headings(md, heading_order, skip_set):
         ho_end = anchor_ho[k + 1] if k + 1 < len(anchor_ho) else len(heading_order)
         out_end = anchor_out[k + 1] if k + 1 < len(anchor_out) else out_len
         segments.append((anchor_ho[k], ho_end, anchor_out[k], out_end))
-    # Pass 2: match within bounded segments
     matched = [None] * len(heading_order)
     for ho_start, ho_end, out_start, out_end in segments:
         oi = out_start
@@ -490,12 +485,10 @@ def fix_missing_headings(md, heading_order, skip_set):
             matched[hi] = (found >= 0, found)
     for hi in range(len(matched)):
         if matched[hi] is None: matched[hi] = (False, -1)
-    # Compute segment end lines for bounded insertion targets
     seg_end_line = {}
     for ho_start, ho_end, out_start, out_end in segments:
         end_line = output_heads[out_end - 1][0] if out_end > 0 else len(lines)
         for hi in range(ho_start, ho_end): seg_end_line[hi] = end_line
-    # Insert missing headings (bounded to same segment)
     insertions = {}
     for hi, (orig, level) in enumerate(heading_order):
         is_found, _ = matched[hi]
@@ -718,15 +711,58 @@ def fix_junk_content(md, cfg):
         out.append(line); i += 1
     return '\n'.join(out)
 
+def fix_toc_tables(md):
+    """Remove tables of contents (tables where most data rows end with page numbers)."""
+    lines = md.splitlines(); out = []; i = 0
+    while i < len(lines):
+        if lines[i].strip().startswith('|') and i+1 < len(lines) and '|---' in lines[i+1]:
+            table = []
+            while i < len(lines) and lines[i].strip().startswith('|'):
+                table.append(lines[i]); i += 1
+            data_rows = [t for t in table if '---' not in t]
+            pn = sum(1 for t in data_rows
+                     if re.match(r'^[ivxlc]+$|^\d{1,3}$',
+                        [c.strip() for c in t.strip().strip('|').split('|')][-1]))
+            if data_rows and pn >= len(data_rows) * 0.8:
+                continue
+            out.extend(table)
+        else:
+            out.append(lines[i]); i += 1
+    return '\n'.join(out)
+
+def fix_heading_fragments(md):
+    """Remove truncated H1 fragments and orphan heading labels.
+    - H1 whose text is a prefix/suffix of a lower-level heading within 6 lines
+    - Standalone text lines matching heading text that appear right before H1s"""
+    lines = md.splitlines(); remove = set()
+    for i, line in enumerate(lines):
+        s = line.strip()
+        if s.startswith('# ') and not s.startswith('## '):
+            h1_text = s[2:].strip().lower()
+            if len(h1_text) < 4: continue
+            for j in range(i+1, min(i+7, len(lines))):
+                m = re.match(r'^(#{2,6})\s+(.+)$', lines[j].strip())
+                if m:
+                    lower = m.group(2).strip().lower()
+                    if (lower.startswith(h1_text) or lower.endswith(h1_text)) and lower != h1_text:
+                        remove.add(i); break
+        if s and not s.startswith('#') and not s.startswith('>') and not s.startswith('<<') \
+                and not s.startswith('-') and not s.startswith('*') and not s.startswith('|') \
+                and not s.startswith('<Callout'):
+            prev_blank = (i == 0) or not lines[i-1].strip()
+            next_blank = (i+1 >= len(lines)) or not lines[i+1].strip()
+            if prev_blank and next_blank and len(s) < 40:
+                for j in range(i+1, min(i+4, len(lines))):
+                    if lines[j].strip().startswith('# ') and not lines[j].strip().startswith('## '):
+                        remove.add(i); break
+    if not remove: return md
+    return '\n'.join(l for i, l in enumerate(lines) if i not in remove)
+
 def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
                  callout_texts=None, inline_bold=None, heading_order=None):
     md = md.replace('\r\n','\n').replace('\r','\n')
     md = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', md, flags=re.MULTILINE)
     md = re.sub(r'^-{20,}\s*$', '', md, flags=re.MULTILINE)
-    # Unblock content headings: keys that appear in both skip_set and
-    # heading_map at non-H1 levels are real headings (e.g. "Community
-    # Confession" at 14pt) that also appear as running headers (9.5pt).
-    # The heading_map entry proves they're real headings.
     skip_set = {k for k in skip_set
                 if k not in heading_map or any(l == '#' for l in heading_map[k])}
     md = fix_pullquote_fragments(md)
@@ -738,17 +774,20 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = fix_bullet_numbers(md)
     md = fix_hyphenation(md)
     md = fix_callouts(md, callout_texts or [])
-    md = re.sub(r'</Callout>\s*<Callout>', ' ', md)  # merge adjacent fragments
+    md = re.sub(r'</Callout>\s*<Callout>', ' ', md)
     md = fix_empty_tables(md)
+    md = fix_toc_tables(md)
     md = fix_final_review_table(md, cfg)
     md = fix_inline_bold(md, inline_bold or [])
     md = fix_junk_content(md, cfg)
     md = fix_missing_headings(md, heading_order or [], skip_set)
     md = fix_dedup_headings(md)
+    md = fix_heading_fragments(md)
     md = fix_missing_section_headings(md, cfg)
     md = fix_discussion_question_groups(md, cfg)
     md = fix_structural_labels(md)
     md = fix_bold_bullets(md)
+    md = re.sub(r'^<<\s+\*\*(.+?)\*\*', r'<< \1', md, flags=re.MULTILINE)
     md = re.sub(r'\n{3,}', '\n\n', md)
     return md.strip() + '\n'
 
