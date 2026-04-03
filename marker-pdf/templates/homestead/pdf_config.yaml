@@ -59,10 +59,6 @@ citation_patterns:
   - '^[A-Z][a-zA-Z]+\s+\d+:\d+[\d\-\u2013\u2014,;:\s]*$'
   - '^[A-Z][a-zA-Z]+\.\s+\d+:\d+[\d\-\u2013\u2014,;:\s]*$'
 
-# missing_section_headings: removed — now auto-detected by
-# fix_missing_headings which compares PDF heading_order against
-# Marker output and inserts any headings Marker dropped.
-
 discussion_question_labels:
   - "##### Searching the Text"
   - "##### Seeking the Truth"
@@ -77,3 +73,45 @@ skip_table_markers:
 table_to_list:
   - header_contains: "Final Review"
     output_heading: "#### Final Review"
+
+# Heading hierarchy restructuring: maps font-based levels to semantic levels.
+# Runs as final pass after all other heading fixes.
+heading_hierarchy:
+  front_matter_label: "Front Matter"
+
+  parts:
+    - label: "PART ONE: Preparation"
+      before_session: "Introduction"
+      marker: "PART ONE"
+    - label: "PART TWO: Challenge"
+      before_session: "Daily Devotionals"
+      marker: "PART TWO"
+    - label: "PART THREE: Celebration"
+      before_session: "Personal Testimony"
+      marker: "PART THREE"
+
+  # Maps each H1 heading (in document order) to its H2 session name.
+  # null = no session heading (e.g. "Review" stays as H3 within Conclusion).
+  session_map:
+    - "Series' Preface"       # H1: Passage
+    - "Preface"               # H1: HomeStead
+    - "Introduction"          # H1: No Longer Two
+    - "Session One"           # H1: Under God's Fatherly Care (1st)
+    - "Session Two"           # H1: Between the Ages
+    - "Session Three"         # H1: Over the Flock
+    - "Session Four"          # H1: In the Fear of God
+    - "Session Five"          # H1: Under God's Protection
+    - "Session Six"           # H1: For the World
+    - "Conclusion"            # H1: Under God's Fatherly Care (2nd)
+    - ~                       # H1: Review (part of Conclusion)
+    - "Daily Devotionals"     # H1: Near to Those Who Call on Him
+    - "Outdoor Experiences"   # H1: HomeSteading
+    - "Community Building"    # H1: Homes of Holy Testimony
+    - "Personal Testimony"    # H1: Bearing Witness
+    - "Community Confession"  # H1: We Confess Together
+    - "Celebration Ceremony"  # H1: In the Assembly
+
+  trailing_section:
+    part_label: "PART FOUR: Journal"
+    session_name: "Further Resources"
+    subtitle_contains: "Continuing the Parenting Journey"
