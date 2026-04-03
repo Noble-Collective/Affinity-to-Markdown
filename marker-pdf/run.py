@@ -13,11 +13,12 @@ Usage:
   python run.py path/to/book.pdf --template homestead
   python run.py path/to/book.pdf --page-range 62-200
   python run.py path/to/book.pdf --dump-fonts       # calibration mode
+  python run.py path/to/book.pdf --verbose           # show Marker/LLM logging
 """
 import os, sys, re, argparse, logging
 from pathlib import Path
 
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.WARNING, format="%(name)s: %(message)s")
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 def _load_yaml(path):
@@ -323,7 +324,6 @@ def fix_verse_labels(markdown, verse_map):
     return '\n'.join(out)
 
 def fix_double_blockquote_citations(md): return re.sub(r'^> > (.+)$', r'<< \1', md, flags=re.MULTILINE)
-
 def fix_blockquotes(md, bq_set, cit_set):
     lines = md.splitlines(); out = []
     for line in lines:
@@ -334,14 +334,12 @@ def fix_blockquotes(md, bq_set, cit_set):
         elif k in cit_set: out.append(f"<< {s}")
         else: out.append(line)
     return '\n'.join(out)
-
 def fix_citations(md, cfg):
     pats = cfg.get("_citation_res",[]); cm = cfg.get("citation_max_chars",80)
     lines = md.splitlines(); out = []
     for i,line in enumerate(lines):
         s = line.strip()
-        if not s or s.startswith('#') or s.startswith('>') or s.startswith('<<') or s.startswith('-') or s.startswith('*') or len(s)>120:
-            out.append(line); continue
+        if not s or s.startswith('#') or s.startswith('>') or s.startswith('<<') or s.startswith('-') or s.startswith('*') or len(s)>120: out.append(line); continue
         pb = (i==0) or (lines[i-1].strip()==''); nb = (i==len(lines)-1) or (lines[i+1].strip()=='')
         if not (pb and nb): out.append(line); continue
         if any(p.match(s) for p in pats): out.append(f"<< {s}"); continue
@@ -349,9 +347,7 @@ def fix_citations(md, cfg):
         if (pc.startswith('>') or pc.startswith('<<')) and len(s)<cm: out.append(f"<< {s}"); continue
         out.append(line)
     return '\n'.join(out)
-
 def fix_bullet_numbers(md): return re.sub(r'^- (\d+\.)\s', r'\1 ', md, flags=re.MULTILINE)
-
 def fix_hyphenation(md):
     lines = md.splitlines(); out = []; i = 0
     while i < len(lines):
@@ -364,7 +360,6 @@ def fix_hyphenation(md):
                 if nl and nl[0].islower() and not nl.startswith('#'): out.append(line.rstrip()[:-1] + lines[j].lstrip()); i = j+1; continue
         out.append(line); i += 1
     return '\n'.join(out)
-
 def fix_pullquote_fragments(md):
     lines = md.splitlines(); out = []
     for line in lines:
@@ -373,7 +368,6 @@ def fix_pullquote_fragments(md):
             if not any(s.startswith(c) for c in ['-','*','#','>']): continue
         out.append(line)
     return '\n'.join(out)
-
 def fix_missing_headings(md, heading_order, skip_set):
     if not heading_order: return md
     lines = md.splitlines(); output_heads = []
@@ -437,7 +431,6 @@ def fix_missing_headings(md, heading_order, skip_set):
             for h in insertions[i]: out.append(""); out.append(h)
         out.append(line)
     return '\n'.join(out)
-
 def fix_missing_section_headings(md, cfg):
     ins = cfg.get("missing_section_headings",[])
     if not ins: return md
@@ -461,7 +454,6 @@ def fix_missing_section_headings(md, cfg):
                     break
         out.append(line)
     return '\n'.join(out)
-
 def fix_discussion_question_groups(md, cfg):
     lc = cfg.get("discussion_question_labels",[])
     if not lc: return md
@@ -475,7 +467,6 @@ def fix_discussion_question_groups(md, cfg):
             out.append(lc[gc]); out.append(''); gc += 1
         out.append(line)
     return '\n'.join(out)
-
 def fix_structural_labels(md):
     lines = md.splitlines(); out = []
     for line in lines:
@@ -490,7 +481,6 @@ def fix_structural_labels(md):
         if s.startswith('\u2022'): out.append(re.sub(r'^\u2022\s*', '- ', line)); continue
         out.append(line)
     return '\n'.join(out)
-
 def fix_dedup_headings(md):
     lines = md.splitlines(); out = []; prev = ""
     for line in lines:
@@ -500,7 +490,6 @@ def fix_dedup_headings(md):
         elif line.strip(): prev = ""
         out.append(line)
     return '\n'.join(out)
-
 def fix_bold_bullets(md):
     lines = md.splitlines(); out = []
     for line in lines:
@@ -508,7 +497,6 @@ def fix_bold_bullets(md):
         if m: out.append(f"- **{m.group(1).strip()}**{m.group(2)}"); continue
         out.append(line)
     return '\n'.join(out)
-
 def fix_inline_bold(md, bold_phrases):
     if not bold_phrases: return md
     lines = md.splitlines(); out = []
@@ -519,17 +507,14 @@ def fix_inline_bold(md, bold_phrases):
             line = re.sub(r'(?<!\*)\b' + re.escape(p) + r'\b(?!\*)', f'**{p}**', line)
         out.append(line)
     return '\n'.join(out)
-
 def _normalise_for_callout_match(text):
     t = text.replace("\u2019","'").replace("\u2018","'").replace("\u201c",'"').replace("\u201d",'"')
     return " ".join(t.replace("\u2014"," ").replace("\u2013"," ").split()).strip()
-
 def _callout_regex(ct):
     pat = re.escape(ct.rstrip('.')); _EM = "\u2014"
     pat = pat.replace(re.escape(_EM), "\\s*[" + _EM + "\u2014]?\\s*")
     pat = pat.replace(re.escape("\u2019"), "['\u2019]").replace(re.escape("\u2018"), "['\u2018]")
     return re.compile(pat)
-
 def fix_callouts(md, callout_texts):
     if not callout_texts: return md
     normalized = [(ct, _normalise_for_callout_match(ct)) for ct in callout_texts]
@@ -548,7 +533,6 @@ def fix_callouts(md, callout_texts):
             m = rx.search(out[idx])
             if m: out[idx] = out[idx][:m.start()] + f"<Callout>{m.group()}</Callout>" + out[idx][m.end():]
     return '\n'.join(out)
-
 def fix_empty_tables(md, threshold=0.7):
     lines = md.splitlines(); out = []; i = 0
     while i < len(lines):
@@ -564,7 +548,6 @@ def fix_empty_tables(md, threshold=0.7):
             out.extend(table)
         else: out.append(line); i += 1
     return '\n'.join(out)
-
 def fix_final_review_table(md, cfg):
     rules = cfg.get("table_to_list",[])
     if not rules: return md
@@ -587,7 +570,6 @@ def fix_final_review_table(md, cfg):
             out.append(""); continue
         out.append(line); i += 1
     return '\n'.join(out)
-
 def fix_junk_content(md, cfg):
     lp = [re.compile(p) for p in cfg.get("skip_line_patterns",[])]
     tm = cfg.get("skip_table_markers",[])
@@ -600,11 +582,8 @@ def fix_junk_content(md, cfg):
             continue
         out.append(line); i += 1
     return '\n'.join(out)
-
 def fix_artwork_images(md):
-    """Convert artwork citations into image references + citation lines.
-    Detects lines matching 'LastName, FirstName. Title. Year. Oil on...'
-    and generates ![Title](lastname_slugified_title) above the citation."""
+    """Convert artwork citations into image references + citation lines."""
     art_pat = re.compile(
         r'^(?:<<\s+)?(?:Source:\s+)?'
         r'(\w[\w\s]*?),\s+'
@@ -633,7 +612,6 @@ def fix_artwork_images(md):
         else:
             out.append(line)
     return '\n'.join(out)
-
 def fix_toc_tables(md):
     lines = md.splitlines(); out = []; i = 0
     while i < len(lines):
@@ -646,7 +624,6 @@ def fix_toc_tables(md):
             out.extend(table)
         else: out.append(lines[i]); i += 1
     return '\n'.join(out)
-
 def fix_heading_fragments(md):
     lines = md.splitlines(); remove = set()
     for i, line in enumerate(lines):
@@ -740,7 +717,9 @@ def main():
     ap.add_argument("--template", default="homestead"); ap.add_argument("--page-range", default="")
     ap.add_argument("--dump-fonts", action="store_true"); ap.add_argument("--save-raw", action="store_true")
     ap.add_argument("--postprocess", action="store_true")
+    ap.add_argument("--verbose", action="store_true", help="Show detailed Marker/LLM logging")
     args = ap.parse_args()
+    if args.verbose: logging.getLogger().setLevel(logging.INFO)
 
     page_range = None
     if args.page_range.strip():
