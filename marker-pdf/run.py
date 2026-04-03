@@ -644,6 +644,82 @@ def fix_heading_fragments(md):
     if not remove: return md
     return '\n'.join(l for i, l in enumerate(lines) if i not in remove)
 
+def fix_heading_hierarchy(md, cfg):
+    """Restructure heading levels from font-based to semantic hierarchy.
+    Merges H1+H2 pairs into H4, shifts H3-H5 down one level, converts
+    H6 verses to bold text. Inserts H1 Part and H2 Session headings."""
+    hcfg = cfg.get("heading_hierarchy")
+    if not hcfg: return md
+    session_map = hcfg.get("session_map", [])
+    parts = hcfg.get("parts", [])
+    front_matter = hcfg.get("front_matter_label", "")
+    trailing = hcfg.get("trailing_section")
+    lines = md.splitlines()
+    # Find H1s and their H2 companions
+    h1s = []
+    for i, line in enumerate(lines):
+        if line.startswith('# ') and not line.startswith('## '):
+            h2_idx = h2_text = None
+            for j in range(i+1, min(i+5, len(lines))):
+                if lines[j].startswith('## ') and not lines[j].startswith('### '):
+                    h2_idx = j; h2_text = lines[j][3:].strip(); break
+                elif lines[j].strip() and lines[j].strip()[0] == '#': break
+            h1s.append({'line': i, 'text': line[2:].strip(), 'h2_line': h2_idx, 'h2_text': h2_text})
+    part_map = {p["before_session"]: p["label"] for p in parts}
+    part_markers = [p.get("marker", "") for p in parts if p.get("marker")]
+    skip = set(); replace = {}; before = {}
+    for idx, h1 in enumerate(h1s):
+        if idx >= len(session_map): break
+        sname = session_map[idx]
+        pre = []
+        if sname and sname in part_map:
+            pre.extend(["", "# " + part_map[sname], ""])
+        if sname:
+            pre.extend(["## " + sname, ""])
+        if pre: before[h1['line']] = pre
+        if h1['h2_text']:
+            clean = re.sub(r'^\*(.+)\*$', r'\1', h1['h2_text'])
+            replace[h1['line']] = "#### " + h1['text'] + ": " + clean
+            skip.add(h1['h2_line'])
+        elif sname is None:
+            replace[h1['line']] = "### " + h1['text']
+        else:
+            replace[h1['line']] = "#### " + h1['text']
+    if trailing:
+        tname = trailing.get("session_name", "")
+        tpart = trailing.get("part_label", "")
+        tmarker = trailing.get("subtitle_contains", "")
+        if tmarker:
+            for i, line in enumerate(lines):
+                if line.startswith('## ') and tmarker in line:
+                    pre = []
+                    if tpart: pre.extend(["", "# " + tpart, ""])
+                    if tname: pre.extend(["## " + tname, ""])
+                    if pre: before[i] = pre
+                    clean = re.sub(r'^\*(.+)\*$', r'\1', line[3:].strip())
+                    replace[i] = "#### " + tname + ": " + clean if tname else "#### " + clean
+                    break
+    for i, line in enumerate(lines):
+        s = line.strip()
+        if i in replace or i in skip: continue
+        for pm in part_markers:
+            if pm in s and not s.startswith('#') and len(s) < 30: skip.add(i)
+    out = []
+    if front_matter: out.extend(["# " + front_matter, ""])
+    for i, line in enumerate(lines):
+        if i in before: out.extend(before[i])
+        if i in skip: continue
+        if i in replace: out.append(replace[i]); continue
+        m = re.match(r'^(#{1,6})\s+(.+)$', line)
+        if m:
+            level = len(m.group(1)); text = m.group(2)
+            if level == 6: out.append("**" + text + "**")
+            elif 3 <= level <= 5: out.append('#' * (level + 1) + ' ' + text)
+            elif level == 2: out.append("#### " + text)
+            else: out.append(line)
+        else: out.append(line)
+    return '\n'.join(out)
+
 def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
                  callout_texts=None, inline_bold=None, heading_order=None):
     md = md.replace('\r\n','\n').replace('\r','\n')
@@ -674,6 +750,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = fix_structural_labels(md)
     md = fix_bold_bullets(md)
     md = re.sub(r'^<<\s+\*\*(.+?)\*\*', r'<< \1', md, flags=re.MULTILINE)
+    md = fix_heading_hierarchy(md, cfg)
     md = re.sub(r'\n{3,}', '\n\n', md)
     return md.strip() + '\n'
 
