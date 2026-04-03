@@ -115,3 +115,11 @@ heading_hierarchy:
     part_label: "PART FOUR: Journal"
     session_name: "Further Resources"
     subtitle_contains: "Continuing the Parenting Journey"
+
+  # Sub-division labels detected in heading_order (PyMuPDF scan).
+  # These appear as H1-level decorative text in the PDF between sessions
+  # and are used to insert H3 headings like "### Session 1 Community Study".
+  subdivision_labels:
+    - "Community Study"
+    - "Weekly Disciplines"
+    - "Reflective Projects"
