@@ -66,6 +66,8 @@ discussion_question_labels:
 
 skip_line_patterns:
   - '^(Session \d+|Conclusion|Introduction) .+\*\*'
+  - '^Further Resources\s+\d+$'
+  - '^Stating My Commitments to a Responsible LifeBuilding'
 
 skip_table_markers:
   - 'SEARCHING'
@@ -123,3 +125,12 @@ heading_hierarchy:
     - "Community Study"
     - "Weekly Disciplines"
     - "Reflective Projects"
+
+  # Fix Marker page-break artifacts in merged H4 titles.
+  heading_text_fixes:
+    - match: "We Confess Together: Stating My Commitments to a Responsible"
+      replace: "We Confess Together: Stating My Commitments to a Responsible Life"
+
+  # Artifact headings to remove entirely (Marker page-break junk).
+  remove_artifact_headings:
+    - "LifeBuilding a Home Devoted to God"
