@@ -442,46 +442,80 @@ def fix_pullquote_fragments(md):
 
 def fix_missing_headings(md, heading_order, skip_set):
     """Insert headings found in PDF scan but missing from Marker output.
-    heading_order: [(original_text, level_str), ...] in document order.
-    Compares against headings present in md and inserts missing ones
-    before their next surviving neighbor. Walks backward past italic
-    instruction paragraphs that belong under the missing heading."""
+    Two-pass anchor-bounded matching prevents cross-session consumption:
+    Pass 1: match non-skip H1 anchors to establish session boundaries.
+    Pass 2: match remaining headings within bounded output ranges.
+    Walks backward past italic instruction paragraphs when inserting."""
     if not heading_order: return md
     lines = md.splitlines()
     output_heads = []
     for i, line in enumerate(lines):
         m = re.match(r'^(#{1,6})\s+(.+)$', line)
         if m: output_heads.append((i, normalise_key(m.group(2))))
-    oi = 0
-    matched = []
-    for orig, level in heading_order:
-        key = normalise_key(orig)
-        if key in skip_set: matched.append((True, -1)); continue
-        found_line = -1
-        for j in range(oi, len(output_heads)):
-            if output_heads[j][1] == key:
-                found_line = output_heads[j][0]; oi = j + 1; break
-        matched.append((found_line >= 0, found_line))
+    if not output_heads: return md
+    out_len = len(output_heads)
+    # Pass 1: match non-skip H1 anchors sequentially
+    ho_h1s = [(hi, normalise_key(t)) for hi, (t, l) in enumerate(heading_order)
+              if l == '#' and normalise_key(t) not in skip_set]
+    out_h1s = [(oi, output_heads[oi][1]) for oi in range(out_len)
+               if lines[output_heads[oi][0]].startswith('# ')
+               and not lines[output_heads[oi][0]].startswith('## ')]
+    oj = 0; anchor_pairs = []
+    for ho_hi, ho_key in ho_h1s:
+        for j in range(oj, len(out_h1s)):
+            if out_h1s[j][1] == ho_key:
+                anchor_pairs.append((ho_hi, out_h1s[j][0]))
+                oj = j + 1; break
+    anchor_ho = [ap[0] for ap in anchor_pairs]
+    anchor_out = [ap[1] for ap in anchor_pairs]
+    # Build bounded segments from anchor pairs
+    segments = []
+    if anchor_ho and anchor_ho[0] > 0:
+        segments.append((0, anchor_ho[0], 0, anchor_out[0]))
+    for k in range(len(anchor_ho)):
+        ho_end = anchor_ho[k + 1] if k + 1 < len(anchor_ho) else len(heading_order)
+        out_end = anchor_out[k + 1] if k + 1 < len(anchor_out) else out_len
+        segments.append((anchor_ho[k], ho_end, anchor_out[k], out_end))
+    # Pass 2: match within bounded segments
+    matched = [None] * len(heading_order)
+    for ho_start, ho_end, out_start, out_end in segments:
+        oi = out_start
+        for hi in range(ho_start, ho_end):
+            key = normalise_key(heading_order[hi][0])
+            if key in skip_set: matched[hi] = (True, -1); continue
+            found = -1
+            for j in range(oi, out_end):
+                if output_heads[j][1] == key:
+                    found = output_heads[j][0]; oi = j + 1; break
+            matched[hi] = (found >= 0, found)
+    for hi in range(len(matched)):
+        if matched[hi] is None: matched[hi] = (False, -1)
+    # Compute segment end lines for bounded insertion targets
+    seg_end_line = {}
+    for ho_start, ho_end, out_start, out_end in segments:
+        end_line = output_heads[out_end - 1][0] if out_end > 0 else len(lines)
+        for hi in range(ho_start, ho_end): seg_end_line[hi] = end_line
+    # Insert missing headings (bounded to same segment)
     insertions = {}
     for hi, (orig, level) in enumerate(heading_order):
         is_found, _ = matched[hi]
         if is_found: continue
         key = normalise_key(orig)
         if key in skip_set: continue
+        bound = seg_end_line.get(hi, len(lines))
         insert_before = None
         for fhi in range(hi + 1, len(heading_order)):
             is_f, li = matched[fhi]
-            if is_f and li >= 0: insert_before = li; break
+            if is_f and li >= 0 and li <= bound:
+                insert_before = li; break
         if insert_before is not None:
             actual = insert_before
             while actual > 0:
                 prev = lines[actual - 1].strip()
-                if not prev:
-                    actual -= 1
+                if not prev: actual -= 1
                 elif prev.startswith('*') and prev.endswith('*') and len(prev) > 30:
                     actual -= 1
-                else:
-                    break
+                else: break
             if actual not in insertions: insertions[actual] = []
             insertions[actual].append(f"{level} {orig}")
     if not insertions: return md
@@ -554,13 +588,14 @@ def fix_structural_labels(md):
     return '\n'.join(out)
 
 def fix_dedup_headings(md):
-    """Remove consecutive duplicate heading lines."""
+    """Remove consecutive duplicate heading lines (even with blank lines between)."""
     lines = md.splitlines(); out = []; prev = ""
     for line in lines:
         if re.match(r'^#{1,6}\s+', line.strip()):
             if line.strip() == prev: continue
             prev = line.strip()
-        else: prev = ""
+        elif line.strip():
+            prev = ""  # Reset only on non-blank, non-heading content
         out.append(line)
     return '\n'.join(out)
 
@@ -703,6 +738,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = fix_bullet_numbers(md)
     md = fix_hyphenation(md)
     md = fix_callouts(md, callout_texts or [])
+    md = re.sub(r'</Callout>\s*<Callout>', ' ', md)  # merge adjacent fragments
     md = fix_empty_tables(md)
     md = fix_final_review_table(md, cfg)
     md = fix_inline_bold(md, inline_bold or [])
