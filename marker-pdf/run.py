@@ -284,7 +284,7 @@ def fix_headings(markdown, heading_map, skip_set, heading_order=None):
             if clean in skip_set: continue
             was_bold = content.strip().startswith('**') and content.strip().endswith('**')
             level = (line_level[i], _gl(clean))[0] if i in line_level else _gl(clean)
-            if i in line_level: _gl(clean)  # advance counter
+            if i in line_level: _gl(clean)
             if level: out.append(f"{level} {cc}")
             else: out.append(f"**{cc}**" if was_bold else cc)
         else:
@@ -601,6 +601,39 @@ def fix_junk_content(md, cfg):
         out.append(line); i += 1
     return '\n'.join(out)
 
+def fix_artwork_images(md):
+    """Convert artwork citations into image references + citation lines.
+    Detects lines matching 'LastName, FirstName. Title. Year. Oil on...'
+    and generates ![Title](lastname_slugified_title) above the citation."""
+    art_pat = re.compile(
+        r'^(?:<<\s+)?(?:Source:\s+)?'
+        r'(\w[\w\s]*?),\s+'
+        r'[\w\s.\u00c0-\u017f\-]+?\.\s+'
+        r'(?:\*([^*]+)\*|([A-Z][^.]+?))'
+        r'\.\s+\d{4}')
+    def _filename(lastname, title):
+        name = lastname.strip().split()[-1].lower()
+        slug = re.sub(r'[^a-z0-9]+', '_', title.lower()).strip('_')
+        return f"{name}_{slug}"
+    lines = md.splitlines(); out = []; seen = set()
+    for line in lines:
+        s = line.strip()
+        clean = re.sub(r'^<<\s+', '', s)
+        clean = re.sub(r'^Source:\s+', '', clean)
+        m = art_pat.match(clean) if not art_pat.match(s) else art_pat.match(s)
+        if m:
+            lastname = m.group(1); title = (m.group(2) or m.group(3)).strip()
+            fn = _filename(lastname, title)
+            if fn not in seen:
+                out.append(f"![{title}]({fn})")
+                out.append("")
+                seen.add(fn)
+            citation = re.sub(r'^<<\s+', '', s)
+            out.append(f"<< {citation}")
+        else:
+            out.append(line)
+    return '\n'.join(out)
+
 def fix_toc_tables(md):
     lines = md.splitlines(); out = []; i = 0
     while i < len(lines):
@@ -626,7 +659,7 @@ def fix_heading_fragments(md):
                 if m:
                     lower = m.group(2).strip().lower()
                     if (lower.startswith(h1_text) or lower.endswith(h1_text)) and lower != h1_text: remove.add(i); break
-        if s and not s.startswith('#') and not s.startswith('>') and not s.startswith('<<') and not s.startswith('-') and not s.startswith('*') and not s.startswith('|') and not s.startswith('<Callout'):
+        if s and not s.startswith('#') and not s.startswith('>') and not s.startswith('<<') and not s.startswith('-') and not s.startswith('*') and not s.startswith('|') and not s.startswith('<Callout') and not s.startswith('!['):
             prev_blank = (i == 0) or not lines[i-1].strip(); next_blank = (i+1 >= len(lines)) or not lines[i+1].strip()
             if prev_blank and next_blank and len(s) < 40:
                 for j in range(i+1, min(i+4, len(lines))):
@@ -655,6 +688,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = fix_final_review_table(md, cfg)
     md = fix_inline_bold(md, inline_bold or [])
     md = fix_junk_content(md, cfg)
+    md = fix_artwork_images(md)
     md = fix_missing_headings(md, heading_order or [], skip_set)
     md = fix_dedup_headings(md)
     md = fix_heading_fragments(md)

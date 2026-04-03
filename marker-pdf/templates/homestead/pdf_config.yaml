@@ -70,7 +70,6 @@ discussion_question_labels:
 
 skip_line_patterns:
   - '^(Session \d+|Conclusion|Introduction) .+\*\*'
-  - '^(<< )?(Source: )?[A-Z][a-z].*\d{4}.*Oil on \w+'
 
 skip_table_markers:
   - 'SEARCHING'
