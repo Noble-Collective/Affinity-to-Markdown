@@ -49,6 +49,8 @@ def normalise_key(text):
 def _match_rule(w, r, rule):
     return rule["weight"] == w and rule["min_ratio"] <= r <= rule["max_ratio"]
 
+# ---- PDF font scanning ----
+
 def detect_body_font(pdf_path, page_range=None):
     import fitz
     doc = fitz.open(str(pdf_path))
@@ -66,11 +68,17 @@ def detect_body_font(pdf_path, page_range=None):
     return max(freq, key=freq.get) if freq else ("unknown", 10.0)
 
 def build_heading_map(pdf_path, cfg, body_size, page_range=None):
+    """Returns (heading_map, heading_order).
+    heading_map: {key: [level, ...]} for fix_headings level correction.
+    heading_order: [(original_text, level_str), ...] in document order
+                   for fix_missing_headings gap detection."""
     import fitz
-    hmap = {}; horder = []
+    hmap = {}
+    horder = []
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
-    rules = cfg.get("headings",[]); skip_ratio = cfg.get("skip_large_ratio", 2.4)
+    rules = cfg.get("headings",[])
+    skip_ratio = cfg.get("skip_large_ratio", 2.4)
     for pi in pages:
         for block in doc[pi].get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0: continue
@@ -79,9 +87,12 @@ def build_heading_map(pdf_path, cfg, body_size, page_range=None):
                 for span in line.get("spans",[]):
                     t = span["text"].strip()
                     if any(c.isalpha() for c in t):
-                        k = (span["font"], size_bucket(span["size"])); fc[k] = fc.get(k,0) + len(t)
+                        k = (span["font"], size_bucket(span["size"]))
+                        fc[k] = fc.get(k,0) + len(t)
             if not fc: continue
-            df, ds = max(fc, key=fc.get); ratio = ds / body_size; w = font_weight(df)
+            df, ds = max(fc, key=fc.get)
+            ratio = ds / body_size
+            w = font_weight(df)
             if ratio > skip_ratio: continue
             level = None
             for rule in rules:
@@ -94,16 +105,20 @@ def build_heading_map(pdf_path, cfg, body_size, page_range=None):
                     if sk == (df, ds) and span["text"].strip(): parts.append(span["text"].strip())
             text = " ".join(" ".join(parts).split()).strip()
             if text and len(text) > 2:
-                key = normalise_key(text); lvl = "#" * level
+                key = normalise_key(text)
+                lvl = "#" * level
                 if key not in hmap: hmap[key] = []
-                hmap[key].append(lvl); horder.append((text, lvl))
+                hmap[key].append(lvl)
+                horder.append((text, lvl))
     return hmap, horder
 
 def build_skip_set(pdf_path, cfg, body_size, page_range=None):
     import fitz
-    skip = set(); doc = fitz.open(str(pdf_path))
+    skip = set()
+    doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
-    rh_sig = cfg.get("running_header_signature",[]); skip_ratio = cfg.get("skip_large_ratio", 2.4)
+    rh_sig = cfg.get("running_header_signature",[])
+    skip_ratio = cfg.get("skip_large_ratio", 2.4)
     for pi in pages:
         for block in doc[pi].get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0: continue
@@ -111,19 +126,24 @@ def build_skip_set(pdf_path, cfg, body_size, page_range=None):
             for line in block.get("lines",[]):
                 for span in line.get("spans",[]):
                     t = span["text"].strip()
-                    if t: r = size_bucket(span["size"]) / body_size; wr.add((font_weight(span["font"]), r)); text += span["text"]
+                    if t:
+                        r = size_bucket(span["size"]) / body_size
+                        wr.add((font_weight(span["font"]), r)); text += span["text"]
             text = " ".join(text.split()).strip()
             if not text: continue
             if re.match(r"^\d{1,3}$", text): skip.add(normalise_key(text)); continue
             if any(r > skip_ratio for _,r in wr): skip.add(normalise_key(text)); continue
-            if rh_sig and all(any(_match_rule(w,r,rule) for w,r in wr) for rule in rh_sig): skip.add(normalise_key(text))
+            if rh_sig and all(any(_match_rule(w,r,rule) for w,r in wr) for rule in rh_sig):
+                skip.add(normalise_key(text))
     return skip
 
 def build_blockquote_set(pdf_path, cfg, body_size, page_range=None):
     import fitz
-    bq, cit = set(), set(); doc = fitz.open(str(pdf_path))
+    bq, cit = set(), set()
+    doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
-    mr = cfg.get("quote_max_ratio", 0.88); cm = cfg.get("citation_max_chars", 80)
+    mr = cfg.get("quote_max_ratio", 0.88)
+    cm = cfg.get("citation_max_chars", 80)
     for pi in pages:
         for block in doc[pi].get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0: continue
@@ -131,7 +151,9 @@ def build_blockquote_set(pdf_path, cfg, body_size, page_range=None):
             for line in block.get("lines",[]):
                 for span in line.get("spans",[]):
                     t = span["text"]
-                    if t.strip(): k = (span["font"], size_bucket(span["size"])); fc[k] = fc.get(k,0) + len(t.strip())
+                    if t.strip():
+                        k = (span["font"], size_bucket(span["size"]))
+                        fc[k] = fc.get(k,0) + len(t.strip())
                     text += t
             if not fc: continue
             _, ds = max(fc, key=fc.get)
@@ -145,7 +167,8 @@ def build_blockquote_set(pdf_path, cfg, body_size, page_range=None):
 
 def build_verse_map(pdf_path, cfg, body_size, page_range=None):
     import fitz
-    vm = {}; doc = fitz.open(str(pdf_path))
+    vm = {}
+    doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
     sig = cfg.get("verse_label_signature",[])
     if not sig: return vm
@@ -155,19 +178,25 @@ def build_verse_map(pdf_path, cfg, body_size, page_range=None):
             wr = set()
             for line in block.get("lines",[]):
                 for span in line.get("spans",[]):
-                    if span["text"].strip(): r = size_bucket(span["size"]) / body_size; wr.add((font_weight(span["font"]), r))
+                    if span["text"].strip():
+                        r = size_bucket(span["size"]) / body_size
+                        wr.add((font_weight(span["font"]), r))
             if not all(any(_match_rule(w,r,rule) for w,r in wr) for rule in sig): continue
             lo = []; vn = None
             for line in block.get("lines",[]):
                 lt = "".join(s["text"] for s in line.get("spans",[])).strip()
                 if not lt: continue
                 m = re.match(r"^VERSE\s*(\d+)\s*(.*)", lt, re.IGNORECASE)
-                if m and vn is None: vn = m.group(1); rest = m.group(2).strip(); (lo.append(rest) if rest else None)
+                if m and vn is None:
+                    vn = m.group(1)
+                    rest = m.group(2).strip()
+                    if rest: lo.append(rest)
                 elif vn is not None: lo.append(lt)
             if vn and lo and vn not in vm: vm[vn] = lo
     return vm
 
 def build_inline_bold_set(pdf_path, cfg, body_size, page_range=None):
+    """Collect inline bold phrases from mixed-weight body blocks (min 5 chars)."""
     import fitz
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
@@ -192,6 +221,7 @@ def build_inline_bold_set(pdf_path, cfg, body_size, page_range=None):
     return sorted(phrases, key=len, reverse=True)
 
 def build_callout_set(pdf_path, cfg, body_size, page_range=None):
+    """Scan PDF for callout-styled text. Adjacent blocks per page joined."""
     import fitz
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
@@ -205,7 +235,9 @@ def build_callout_set(pdf_path, cfg, body_size, page_range=None):
             wr = set(); text = ""
             for line in block.get("lines",[]):
                 for span in line.get("spans",[]):
-                    if span["text"].strip(): r = size_bucket(span["size"]) / body_size; wr.add((font_weight(span["font"]), r))
+                    if span["text"].strip():
+                        r = size_bucket(span["size"]) / body_size
+                        wr.add((font_weight(span["font"]), r))
                     text += span["text"]
             text = " ".join(text.split()).strip()
             if not text or not wr: continue
@@ -215,8 +247,13 @@ def build_callout_set(pdf_path, cfg, body_size, page_range=None):
         for ic, text in pb:
             if ic: cur.append(text)
             else:
-                if cur: j = " ".join(cur); (ct.append(j) if len(j) > 15 else None); cur = []
-        if cur: j = " ".join(cur); (ct.append(j) if len(j) > 15 else None)
+                if cur:
+                    j = " ".join(cur)
+                    if len(j) > 15: ct.append(j)
+                    cur = []
+        if cur:
+            j = " ".join(cur)
+            if len(j) > 15: ct.append(j)
     return sorted(set(ct), key=len, reverse=True)
 
 def dump_fonts(pdf_path, page_range=None):
@@ -231,7 +268,8 @@ def dump_fonts(pdf_path, page_range=None):
                 for span in line.get("spans",[]):
                     t = span["text"].strip()
                     if any(c.isalpha() for c in t):
-                        k = (span["font"], size_bucket(span["size"])); freq[k] = freq.get(k,0) + len(t)
+                        k = (span["font"], size_bucket(span["size"]))
+                        freq[k] = freq.get(k,0) + len(t)
                         if k not in samples: samples[k] = t[:50]
     bf, bs = max(freq, key=freq.get)
     print(f"\nBody font: {bf} @ {bs}pt")
@@ -244,10 +282,14 @@ def dump_fonts(pdf_path, page_range=None):
 # ---- Post-processing passes ----
 
 def fix_headings(markdown, heading_map, skip_set):
+    """Remap heading levels using font-derived heading_map.
+    If Marker marks something as a heading but it's NOT in the map,
+    demote it. Preserves bold only if Marker's content was bold."""
     occ = {}
     def _gl(key):
         if key not in heading_map: return None
-        levels = heading_map[key]; idx = occ.get(key, 0); occ[key] = idx + 1
+        levels = heading_map[key]
+        idx = occ.get(key, 0); occ[key] = idx + 1
         return levels[min(idx, len(levels)-1)]
     lines = markdown.splitlines(); out = []
     for line in lines:
@@ -261,8 +303,10 @@ def fix_headings(markdown, heading_map, skip_set):
             if clean in skip_set: continue
             was_bold = content.strip().startswith('**') and content.strip().endswith('**')
             level = _gl(clean)
-            if level: out.append(f"{level} {content_clean}")
-            else: out.append(f"**{content_clean}**" if was_bold else content_clean)
+            if level:
+                out.append(f"{level} {content_clean}")
+            else:
+                out.append(f"**{content_clean}**" if was_bold else content_clean)
         else:
             stripped = line.strip()
             bm = re.match(r'^\*\*(.+?)\*\*$', stripped)
@@ -286,7 +330,8 @@ def fix_verse_labels(markdown, verse_map):
         if m:
             vn = m.group(1); out.append(f"###### Verse {vn}")
             if vn in verse_map and vn not in used:
-                out.append(""); vl = verse_map[vn]
+                out.append("")
+                vl = verse_map[vn]
                 for j,v in enumerate(vl): out.append(f"{v}  " if j < len(vl)-1 else v)
                 out.append(""); used.add(vn); i += 1
                 while i < len(lines):
@@ -306,7 +351,8 @@ def fix_blockquotes(md, bq_set, cit_set):
     lines = md.splitlines(); out = []
     for line in lines:
         s = line.strip()
-        if not s or line.startswith('>') or line.startswith('<<') or line.startswith('#'): out.append(line); continue
+        if not s or line.startswith('>') or line.startswith('<<') or line.startswith('#'):
+            out.append(line); continue
         k = normalise_key(s[:60])
         if k in bq_set: out.append(f"> {s}")
         elif k in cit_set: out.append(f"<< {s}")
@@ -318,14 +364,16 @@ def fix_citations(md, cfg):
     lines = md.splitlines(); out = []
     for i,line in enumerate(lines):
         s = line.strip()
-        if not s or s.startswith('#') or s.startswith('>') or s.startswith('<<') or s.startswith('-') or s.startswith('*') or len(s)>120:
+        if not s or s.startswith('#') or s.startswith('>') or s.startswith('<<') \
+                or s.startswith('-') or s.startswith('*') or len(s)>120:
             out.append(line); continue
         pb = (i==0) or (lines[i-1].strip()=='')
         nb = (i==len(lines)-1) or (lines[i+1].strip()=='')
         if not (pb and nb): out.append(line); continue
         if any(p.match(s) for p in pats): out.append(f"<< {s}"); continue
         pc = next((lines[j].strip() for j in range(i-1,-1,-1) if lines[j].strip()),"")
-        if (pc.startswith('>') or pc.startswith('<<')) and len(s)<cm: out.append(f"<< {s}"); continue
+        if (pc.startswith('>') or pc.startswith('<<')) and len(s)<cm:
+            out.append(f"<< {s}"); continue
         out.append(line)
     return '\n'.join(out)
 
@@ -356,19 +404,26 @@ def fix_pullquote_fragments(md):
     return '\n'.join(out)
 
 def fix_missing_headings(md, heading_order, skip_set):
+    """Insert headings found in PDF scan but missing from Marker output.
+    heading_order: [(original_text, level_str), ...] in document order.
+    Compares against headings present in md and inserts missing ones
+    before their next surviving neighbor. Walks backward past italic
+    instruction paragraphs that belong under the missing heading."""
     if not heading_order: return md
     lines = md.splitlines()
     output_heads = []
     for i, line in enumerate(lines):
         m = re.match(r'^(#{1,6})\s+(.+)$', line)
         if m: output_heads.append((i, normalise_key(m.group(2))))
-    oi = 0; matched = []
+    oi = 0
+    matched = []
     for orig, level in heading_order:
         key = normalise_key(orig)
         if key in skip_set: matched.append((True, -1)); continue
         found_line = -1
         for j in range(oi, len(output_heads)):
-            if output_heads[j][1] == key: found_line = output_heads[j][0]; oi = j + 1; break
+            if output_heads[j][1] == key:
+                found_line = output_heads[j][0]; oi = j + 1; break
         matched.append((found_line >= 0, found_line))
     insertions = {}
     for hi, (orig, level) in enumerate(heading_order):
@@ -384,9 +439,12 @@ def fix_missing_headings(md, heading_order, skip_set):
             actual = insert_before
             while actual > 0:
                 prev = lines[actual - 1].strip()
-                if not prev: actual -= 1
-                elif prev.startswith('*') and prev.endswith('*') and len(prev) > 30: actual -= 1
-                else: break
+                if not prev:
+                    actual -= 1
+                elif prev.startswith('*') and prev.endswith('*') and len(prev) > 30:
+                    actual -= 1
+                else:
+                    break
             if actual not in insertions: insertions[actual] = []
             insertions[actual].append(f"{level} {orig}")
     if not insertions: return md
@@ -398,9 +456,11 @@ def fix_missing_headings(md, heading_order, skip_set):
     return '\n'.join(out)
 
 def fix_missing_section_headings(md, cfg):
+    """Legacy config-based heading insertion (fallback)."""
     ins = cfg.get("missing_section_headings",[])
     if not ins: return md
-    ie = [e for e in ins if "italic_snippet" in e]; be = [e for e in ins if "before_heading" in e]
+    ie = [e for e in ins if "italic_snippet" in e]
+    be = [e for e in ins if "before_heading" in e]
     lines = md.splitlines(); out = []
     for i,line in enumerate(lines):
         s = line.strip()
@@ -430,7 +490,8 @@ def fix_discussion_question_groups(md, cfg):
     md = re.sub(r'\n+\*\*[A-Z][A-Z\s]+\*\*\n+(?=\n*#{1,4}\s+Discussion)', '\n\n', md)
     lines = md.splitlines(); out = []; indq = False; gc = 0
     for line in lines:
-        if re.match(r'^####\s+\*?\*?Discussion Questions\*?\*?', line, re.IGNORECASE): indq = True; gc = 0; out.append(line); continue
+        if re.match(r'^####\s+\*?\*?Discussion Questions\*?\*?', line, re.IGNORECASE):
+            indq = True; gc = 0; out.append(line); continue
         if indq and re.match(r'^#{1,4}\s+', line) and not re.match(r'^#{5,}', line): indq = False
         if indq and re.match(r'^1\.\s+', line) and gc < len(lc):
             if gc > 0: out.append('')
@@ -448,12 +509,15 @@ def fix_structural_labels(md):
         if re.match(r'^\*\*[A-Z]\*\*$', s): continue
         if re.match(r'^\*".+\.\.\.\*$', s): continue
         if s == '\u2022': continue
-        if re.match(r'^#{1,6}\s+\w.*:$', s): out.append(re.sub(r'^#{1,6}\s+', '', line)); continue
-        if s.startswith('\u2022'): out.append(re.sub(r'^\u2022\s*', '- ', line)); continue
+        if re.match(r'^#{1,6}\s+\w.*:$', s):
+            out.append(re.sub(r'^#{1,6}\s+', '', line)); continue
+        if s.startswith('\u2022'):
+            out.append(re.sub(r'^\u2022\s*', '- ', line)); continue
         out.append(line)
     return '\n'.join(out)
 
 def fix_dedup_headings(md):
+    """Remove consecutive duplicate heading lines."""
     lines = md.splitlines(); out = []; prev = ""
     for line in lines:
         if re.match(r'^#{1,6}\s+', line.strip()):
@@ -464,6 +528,7 @@ def fix_dedup_headings(md):
     return '\n'.join(out)
 
 def fix_bold_bullets(md):
+    """Convert **bullet Text**: ... to - **Text**: ..."""
     lines = md.splitlines(); out = []
     for line in lines:
         s = line.strip()
@@ -473,10 +538,12 @@ def fix_bold_bullets(md):
     return '\n'.join(out)
 
 def fix_inline_bold(md, bold_phrases):
+    """Restore inline bold in list items where Marker lost it."""
     if not bold_phrases: return md
     lines = md.splitlines(); out = []
     for line in lines:
-        if not (re.match(r'^\d+\.\s', line.strip()) or line.strip().startswith('- ')): out.append(line); continue
+        if not (re.match(r'^\d+\.\s', line.strip()) or line.strip().startswith('- ')):
+            out.append(line); continue
         for p in bold_phrases:
             if f"**{p}**" in line: continue
             pat = r'(?<!\*)\b' + re.escape(p) + r'\b(?!\*)'
@@ -490,10 +557,13 @@ def _normalise_for_callout_match(text):
     return " ".join(t.split()).strip()
 
 def _callout_regex(ct):
-    text = ct.rstrip('.'); pat = re.escape(text)
-    pat = pat.replace(re.escape("\u2014"), "\\s*[\u2014]?\\s*")
-    pat = pat.replace(re.escape("\u2019"), "['\u2019]")
-    pat = pat.replace(re.escape("\u2018"), "['\u2018]")
+    text = ct.rstrip('.')
+    pat = re.escape(text)
+    _EM = "\u2014"
+    pat = pat.replace(re.escape(_EM), "\\s*[" + _EM + "\u2014]?\\s*")
+    _RQ = "\u2019"; _LQ = "\u2018"
+    pat = pat.replace(re.escape(_RQ), "['" + _RQ + "]")
+    pat = pat.replace(re.escape(_LQ), "['" + _LQ + "]")
     return re.compile(pat)
 
 def fix_callouts(md, callout_texts):
@@ -512,26 +582,32 @@ def fix_callouts(md, callout_texts):
         out.append(line)
     for idx in range(len(out)):
         line = out[idx]
-        if not line or line.startswith('#') or line.startswith('>') or line.startswith('<<') or line.startswith('-'): continue
+        if not line or line.startswith('#') or line.startswith('>') or line.startswith('<<') or line.startswith('-'):
+            continue
         for ct, nc, rx in regexes:
             m = rx.search(out[idx])
             if m: out[idx] = out[idx][:m.start()] + f"<Callout>{m.group()}</Callout>" + out[idx][m.end():]
     return '\n'.join(out)
 
 def fix_empty_tables(md, threshold=0.7):
+    """Remove tables where most cells are empty (blank worksheets/forms)."""
     lines = md.splitlines(); out = []; i = 0
     while i < len(lines):
         line = lines[i]
         if line.strip().startswith('|') and i+1 < len(lines) and '|---' in lines[i+1]:
             table_lines = []
-            while i < len(lines) and lines[i].strip().startswith('|'): table_lines.append(lines[i]); i += 1
+            while i < len(lines) and lines[i].strip().startswith('|'):
+                table_lines.append(lines[i]); i += 1
             total = empty = 0
             for tl in table_lines:
                 if '---' in tl: continue
-                for cell in tl.strip().strip('|').split('|'): total += 1; (None if cell.strip() else (empty := empty + 1))
+                for cell in tl.strip().strip('|').split('|'):
+                    total += 1
+                    if not cell.strip(): empty += 1
             if total > 0 and empty / total >= threshold: continue
             out.extend(table_lines)
-        else: out.append(line); i += 1
+        else:
+            out.append(line); i += 1
     return '\n'.join(out)
 
 def fix_final_review_table(md, cfg):
@@ -575,6 +651,10 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = md.replace('\r\n','\n').replace('\r','\n')
     md = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', md, flags=re.MULTILINE)
     md = re.sub(r'^-{20,}\s*$', '', md, flags=re.MULTILINE)
+    # Unblock content headings: keys that appear in both skip_set and
+    # heading_map at non-H1 levels are real headings (e.g. "Community
+    # Confession" at 14pt) that also appear as running headers (9.5pt).
+    # The heading_map entry proves they're real headings.
     skip_set = {k for k in skip_set
                 if k not in heading_map or any(l == '#' for l in heading_map[k])}
     md = fix_pullquote_fragments(md)
@@ -599,6 +679,8 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = re.sub(r'\n{3,}', '\n\n', md)
     return md.strip() + '\n'
 
+# ---- Marker bug patch ----
+
 def patch_block_relabel():
     from copy import deepcopy
     from marker.processors.block_relabel import BlockRelabelProcessor
@@ -612,19 +694,24 @@ def patch_block_relabel():
                 conf = block.top_k.get(block.block_type)
                 if conf is None or conf > ct: continue
                 nc = get_block_class(rt)
-                nb = nc(polygon=deepcopy(block.polygon), page_id=block.page_id, structure=deepcopy(block.structure), text_extraction_method=block.text_extraction_method, source="heuristics", top_k=block.top_k, metadata=block.metadata)
+                nb = nc(polygon=deepcopy(block.polygon), page_id=block.page_id,
+                    structure=deepcopy(block.structure), text_extraction_method=block.text_extraction_method,
+                    source="heuristics", top_k=block.top_k, metadata=block.metadata)
                 page.replace_block(block, nb)
     BlockRelabelProcessor.__call__ = patched_call
 
 def get_available_gemini_model(api_key):
     candidates = ["gemini-2.0-flash","gemini-2.0-flash-lite","gemini-1.5-flash","gemini-1.5-pro"]
     try:
-        from google import genai; client = genai.Client(api_key=api_key)
+        from google import genai
+        client = genai.Client(api_key=api_key)
         avail = {m.name.split("/")[-1] for m in client.models.list()}
         for c in candidates:
             if c in avail: return c
     except Exception: pass
     return "gemini-2.0-flash"
+
+# ---- Main ----
 
 def main():
     ap = argparse.ArgumentParser(description="Convert PDF to Markdown.")
@@ -633,19 +720,25 @@ def main():
     ap.add_argument("--dump-fonts", action="store_true"); ap.add_argument("--save-raw", action="store_true")
     ap.add_argument("--postprocess", action="store_true")
     args = ap.parse_args()
+
     page_range = None
     if args.page_range.strip():
         pages = []
         for part in args.page_range.split(","):
             part = part.strip()
-            if "-" in part: s,e = part.split("-",1); pages.extend(range(int(s),int(e)+1))
+            if "-" in part:
+                s,e = part.split("-",1); pages.extend(range(int(s),int(e)+1))
             else: pages.append(int(part))
         page_range = pages
+
     if args.dump_fonts:
         p = Path(args.input)
         if not p.exists(): print(f"ERROR: {p}"); sys.exit(1)
         dump_fonts(p, page_range); return
-    cfg = load_template(args.template); print(f"Template: {args.template}")
+
+    cfg = load_template(args.template)
+    print(f"Template: {args.template}")
+
     if args.postprocess:
         rp = Path(args.input)
         if not rp.exists(): print(f"ERROR: {rp}"); sys.exit(1)
@@ -654,7 +747,8 @@ def main():
         if not pp.exists(): print(f"ERROR: {pp}"); sys.exit(1)
         op = Path(args.output) if args.output else rp.with_suffix(".md")
         if op == rp: op = rp.with_stem(rp.stem + "_processed")
-        bfn, bs = detect_body_font(pp, page_range); print(f"Body font: {bfn} @ {bs}pt")
+        bfn, bs = detect_body_font(pp, page_range)
+        print(f"Body font: {bfn} @ {bs}pt")
         print("Building font maps...")
         hm, ho = build_heading_map(pp, cfg, bs, page_range)
         ss = build_skip_set(pp, cfg, bs, page_range)
@@ -662,14 +756,20 @@ def main():
         vm = build_verse_map(pp, cfg, bs, page_range)
         ct = build_callout_set(pp, cfg, bs, page_range)
         ib = build_inline_bold_set(pp, cfg, bs, page_range)
-        print(f"  {len(hm)} headings, {len(ho)} ordered, {len(ss)} skips, {len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
-        raw = rp.read_text(encoding="utf-8"); print("Post-processing...")
+        print(f"  {len(hm)} headings, {len(ho)} ordered, {len(ss)} skips, "
+              f"{len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
+        raw = rp.read_text(encoding="utf-8")
+        print("Post-processing...")
         md = post_process(raw, hm, ss, bq, ci, vm, cfg, ct, ib, ho)
-        op.write_text(md, encoding="utf-8"); print(f"Done! {op} ({len(md.splitlines())} lines)"); return
+        op.write_text(md, encoding="utf-8")
+        print(f"Done! {op} ({len(md.splitlines())} lines)")
+        return
+
     pp = Path(args.input)
     if not pp.exists(): print(f"ERROR: {pp}"); sys.exit(1)
     op = Path(args.output) if args.output else pp.with_suffix(".md")
-    bfn, bs = detect_body_font(pp, page_range); print(f"Body font: {bfn} @ {bs}pt")
+    bfn, bs = detect_body_font(pp, page_range)
+    print(f"Body font: {bfn} @ {bs}pt")
     print("Building font maps...")
     hm, ho = build_heading_map(pp, cfg, bs, page_range)
     ss = build_skip_set(pp, cfg, bs, page_range)
@@ -677,29 +777,47 @@ def main():
     vm = build_verse_map(pp, cfg, bs, page_range)
     ct = build_callout_set(pp, cfg, bs, page_range)
     ib = build_inline_bold_set(pp, cfg, bs, page_range)
-    print(f"  {len(hm)} headings, {len(ho)} ordered, {len(ss)} skips, {len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
-    patch_block_relabel(); print("Loading models...")
-    import torch; from marker.models import create_model_dict
+    print(f"  {len(hm)} headings, {len(ho)} ordered, {len(ss)} skips, "
+          f"{len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
+
+    patch_block_relabel()
+    print("Loading models...")
+    import torch
+    from marker.models import create_model_dict
     models = create_model_dict(device="cpu", dtype=torch.float32)
-    mcfg = {"lowres_image_dpi": 96, "block_relabel_str": "SectionHeader:Text:0.6,Figure:Text:1.0,Picture:Text:1.0",
-        "level_count": 4, "default_level": 3, "common_element_threshold": 0.15, "text_match_threshold": 85,
-        "BlockquoteProcessor_min_x_indent": 0.01, "BlockquoteProcessor_x_start_tolerance": 0.05,
-        "BlockquoteProcessor_x_end_tolerance": 0.05, "TextProcessor_column_gap_ratio": 0.06,
+
+    mcfg = {
+        "lowres_image_dpi": 96,
+        "block_relabel_str": "SectionHeader:Text:0.6,Figure:Text:1.0,Picture:Text:1.0",
+        "level_count": 4, "default_level": 3,
+        "common_element_threshold": 0.15, "text_match_threshold": 85,
+        "BlockquoteProcessor_min_x_indent": 0.01,
+        "BlockquoteProcessor_x_start_tolerance": 0.05,
+        "BlockquoteProcessor_x_end_tolerance": 0.05,
+        "TextProcessor_column_gap_ratio": 0.06,
         "disable_links": True, "disable_ocr": True, "pdftext_workers": 1,
-        "disable_image_extraction": True, "extract_images": False}
-    gak = os.environ.get("GOOGLE_API_KEY",""); llm = None
+        "disable_image_extraction": True, "extract_images": False,
+    }
+    gak = os.environ.get("GOOGLE_API_KEY","")
+    llm = None
     if gak:
-        mn = get_available_gemini_model(gak); mcfg["gemini_api_key"] = gak; mcfg["gemini_model_name"] = mn
+        mn = get_available_gemini_model(gak)
+        mcfg["gemini_api_key"] = gak; mcfg["gemini_model_name"] = mn
         llm = "marker.services.gemini.GoogleGeminiService"
     if page_range: mcfg["page_range"] = page_range
+
     from marker.converters.pdf import PdfConverter
     print(f"Converting {pp.name}...")
     conv = PdfConverter(artifact_dict=models, processor_list=None, config=mcfg, llm_service=llm)
     rendered = conv(str(pp))
-    if args.save_raw: rp2 = op.with_suffix(".raw.md"); rp2.write_text(rendered.markdown, encoding="utf-8"); print(f"Raw saved: {rp2}")
+    if args.save_raw:
+        rp2 = op.with_suffix(".raw.md"); rp2.write_text(rendered.markdown, encoding="utf-8")
+        print(f"Raw saved: {rp2}")
+
     print("Post-processing...")
     md = post_process(rendered.markdown, hm, ss, bq, ci, vm, cfg, ct, ib, ho)
-    op.write_text(md, encoding="utf-8"); print(f"Done! {op} ({len(md.splitlines())} lines)")
+    op.write_text(md, encoding="utf-8")
+    print(f"Done! {op} ({len(md.splitlines())} lines)")
 
 if __name__ == "__main__":
     main()
