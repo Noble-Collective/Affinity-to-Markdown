@@ -69,9 +69,9 @@ def detect_body_font(pdf_path, page_range=None):
 
 def build_heading_map(pdf_path, cfg, body_size, page_range=None):
     """Returns (heading_map, heading_order).
-    heading_map: {key: [level, ...]} for fix_headings level correction.
+    heading_map: {key: [level, ...]} for fix_headings fallback.
     heading_order: [(original_text, level_str), ...] in document order
-                   for fix_missing_headings gap detection."""
+                   for sequential heading matching and gap detection."""
     import fitz
     hmap = {}
     horder = []
@@ -281,18 +281,49 @@ def dump_fonts(pdf_path, page_range=None):
 
 # ---- Post-processing passes ----
 
-def fix_headings(markdown, heading_map, skip_set):
-    """Remap heading levels using font-derived heading_map.
-    If Marker marks something as a heading but it's NOT in the map,
-    demote it. Preserves bold only if Marker's content was bold."""
+def fix_headings(markdown, heading_map, skip_set, heading_order=None):
+    """Remap heading levels using sequential matching against heading_order.
+    Phase 1: pre-scans output for heading/bold candidates and matches each
+    against heading_order in document order (single pointer walk).
+    Phase 2: applies matched levels, with fallback to heading_map occurrence
+    counter for headings not in heading_order."""
+    lines = markdown.splitlines()
+    # Phase 1: sequential matching against heading_order
+    line_level = {}
+    if heading_order:
+        hoi = 0
+        for i, line in enumerate(lines):
+            m = re.match(r'^(#{1,6})\s+(.+)$', line)
+            if m:
+                cc = re.sub(r'^\*\*(.+)\*\*$', r'\1', m.group(2).strip())
+                cc = re.sub(r'^\*(.+)\*$', r'\1', cc.strip())
+                clean = normalise_key(cc)
+                if clean in skip_set: continue
+                for j in range(hoi, len(heading_order)):
+                    ho_key = normalise_key(heading_order[j][0])
+                    if ho_key in skip_set: continue
+                    if ho_key == clean:
+                        line_level[i] = heading_order[j][1]; hoi = j + 1; break
+            else:
+                stripped = line.strip()
+                bm = re.match(r'^\*\*(.+?)\*\*$', stripped)
+                if bm:
+                    clean = normalise_key(bm.group(1))
+                    if clean in skip_set: continue
+                    for j in range(hoi, len(heading_order)):
+                        ho_key = normalise_key(heading_order[j][0])
+                        if ho_key in skip_set: continue
+                        if ho_key == clean:
+                            line_level[i] = heading_order[j][1]; hoi = j + 1; break
+    # Phase 2: apply levels with fallback
     occ = {}
     def _gl(key):
         if key not in heading_map: return None
         levels = heading_map[key]
         idx = occ.get(key, 0); occ[key] = idx + 1
         return levels[min(idx, len(levels)-1)]
-    lines = markdown.splitlines(); out = []
-    for line in lines:
+    out = []
+    for i, line in enumerate(lines):
         if normalise_key(re.sub(r"[#>]","",line)) in skip_set: continue
         m = re.match(r'^(#{1,6})\s+(.+)$', line)
         if m:
@@ -302,7 +333,10 @@ def fix_headings(markdown, heading_map, skip_set):
             clean = normalise_key(content_clean)
             if clean in skip_set: continue
             was_bold = content.strip().startswith('**') and content.strip().endswith('**')
-            level = _gl(clean)
+            if i in line_level:
+                level = line_level[i]; _gl(clean)
+            else:
+                level = _gl(clean)
             if level:
                 out.append(f"{level} {content_clean}")
             else:
@@ -312,7 +346,10 @@ def fix_headings(markdown, heading_map, skip_set):
             bm = re.match(r'^\*\*(.+?)\*\*$', stripped)
             if bm:
                 inner = bm.group(1); clean = normalise_key(inner)
-                level = _gl(clean)
+                if i in line_level:
+                    level = line_level[i]; _gl(clean)
+                else:
+                    level = _gl(clean)
                 if level: out.append(f"{level} {inner}"); continue
             bc = normalise_key(line); level = _gl(bc)
             if level and stripped and len(stripped) > 2: out.append(f"{level} {stripped}")
@@ -658,7 +695,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     skip_set = {k for k in skip_set
                 if k not in heading_map or any(l == '#' for l in heading_map[k])}
     md = fix_pullquote_fragments(md)
-    md = fix_headings(md, heading_map, skip_set)
+    md = fix_headings(md, heading_map, skip_set, heading_order)
     md = fix_verse_labels(md, verse_map)
     md = fix_double_blockquote_citations(md)
     md = fix_blockquotes(md, bq_set, cit_set)
