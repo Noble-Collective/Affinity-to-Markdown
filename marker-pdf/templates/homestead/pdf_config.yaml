@@ -69,9 +69,8 @@ discussion_question_labels:
   - "##### Evaluating Our Lives"
 
 skip_line_patterns:
-  - '^Session \d+ (Community Study|Weekly Disciplines)'
-  - '^Session \d+ .+\*\*'
-  - '^(<< )?(Source: )?[A-Z][a-z].*\d{4}.*Oil on (canvas|panel|wood|linen)'
+  - '^(Session \d+|Conclusion|Introduction) .+\*\*'
+  - '^(<< )?(Source: )?[A-Z][a-z].*\d{4}.*Oil on \w+'
 
 skip_table_markers:
   - 'SEARCHING'
