@@ -810,12 +810,40 @@ def fix_heading_hierarchy(md, cfg, heading_order=None):
     rotated = cfg.get("_rotated_subdivisions", [])
     if rotated:
         ri = 0; new_out = []
-        for line in out:
+        for li, line in enumerate(out):
             if ri < len(rotated):
                 hm2 = re.match(r'^(#{4,5})\s+(.+)$', line)
                 if hm2 and normalise_key(hm2.group(2)) == rotated[ri][1]:
-                    new_out.extend(["", "### " + rotated[ri][0], ""])
-                    ri += 1
+                    # Skip if a matching H2 session heading follows within a few lines
+                    # (this anchor is at end of previous section, not inside correct session)
+                    boundary = False
+                    rkey = normalise_key(rotated[ri][0])
+                    for j in range(li+1, min(li+8, len(out))):
+                        al = out[j].strip()
+                        if al.startswith('## ') and not al.startswith('### '):
+                            if normalise_key(al[3:]) == rkey: boundary = True
+                            break
+                        if al.startswith('# ') and not al.startswith('## '):
+                            boundary = True; break
+                    if not boundary:
+                        new_out.extend(["", "### " + rotated[ri][0], ""])
+                        ri += 1
+            new_out.append(line)
+        out = new_out
+    # Phase 3c: Config-driven subdivision overrides (for headings not auto-detected)
+    overrides = hcfg.get("subdivision_overrides", [])
+    if overrides:
+        cur_session = ""; new_out = []
+        for line in out:
+            if line.startswith('## ') and not line.startswith('### '):
+                cur_session = line[3:].strip()
+            for ov in overrides:
+                if cur_session == ov["session"]:
+                    hm2 = re.match(r'^(####)\s+(.+)$', line)
+                    if hm2 and normalise_key(hm2.group(2)) == normalise_key(ov["before_heading"]):
+                        new_out.extend(["", "### " + ov["label"], ""])
+                        overrides = [o for o in overrides if o is not ov]  # consume it
+                        break
             new_out.append(line)
         out = new_out
     # Phase 4: Cleanup — remove misplaced headings and duplicate artifacts

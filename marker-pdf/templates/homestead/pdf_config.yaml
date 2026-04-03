@@ -149,6 +149,16 @@ heading_hierarchy:
     - "COMMUNITY CONFESSION"
     - "CELEBRATION CEREMONY"
 
+  # Manual subdivision overrides for headings not auto-detected.
+  # Used when heading_order or rotated text doesn't capture a sub-division.
+  subdivision_overrides:
+    - session: "Conclusion"
+      label: "Conclusion Community Study"
+      before_heading: "Tuning Our Hearts to the Lord"
+    - session: "Introduction"
+      label: "Introduction Orientation and Overview"
+      before_heading: "Orientation and Overview"
+
   # Fix Marker page-break artifacts in merged H4 titles.
   heading_text_fixes:
     - match: "We Confess Together: Stating My Commitments to a Responsible"
