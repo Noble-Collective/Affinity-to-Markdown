@@ -126,6 +126,29 @@ heading_hierarchy:
     - "Weekly Disciplines"
     - "Reflective Projects"
 
+  # Rotated sidebar sub-division headings (14pt bold, vertical text).
+  # These appear as sideways labels in the PDF margins. Detected by
+  # build_rotated_subdivisions and inserted as H3 headings.
+  rotated_subdivision_labels:
+    - "DAY ONE"
+    - "DAY TWO"
+    - "OUTDOOR EXPERIENCE ONE"
+    - "EXPERIENCE TWO: HEARTH BUILDING"
+    - "EXPERIENCE THREE: SHEPHERD'S CARRY"
+    - "EXPERIENCE FOUR: TABLE SETTING"
+    - "EXPERIENCE FIVE: NIGHT VIGIL"
+    - "OUTDOOR EXPERIENCE"
+    - "MENTORING SESSION ONE"
+    - "MENTORING SESSION TWO"
+    - "MENTORING SESSION THREE"
+    - "MENTORING SESSION FOUR"
+    - "MENTORING SESSION FIVE"
+    - "MENTORING SESSION SIX"
+    - "GENERAL REFLECTIONS"
+    - "PERSONAL TESTIMONY"
+    - "COMMUNITY CONFESSION"
+    - "CELEBRATION CEREMONY"
+
   # Fix Marker page-break artifacts in merged H4 titles.
   heading_text_fixes:
     - match: "We Confess Together: Stating My Commitments to a Responsible"

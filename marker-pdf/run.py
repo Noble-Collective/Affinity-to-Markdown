@@ -222,6 +222,52 @@ def build_callout_set(pdf_path, cfg, body_size, page_range=None):
         if cur: j = " ".join(cur); (ct.append(j) if len(j) > 15 else None)
     return sorted(set(ct), key=len, reverse=True)
 
+def build_rotated_subdivisions(pdf_path, cfg, body_size, page_range=None):
+    """Detect rotated sidebar sub-division headings and their anchor
+    (the first horizontal content heading on the same page)."""
+    import fitz
+    hcfg = cfg.get("heading_hierarchy", {})
+    labels = hcfg.get("rotated_subdivision_labels", [])
+    if not labels: return []
+    def _na(s): return s.replace("\u2018","'").replace("\u2019","'")
+    label_set = {_na(l.upper()) for l in labels}
+    doc = fitz.open(str(pdf_path))
+    pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
+    rules = cfg.get("headings", [])
+    found = {}
+    for pi in pages:
+        for block in doc[pi].get_text("dict", sort=True)["blocks"]:
+            if block.get("type") != 0: continue
+            for line in block.get("lines", []):
+                if line.get("dir", (1,0)) == (1,0): continue
+                text = "".join(s["text"] for s in line.get("spans", [])).strip()
+                key = _na(text.upper())
+                if key in label_set and key not in found:
+                    found[key] = (pi, text)
+    results = []
+    for key, (page_num, orig) in sorted(found.items(), key=lambda x: x[1][0]):
+        page = doc[page_num]; anchor = None
+        for block in page.get_text("dict", sort=True)["blocks"]:
+            if block.get("type") != 0: continue
+            for line in block.get("lines", []):
+                if line.get("dir", (1,0)) != (1,0): continue
+                for span in line.get("spans", []):
+                    t = span["text"].strip()
+                    if not t or len(t) < 3: continue
+                    sz = size_bucket(span["size"]); ratio = sz / body_size; w = font_weight(span["font"])
+                    for rule in rules:
+                        if rule["weight"] == w and rule["min_ratio"] <= ratio <= rule["max_ratio"]:
+                            anchor = t; break
+                    if anchor: break
+                if anchor: break
+            if anchor: break
+        if anchor:
+            words = orig.split(); tw = []
+            for i, w in enumerate(words):
+                tw.append(w.capitalize() if (i == 0 or ':' in w or w.upper() not in ('AND','THE','OF','IN','A')) else w.lower())
+            results.append((" ".join(tw), normalise_key(anchor), page_num))
+    return results
+
 def dump_fonts(pdf_path, page_range=None):
     import fitz
     doc = fitz.open(str(pdf_path))
@@ -760,6 +806,18 @@ def fix_heading_hierarchy(md, cfg, heading_order=None):
                         used.add(uid); break
             new_out.append(line)
         out = new_out
+    # Phase 3b: Insert rotated sidebar sub-division headings
+    rotated = cfg.get("_rotated_subdivisions", [])
+    if rotated:
+        ri = 0; new_out = []
+        for line in out:
+            if ri < len(rotated):
+                hm2 = re.match(r'^(#{4,5})\s+(.+)$', line)
+                if hm2 and normalise_key(hm2.group(2)) == rotated[ri][1]:
+                    new_out.extend(["", "### " + rotated[ri][0], ""])
+                    ri += 1
+            new_out.append(line)
+        out = new_out
     # Phase 4: Cleanup — remove misplaced headings and duplicate artifacts
     session_names = {normalise_key(s) for s in session_map if s}
     subdiv_text_keys = set()
@@ -914,6 +972,7 @@ def main():
         vm = build_verse_map(pp, cfg, bs, page_range)
         ct = build_callout_set(pp, cfg, bs, page_range)
         ib = build_inline_bold_set(pp, cfg, bs, page_range)
+        cfg["_rotated_subdivisions"] = build_rotated_subdivisions(pp, cfg, bs, page_range)
         print(f"  {len(hm)} headings, {len(ho)} ordered, {len(ss)} skips, "
               f"{len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
         raw = rp.read_text(encoding="utf-8")
@@ -935,6 +994,7 @@ def main():
     vm = build_verse_map(pp, cfg, bs, page_range)
     ct = build_callout_set(pp, cfg, bs, page_range)
     ib = build_inline_bold_set(pp, cfg, bs, page_range)
+    cfg["_rotated_subdivisions"] = build_rotated_subdivisions(pp, cfg, bs, page_range)
     print(f"  {len(hm)} headings, {len(ho)} ordered, {len(ss)} skips, "
           f"{len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
 
