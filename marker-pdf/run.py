@@ -688,6 +688,33 @@ def fix_heading_fragments(md):
     if not remove: return md
     return '\n'.join(l for i, l in enumerate(lines) if i not in remove)
 
+def fix_front_matter(md, cfg):
+    """Apply front matter corrections: remove specific lines and apply
+    text replacements from config for title/copyright pages."""
+    fm = cfg.get("front_matter_corrections")
+    if not fm: return md
+    lines = md.splitlines()
+    end_marker = fm.get("ends_before", "")
+    end_idx = len(lines)
+    if end_marker:
+        for i, line in enumerate(lines):
+            if line.strip() == end_marker: end_idx = i; break
+    remove_pats = [re.compile(p) for p in fm.get("remove_lines", [])]
+    replacements = fm.get("text_replacements", [])
+    out = []
+    for i, line in enumerate(lines):
+        if i < end_idx:
+            s = line.strip()
+            if any(p.search(s) for p in remove_pats): continue
+            for rep in replacements:
+                m = rep["match"]
+                if s == m:
+                    line = rep["replace"]; break
+                elif s.startswith(m):
+                    line = rep["replace"] + s[len(m):]; break
+        out.append(line)
+    return '\n'.join(out)
+
 def fix_heading_hierarchy(md, cfg, heading_order=None):
     """Restructure heading levels from font-based to semantic hierarchy.
     Merges H1+H2 pairs into H4, shifts H3-H5 down one level, converts
@@ -918,6 +945,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = fix_structural_labels(md)
     md = fix_bold_bullets(md)
     md = re.sub(r'^<<\s+\*\*(.+?)\*\*', r'<< \1', md, flags=re.MULTILINE)
+    md = fix_front_matter(md, cfg)
     md = fix_heading_hierarchy(md, cfg, heading_order)
     md = re.sub(r'\n{3,}', '\n\n', md)
     return md.strip() + '\n'
