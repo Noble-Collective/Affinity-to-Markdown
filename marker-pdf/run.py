@@ -583,7 +583,6 @@ def fix_junk_content(md, cfg):
         out.append(line); i += 1
     return '\n'.join(out)
 def fix_artwork_images(md):
-    """Convert artwork citations into image references + citation lines."""
     art_pat = re.compile(
         r'^(?:<<\s+)?(?:Source:\s+)?'
         r'(\w[\w\s]*?),\s+'
@@ -609,8 +608,7 @@ def fix_artwork_images(md):
                 seen.add(fn)
             citation = re.sub(r'^<<\s+', '', s)
             out.append(f"<< {citation}")
-        else:
-            out.append(line)
+        else: out.append(line)
     return '\n'.join(out)
 def fix_toc_tables(md):
     lines = md.splitlines(); out = []; i = 0
@@ -644,18 +642,21 @@ def fix_heading_fragments(md):
     if not remove: return md
     return '\n'.join(l for i, l in enumerate(lines) if i not in remove)
 
-def fix_heading_hierarchy(md, cfg):
+def fix_heading_hierarchy(md, cfg, heading_order=None):
     """Restructure heading levels from font-based to semantic hierarchy.
     Merges H1+H2 pairs into H4, shifts H3-H5 down one level, converts
-    H6 verses to bold text. Inserts H1 Part and H2 Session headings."""
+    H6 verses to bold text. Inserts H1 Part, H2 Session, and H3
+    sub-division headings. Sub-division positions detected from
+    heading_order data (PyMuPDF font scan)."""
     hcfg = cfg.get("heading_hierarchy")
     if not hcfg: return md
     session_map = hcfg.get("session_map", [])
     parts = hcfg.get("parts", [])
     front_matter = hcfg.get("front_matter_label", "")
     trailing = hcfg.get("trailing_section")
+    subdiv_labels = hcfg.get("subdivision_labels", [])
     lines = md.splitlines()
-    # Find H1s and their H2 companions
+    # Phase 1: Find H1s and H2 companions, build session structure
     h1s = []
     for i, line in enumerate(lines):
         if line.startswith('# ') and not line.startswith('## '):
@@ -665,30 +666,26 @@ def fix_heading_hierarchy(md, cfg):
                     h2_idx = j; h2_text = lines[j][3:].strip(); break
                 elif lines[j].strip() and lines[j].strip()[0] == '#': break
             h1s.append({'line': i, 'text': line[2:].strip(), 'h2_line': h2_idx, 'h2_text': h2_text})
+    h1_title_keys = [normalise_key(h['text']) for h in h1s]
     part_map = {p["before_session"]: p["label"] for p in parts}
-    part_markers = [p.get("marker", "") for p in parts if p.get("marker")]
+    part_markers = [p.get("marker","") for p in parts if p.get("marker")]
     skip = set(); replace = {}; before = {}
     for idx, h1 in enumerate(h1s):
         if idx >= len(session_map): break
         sname = session_map[idx]
         pre = []
-        if sname and sname in part_map:
-            pre.extend(["", "# " + part_map[sname], ""])
-        if sname:
-            pre.extend(["## " + sname, ""])
+        if sname and sname in part_map: pre.extend(["", "# " + part_map[sname], ""])
+        if sname: pre.extend(["## " + sname, ""])
         if pre: before[h1['line']] = pre
         if h1['h2_text']:
             clean = re.sub(r'^\*(.+)\*$', r'\1', h1['h2_text'])
             replace[h1['line']] = "#### " + h1['text'] + ": " + clean
             skip.add(h1['h2_line'])
-        elif sname is None:
-            replace[h1['line']] = "### " + h1['text']
-        else:
-            replace[h1['line']] = "#### " + h1['text']
+        elif sname is None: replace[h1['line']] = "### " + h1['text']
+        else: replace[h1['line']] = "#### " + h1['text']
     if trailing:
-        tname = trailing.get("session_name", "")
-        tpart = trailing.get("part_label", "")
-        tmarker = trailing.get("subtitle_contains", "")
+        tname = trailing.get("session_name",""); tpart = trailing.get("part_label","")
+        tmarker = trailing.get("subtitle_contains","")
         if tmarker:
             for i, line in enumerate(lines):
                 if line.startswith('## ') and tmarker in line:
@@ -704,6 +701,8 @@ def fix_heading_hierarchy(md, cfg):
         if i in replace or i in skip: continue
         for pm in part_markers:
             if pm in s and not s.startswith('#') and len(s) < 30: skip.add(i)
+        if re.match(r'^(Further Resources\s*)+$', s) and not s.startswith('#'): skip.add(i)
+    # Phase 2: Build output with level shifts
     out = []
     if front_matter: out.extend(["# " + front_matter, ""])
     for i, line in enumerate(lines):
@@ -712,12 +711,48 @@ def fix_heading_hierarchy(md, cfg):
         if i in replace: out.append(replace[i]); continue
         m = re.match(r'^(#{1,6})\s+(.+)$', line)
         if m:
-            level = len(m.group(1)); text = m.group(2)
-            if level == 6: out.append("**" + text + "**")
-            elif 3 <= level <= 5: out.append('#' * (level + 1) + ' ' + text)
-            elif level == 2: out.append("#### " + text)
+            lv = len(m.group(1)); tx = m.group(2)
+            if lv == 6: out.append("**" + tx + "**")
+            elif 3 <= lv <= 5: out.append('#' * (lv + 1) + ' ' + tx)
+            elif lv == 2: out.append("#### " + tx)
             else: out.append(line)
         else: out.append(line)
+    # Phase 3: Insert H3 sub-division headings from heading_order
+    if heading_order and subdiv_labels:
+        subdiv_keys = {normalise_key(s) for s in subdiv_labels}
+        si = -1; sn = ""; subdivs = []
+        for i, (text, level) in enumerate(heading_order):
+            key = normalise_key(text)
+            if level != '#': continue
+            if key in subdiv_keys:
+                for j in range(i+1, min(i+5, len(heading_order))):
+                    nk = normalise_key(heading_order[j][0])
+                    if nk not in subdiv_keys and heading_order[j][1] in ('###','####'):
+                        subdivs.append((si, sn, text, nk)); break
+            else:
+                for ki in range(si+1, len(h1_title_keys)):
+                    if h1_title_keys[ki] == key:
+                        si = ki; sn = session_map[si] if si < len(session_map) else ""; break
+        def _pfx(s):
+            if not s: return ""
+            nums = {"One":"1","Two":"2","Three":"3","Four":"4","Five":"5","Six":"6"}
+            m2 = re.match(r'^Session (\w+)$', s)
+            return "Session " + nums.get(m2.group(1), m2.group(1)) if m2 else s
+        cur = -1; used = set(); new_out = []
+        for line in out:
+            if line.startswith('## ') and not line.startswith('### '): cur += 1
+            hm2 = re.match(r'^(####)\s+(.+)$', line)
+            if hm2 and cur >= 0:
+                hkey = normalise_key(hm2.group(2))
+                for s_i, s_n, sdtxt, akey in subdivs:
+                    uid = (s_i, normalise_key(sdtxt))
+                    if uid in used: continue
+                    if s_i == cur and hkey == akey:
+                        pfx = _pfx(s_n)
+                        new_out.extend(["", ("### " + pfx + " " + sdtxt) if pfx else ("### " + sdtxt), ""])
+                        used.add(uid); break
+            new_out.append(line)
+        out = new_out
     return '\n'.join(out)
 
 def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
@@ -750,7 +785,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = fix_structural_labels(md)
     md = fix_bold_bullets(md)
     md = re.sub(r'^<<\s+\*\*(.+?)\*\*', r'<< \1', md, flags=re.MULTILINE)
-    md = fix_heading_hierarchy(md, cfg)
+    md = fix_heading_hierarchy(md, cfg, heading_order)
     md = re.sub(r'\n{3,}', '\n\n', md)
     return md.strip() + '\n'
 
