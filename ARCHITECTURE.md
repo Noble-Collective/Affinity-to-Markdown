@@ -2,7 +2,7 @@
 
 This document captures the design decisions, technical learnings, and implementation patterns for the Affinity-to-Markdown conversion system. It exists so future development (by humans or Claude) can build on prior work without re-discovering the same things.
 
-**Last updated:** April 3, 2026
+**Last updated:** April 3, 2026 (evening session)
 
 ---
 
@@ -25,10 +25,10 @@ Active development is on the **Marker PDF** path. The AFPUB converter is a stabl
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `marker-pdf/run.py` | ~1100 | Main converter + full post-processing pipeline |
-| `marker-pdf/templates/homestead/pdf_config.yaml` | ~199 | All book-specific configuration |
+| `marker-pdf/run.py` | ~1150 | Main converter + full post-processing pipeline |
+| `marker-pdf/templates/homestead/pdf_config.yaml` | ~205 | All book-specific configuration |
 
-**IMPORTANT:** `run.py` is ~54KB. It exceeds what GitHub MCP tools can push inline. For future changes, either use `str_replace` on the git copy for small edits, or have Steve download the file and push locally.
+**IMPORTANT:** `run.py` is ~55KB. It exceeds what GitHub MCP tools can push inline. For changes, use `filesystem:edit_file` (MCP) for surgical edits on Steve's local repo, then Steve pushes via git. Config files are small enough for GitHub API.
 
 ---
 
@@ -67,6 +67,7 @@ python run.py "path/to/book.pdf" --dump-fonts
 4. **heading_order provides document-order context** — sequential matching ensures headings are assigned correctly even when the same text appears multiple times.
 5. **fix_heading_hierarchy runs LAST** — it restructures the final output after all other passes have stabilized the content.
 6. **OCR is OFF** (`disable_ocr: True`) — all text is vector from Affinity Publisher.
+7. **Rule-based fixes over text-specific patches** — when an output issue is found, diagnose via raw Marker output + PyMuPDF font/position data + pipeline trace. Fix at the rule level using PDF properties (font, size, ratio, position). Text-specific config fixes require explicit approval.
 
 ---
 
@@ -84,6 +85,7 @@ These run on the PDF before post-processing and build lookup tables:
 | `build_callout_set()` | list | Large-font standalone text for `<Callout>` tags |
 | `build_inline_bold_set()` | list | Bold phrases within mixed-weight body paragraphs |
 | `build_rotated_subdivisions()` | list of (label, anchor_key, page) | Vertical sidebar text (14pt bold) matched to horizontal anchors |
+| `build_right_aligned_citations()` | dict of key → [lines] | Body-size, short, right-aligned text that Marker misidentifies as blockquotes |
 
 ---
 
@@ -95,8 +97,8 @@ Passes run in this order:
 2. `fix_headings` — reassign heading levels from heading_map using heading_order for sequential matching
 3. `fix_verse_labels` — normalize VERSE N labels, inject verse text from verse_map
 4. `fix_double_blockquote_citations` — convert `> >` to `<<`
-5. `fix_blockquotes` — apply blockquote formatting from bq_set
-6. `fix_citations` — apply citation formatting from citation patterns + proximity
+5. `fix_blockquotes` — apply blockquote/citation formatting from bq_set, cit_set, and right_aligned_map; re-evaluate Marker `>` lines against right-aligned citations
+6. `fix_citations` — apply citation formatting from citation patterns + proximity (min length > 5)
 7. `fix_bullet_numbers` — convert `- 1.` to `1.`
 8. `fix_hyphenation` — rejoin hyphenated words split across lines
 9. `fix_callouts` — wrap callout text in `<Callout>` tags, remove duplicates
@@ -105,7 +107,7 @@ Passes run in this order:
 12. `fix_final_review_table` — convert specific tables to numbered lists
 13. `fix_inline_bold` — restore bold phrases in list items
 14. `fix_junk_content` — remove lines matching skip_line_patterns
-15. `fix_artwork_images` — detect art citations, insert `![title](filename)` references
+15. `fix_artwork_images` — detect art citations (strips `>`, `<<`, `Source:` prefixes), insert `![title](filename)` references
 16. `fix_missing_headings` — insert headings that are in heading_order but missing from output
 17. `fix_dedup_headings` — remove consecutive duplicate headings
 18. `fix_heading_fragments` — remove orphan text fragments near H1 headings
@@ -173,6 +175,7 @@ Config-driven fixes for title page and copyright page formatting issues:
   - Split merged title text to multi-line
   - Split merged author names to separate bold lines
   - Strip erroneous `<<` and `>` markers from copyright page text
+  - Format dedication page layout (line breaks)
 - **Does NOT affect:** bullet lists, italic text, or epigraph blockquotes (matching is precise)
 
 ---
@@ -241,8 +244,27 @@ heading_hierarchy:
 
 - Some H3 sub-divisions in Part Three (Personal Testimony, Community Confession, Celebration Ceremony) appear after the Overview content rather than right after H2 — minor structural positioning
 - `###### Conclusion` at end of Part One appears just before `## Conclusion` — misplaced H6
-- `<< for` orphan line in front matter dedication page
 - Some front matter epigraph quotes may need additional formatting review
+
+---
+
+## Key Bug Fixes & Learnings
+
+### normalise_key pre-truncation bug (blockquote matching)
+
+`build_blockquote_set` and `fix_blockquotes` both used `normalise_key(text[:60])` — truncating to 60 chars *before* `normalise_key` could strip markdown asterisks. When text near the 60-char boundary contained italic markers (`*everlasting*`), the 4 extra asterisk characters shifted the truncation window differently on the PDF side (no asterisks) vs the markdown side (has asterisks), producing different keys. Fix: remove `[:60]` pre-truncation from both call sites; `normalise_key` already truncates to 60 internally after stripping.
+
+### Marker blockquote overrides (right-aligned citations)
+
+Marker interprets right-aligned body-size text as blockquotes (`>`), but in this book right-aligned text = citations (`<<`). Since these are at body font size (10pt), they don't appear in `bq_set` or `cit_set` (which only track small-font text). Fix: `build_right_aligned_citations()` uses PyMuPDF position data (block bbox x0 > 55% of page width) to detect right-aligned, body-size, short (≤80 char) text blocks and stores their original line structure. `fix_blockquotes` checks Marker `>` lines against this map and converts to `<<` with correct line breaks.
+
+### Artwork image detection with blockquote prefix
+
+After fixing blockquote key matching, some art citations started matching `bq_set` and getting `>` prefix before `fix_artwork_images` could process them. The artwork regex already handled `<<` prefix but not `>`. Fix: added `>` prefix stripping alongside existing `<<` and `Source:` stripping in `fix_artwork_images`.
+
+### Citation proximity false positives
+
+`fix_citations` proximity check treated any short standalone text after a blockquote/citation as a citation. Single words like "for" (3 chars) got `<<` prefix. Fix: added `len(s) > 5` floor — no real citation reference is ≤5 chars.
 
 ---
 
@@ -275,13 +297,13 @@ Body font: `TimesNewRomanPSMT @ 10.0pt`
 
 ## Development Workflow
 
-1. Claude makes changes to `run.py` and `pdf_config.yaml` in its sandbox
-2. Tests against the full 481-page PDF with regression checks
-3. For config changes: pushes via GitHub MCP API
-4. For run.py changes: **must provide as download** for Steve to push locally (file too large for API)
-5. Steve runs `git pull`, then `python run.py raw.md book.pdf --postprocess`
-6. Steve uploads output `.md` back to Claude for review
-7. Prefer small incremental changes with check-ins over large autonomous runs
+1. Claude reads files via filesystem MCP on Steve's local repo
+2. Claude makes surgical edits via `filesystem:edit_file` (with dry-run preview)
+3. Steve runs `python run.py raw.md book.pdf --postprocess` to test
+4. For config changes: Claude can push via GitHub MCP API
+5. For run.py changes: Steve pushes locally (`git add`, `git commit`, `git push`) — file too large for GitHub API
+6. Prefer small incremental changes with check-ins over large autonomous runs
+7. **Issue diagnosis protocol:** Always check raw Marker output → PyMuPDF font/position data → pipeline trace → root cause before designing fixes. Rule-based fixes preferred; text-specific fixes require explicit approval.
 
 ---
 
@@ -297,5 +319,9 @@ Body font: `TimesNewRomanPSMT @ 10.0pt`
 | Apr 3 2026 | **Rotated sidebar detection:** build_rotated_subdivisions() for vertical 14pt bold text, 18 H3s added |
 | Apr 3 2026 | **Phase 3b boundary fix:** H3s for Part Three sessions no longer appear before their H2 containers |
 | Apr 3 2026 | **Phase 3c overrides:** Conclusion Community Study + Introduction Orientation and Overview added |
-| Apr 3 2026 | **Front matter corrections:** fix_front_matter() for title/copyright page formatting (remove fill-in line, split titles/authors, strip erroneous blockquote markers) |
-| Apr 3 2026 | **Final stats:** H1=5, H2=17, H3=40, H4=117, H5=373, H6=119, 33 verses, 62 callouts, 12 images |
+| Apr 3 2026 | **Front matter corrections:** fix_front_matter() for title/copyright page formatting |
+| Apr 3 2026 | **Blockquote key fix:** removed normalise_key pre-truncation that caused asterisk-shifted keys to mismatch between PDF and markdown sides |
+| Apr 3 2026 | **Right-aligned citation detection:** new build_right_aligned_citations() uses PyMuPDF position data to override Marker's incorrect blockquoting of right-aligned body-size text (preface sign-offs) |
+| Apr 3 2026 | **Artwork prefix fix:** fix_artwork_images now strips `>` prefix (from blockquote detection) before pattern matching |
+| Apr 3 2026 | **Citation min-length:** fix_citations proximity check requires len > 5 to prevent false positives on short words |
+| Apr 3 2026 | **Front matter dedication:** config-driven line break formatting for dedication page |
