@@ -636,11 +636,19 @@ def fix_inline_bold(md, bold_phrases):
     return '\n'.join(out)
 def _normalise_for_callout_match(text):
     t = text.replace("\u2019","'").replace("\u2018","'").replace("\u201c",'"').replace("\u201d",'"')
+    t = t.strip('"')
     return " ".join(t.replace("\u2014"," ").replace("\u2013"," ").split()).strip()
 def _callout_regex(ct):
     pat = re.escape(ct.rstrip('.')); _EM = "\u2014"
     pat = pat.replace(re.escape(_EM), "\\s*[" + _EM + "\u2014]?\\s*")
-    pat = pat.replace(re.escape("\u2019"), "['\u2019]").replace(re.escape("\u2018"), "['\u2018]")
+    pat = pat.replace(re.escape("\u2019"), "['\u2019]").replace(re.escape("\u2018"), "['\u2018]")    
+    pat = pat.replace(re.escape("\u201c"), '["\u201c]').replace(re.escape("\u201d"), '["\u201d]')
+
+    # Allow optional quote chars after periods (Marker wraps callout excerpts in quotes)
+    pat = pat.replace('\\.', '\\.["\'\u201c\u201d]*')
+    # Make mid-word hyphens optional (handles PDF line-break hyphens
+    # removed by fix_hyphenation, e.g. right-eous -> righteous)
+    pat = re.sub(r'(\\w)\\\-(\\w)', r'\1\\-?\2', pat)
     return re.compile(pat)
 def fix_callouts(md, callout_texts):
     if not callout_texts: return md
@@ -679,6 +687,7 @@ def fix_callouts(md, callout_texts):
                 if m:
                     joined = joined[:m.start()] + f'<Callout>{m.group()}</Callout>' + joined[m.end():]
                     matched = True
+
             if matched: result.append(joined)
             else:
                 for k in range(i, end): result.append(out[k])
@@ -1082,8 +1091,6 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = fix_citations(md, cfg)
     md = fix_bullet_numbers(md)
     md = fix_hyphenation(md)
-    md = fix_callouts(md, callout_texts or [])
-    md = re.sub(r'</Callout>\s*<Callout>', ' ', md)
     md = fix_empty_tables(md)
     md = fix_toc_tables(md)
     md = fix_final_review_table(md, cfg)
@@ -1100,6 +1107,9 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = re.sub(r'^<<\s+\*\*(.+?)\*\*', r'<< \1', md, flags=re.MULTILINE)
     md = fix_front_matter(md, cfg)
     md = fix_heading_hierarchy(md, cfg, heading_order)
+    # Callouts run on final text structure (after heading rearrangement)
+    md = fix_callouts(md, callout_texts or [])
+    md = re.sub(r'</Callout>\s*<Callout>', ' ', md)
     # Convert verse number superscripts: small bold text in PDF that Marker
     # renders as **X** or **<sup>X</sup>** should be plain <sup>X</sup>
     if verse_sup:
