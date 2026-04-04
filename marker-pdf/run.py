@@ -868,6 +868,42 @@ def fix_heading_hierarchy(md, cfg, heading_order=None):
             elif lv == 2: out.append("#### " + tx)
             else: out.append(line)
         else: out.append(line)
+    # Phase 2b: Fix PART heading positioning.
+    # Marker places Part intro paragraphs before the H1, but Phase 2 inserts
+    # the # PART heading right before the H1. Result: intro paragraph appears
+    # above the PART heading. Fix: scan backward from each # PART line, relocate
+    # long body paragraphs (intro text) to after the PART+Session block, and
+    # remove short stray text/headings (duplicates of content after PART).
+    new_out = []; skip_lines = set(); inserts_after = {}
+    for i, line in enumerate(out):
+        if line.startswith('# PART '):
+            # Scan backward: collect non-blank lines until artwork/citation/blockquote
+            collected = []
+            j = i - 1
+            while j >= 0:
+                l = out[j].strip()
+                if not l: j -= 1; continue
+                if l.startswith('<<') or l.startswith('![') or l.startswith('>'): break
+                collected.append(j); j -= 1
+            # Insert after the # PART heading itself
+            insert_at = i
+            # Classify: long paragraphs (>100 chars) = intro text to relocate;
+            # everything else = stray artifacts to remove
+            relocate_lines = []
+            for idx in collected:
+                if len(out[idx].strip()) > 100:
+                    relocate_lines.append(out[idx])
+                skip_lines.add(idx)
+            if relocate_lines:
+                inserts_after[insert_at] = relocate_lines
+    if skip_lines or inserts_after:
+        for i, line in enumerate(out):
+            if i in skip_lines: continue
+            new_out.append(line)
+            if i in inserts_after:
+                new_out.append('')
+                for rl in inserts_after[i]: new_out.append(rl)
+        out = new_out
     # Phase 3: Insert H3 sub-division headings from heading_order
     if heading_order and subdiv_labels:
         subdiv_keys = {normalise_key(s) for s in subdiv_labels}
@@ -1017,6 +1053,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = re.sub(r'^<<\s+\*\*(.+?)\*\*', r'<< \1', md, flags=re.MULTILINE)
     md = fix_front_matter(md, cfg)
     md = fix_heading_hierarchy(md, cfg, heading_order)
+    md = re.sub(r'(\*\*Verse \d+\*\*)\n\n', r'\1\n', md)
     md = re.sub(r'\n{3,}', '\n\n', md)
     return md.strip() + '\n'
 
