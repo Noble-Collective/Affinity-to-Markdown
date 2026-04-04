@@ -142,7 +142,7 @@ def build_blockquote_set(pdf_path, cfg, body_size, page_range=None):
             if ds / body_size > mr: continue
             text = " ".join(text.split()).strip()
             if not text or not any(c.isalpha() for c in text): continue
-            key = normalise_key(text[:60])
+            key = normalise_key(text)
             if len(text) > cm: bq.add(key)
             else: cit.add(key)
     return bq, cit
@@ -268,6 +268,40 @@ def build_rotated_subdivisions(pdf_path, cfg, body_size, page_range=None):
             results.append((" ".join(tw), normalise_key(anchor), page_num))
     return results
 
+def build_right_aligned_citations(pdf_path, cfg, body_size, page_range=None):
+    """Detect short, body-size, right-aligned text that Marker incorrectly
+    blockquotes. Returns {normalise_key: [line1, line2, ...]} so
+    fix_blockquotes can convert > to << with correct line breaks."""
+    import fitz
+    doc = fitz.open(str(pdf_path))
+    pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
+    results = {}
+    for pi in pages:
+        page = doc[pi]; pw = page.rect.width
+        for block in page.get_text("dict", sort=True)["blocks"]:
+            if block.get("type") != 0: continue
+            # Right-aligned: block left edge past 55% of page width
+            if block["bbox"][0] < pw * 0.55: continue
+            # Body-size font
+            fc = {}
+            for line in block.get("lines", []):
+                for span in line.get("spans", []):
+                    if span["text"].strip():
+                        k = (span["font"], size_bucket(span["size"]))
+                        fc[k] = fc.get(k, 0) + len(span["text"].strip())
+            if not fc: continue
+            _, ds = max(fc, key=fc.get)
+            if ds != body_size: continue
+            # Short text (citation-length)
+            block_lines = []
+            for line in block.get("lines", []):
+                lt = "".join(s["text"] for s in line.get("spans", [])).strip()
+                if lt: block_lines.append(lt)
+            full = " ".join(block_lines)
+            if not full or len(full) > 80: continue
+            results[normalise_key(full)] = block_lines
+    return results
+
 def dump_fonts(pdf_path, page_range=None):
     import fitz
     doc = fitz.open(str(pdf_path))
@@ -370,12 +404,25 @@ def fix_verse_labels(markdown, verse_map):
     return '\n'.join(out)
 
 def fix_double_blockquote_citations(md): return re.sub(r'^> > (.+)$', r'<< \1', md, flags=re.MULTILINE)
-def fix_blockquotes(md, bq_set, cit_set):
+def fix_blockquotes(md, bq_set, cit_set, right_aligned_map=None):
     lines = md.splitlines(); out = []
     for line in lines:
         s = line.strip()
-        if not s or line.startswith('>') or line.startswith('<<') or line.startswith('#'): out.append(line); continue
-        k = normalise_key(s[:60])
+        if not s or line.startswith('<<') or line.startswith('#'): out.append(line); continue
+        if line.startswith('>'):
+            # Re-evaluate Marker blockquotes: right-aligned body-size text → citations
+            bq_content = re.sub(r'^>\s*', '', s)
+            bq_key = normalise_key(bq_content)
+            if right_aligned_map and bq_key in right_aligned_map:
+                for rl in right_aligned_map[bq_key]:
+                    out.append(f"<< {rl}")
+            else:
+                out.append(line)
+            continue
+        # Use normalise_key(s) not normalise_key(s[:60]) — normalise_key strips
+        # markdown asterisks before windowing to 60 chars, so inline italic markers
+        # (e.g. *everlasting*) don't shift the key relative to the raw PDF text.
+        k = normalise_key(s)
         if k in bq_set: out.append(f"> {s}")
         elif k in cit_set: out.append(f"<< {s}")
         else: out.append(line)
@@ -390,7 +437,7 @@ def fix_citations(md, cfg):
         if not (pb and nb): out.append(line); continue
         if any(p.match(s) for p in pats): out.append(f"<< {s}"); continue
         pc = next((lines[j].strip() for j in range(i-1,-1,-1) if lines[j].strip()),"")
-        if (pc.startswith('>') or pc.startswith('<<')) and len(s)<cm: out.append(f"<< {s}"); continue
+        if (pc.startswith('>') or pc.startswith('<<')) and len(s) > 5 and len(s)<cm: out.append(f"<< {s}"); continue
         out.append(line)
     return '\n'.join(out)
 def fix_bullet_numbers(md): return re.sub(r'^- (\d+\.)\s', r'\1 ', md, flags=re.MULTILINE)
@@ -643,6 +690,7 @@ def fix_artwork_images(md):
     for line in lines:
         s = line.strip()
         clean = re.sub(r'^<<\s+', '', s)
+        clean = re.sub(r'^>\s+', '', clean)
         clean = re.sub(r'^Source:\s+', '', clean)
         m = art_pat.match(clean) if not art_pat.match(s) else art_pat.match(s)
         if m:
@@ -653,6 +701,7 @@ def fix_artwork_images(md):
                 out.append("")
                 seen.add(fn)
             citation = re.sub(r'^<<\s+', '', s)
+            citation = re.sub(r'^>\s+', '', citation)
             out.append(f"<< {citation}")
         else: out.append(line)
     return '\n'.join(out)
@@ -925,7 +974,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = fix_headings(md, heading_map, skip_set, heading_order)
     md = fix_verse_labels(md, verse_map)
     md = fix_double_blockquote_citations(md)
-    md = fix_blockquotes(md, bq_set, cit_set)
+    md = fix_blockquotes(md, bq_set, cit_set, cfg.get('_right_aligned_map'))
     md = fix_citations(md, cfg)
     md = fix_bullet_numbers(md)
     md = fix_hyphenation(md)
@@ -1029,6 +1078,7 @@ def main():
         ct = build_callout_set(pp, cfg, bs, page_range)
         ib = build_inline_bold_set(pp, cfg, bs, page_range)
         cfg["_rotated_subdivisions"] = build_rotated_subdivisions(pp, cfg, bs, page_range)
+        cfg["_right_aligned_map"] = build_right_aligned_citations(pp, cfg, bs, page_range)
         print(f"  {len(hm)} headings, {len(ho)} ordered, {len(ss)} skips, "
               f"{len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
         raw = rp.read_text(encoding="utf-8")
@@ -1051,6 +1101,7 @@ def main():
     ct = build_callout_set(pp, cfg, bs, page_range)
     ib = build_inline_bold_set(pp, cfg, bs, page_range)
     cfg["_rotated_subdivisions"] = build_rotated_subdivisions(pp, cfg, bs, page_range)
+    cfg["_right_aligned_map"] = build_right_aligned_citations(pp, cfg, bs, page_range)
     print(f"  {len(hm)} headings, {len(ho)} ordered, {len(ss)} skips, "
           f"{len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
 
