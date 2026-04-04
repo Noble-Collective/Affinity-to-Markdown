@@ -665,13 +665,18 @@ def fix_callouts(md, callout_texts):
     regexes = [(ct, nc, _callout_regex(ct)) for ct, nc in normalized]
     _STRUCT = ('#', '>', '<<', '-', '|', '![')
     lines = md.splitlines(); out = []
-    # Phase 1: Remove standalone callout lines (exact match OR prefix of a callout)
+    # Phase 1: Remove standalone callout lines.
+    # A line is standalone if a callout regex matches from the start and
+    # covers the entire meaningful content (only punctuation left over).
     for line in lines:
         s = line.strip()
-        if s and len(s) < 120 and not any(s.startswith(p) for p in _STRUCT):
-            nl = _normalise_for_callout_match(s)
-            if any(nl == nc or nl == nc.rstrip('.') for _, nc, _ in regexes): continue
-        out.append(line)
+        removed = False
+        if s and not any(s.startswith(p) for p in _STRUCT):
+            for ct, nc, rx in regexes:
+                m = rx.match(s)
+                if m and not s[m.end():].strip().strip('.,;:!?\'"\''):
+                    removed = True; break
+        if not removed: out.append(line)
     # Collapse double blanks left by Phase 1 standalone removal
     out2 = []
     for line in out:
