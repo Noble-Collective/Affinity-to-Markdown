@@ -231,6 +231,12 @@ def build_callout_set(pdf_path, cfg, body_size, page_range=None):
             else:
                 if cur: j = " ".join(cur); j = re.sub(r'(\w)- ([a-z])', r'\1\2', j); (ct.append(j) if len(j) > 15 else None); cur = []
         if cur: j = " ".join(cur); j = re.sub(r'(\w)- ([a-z])', r'\1\2', j); (ct.append(j) if len(j) > 15 else None)
+    # Remove fragments that are substrings of longer callouts (strip
+    # trailing punctuation before comparing so "godless society." matches
+    # inside "...against a godless society")
+    ct = [c for c in ct if not any(
+        c.rstrip('.,;:!? ') in longer and c != longer
+        for longer in ct)]
     return sorted(set(ct), key=len, reverse=True)
 
 def build_rotated_subdivisions(pdf_path, cfg, body_size, page_range=None):
@@ -649,6 +655,9 @@ def _callout_regex(ct):
     # Make mid-word hyphens optional (handles PDF line-break hyphens
     # removed by fix_hyphenation, e.g. right-eous -> righteous)
     pat = re.sub(r'(\\w)\\\-(\\w)', r'\1\\-?\2', pat)
+    # Replace literal spaces with \s+ so regex matches across line/paragraph breaks
+    # (use re.sub to handle both escaped and unescaped spaces across Python versions)
+    pat = re.sub(r'(?:\\ | )+', r'\\s+', pat)
     return re.compile(pat)
 def fix_callouts(md, callout_texts):
     if not callout_texts: return md
@@ -670,31 +679,55 @@ def fix_callouts(md, callout_texts):
         out2.append(line)
     out = out2
     # Phase 2: Group consecutive body paragraphs separated by single blank
-    # lines, join for cross-paragraph callout matching. This handles Marker
-    # fragmenting body paragraphs at callout extraction points.
+    # lines, join with \n\n for cross-paragraph callout matching while
+    # preserving paragraph structure.
     result = []; i = 0
     while i < len(out):
         line = out[i]
         if line.strip() and not any(line.startswith(p) for p in _STRUCT):
-            # Start a body paragraph group
             group_indices = [i]; j = i + 1
             while j < len(out):
-                if not out[j].strip():  # blank line
+                if not out[j].strip():
                     if j+1 < len(out) and out[j+1].strip() and not any(out[j+1].startswith(p) for p in _STRUCT):
                         group_indices.append(j+1); j += 2; continue
                     break
                 elif any(out[j].startswith(p) for p in _STRUCT): break
                 else: group_indices.append(j); j += 1
             end = j
-            joined = ' '.join(out[idx].strip() for idx in group_indices)
+            # Join with \n\n so paragraph boundaries survive
+            joined = '\n\n'.join(out[idx].strip() for idx in group_indices)
             matched = False
             for ct, nc, rx in regexes:
                 m = rx.search(joined)
                 if m:
                     joined = joined[:m.start()] + f'<Callout>{m.group()}</Callout>' + joined[m.end():]
                     matched = True
-
-            if matched: result.append(joined)
+                    # Remove duplicate standalone occurrences of same callout
+                    sf = m.start() + len('<Callout>') + len(m.group()) + len('</Callout>')
+                    m2 = rx.search(joined, sf)
+                    while m2:
+                        pre = joined[:m2.start()].rstrip()
+                        post = joined[m2.end():].lstrip('. ')
+                        joined = pre + ' ' + post
+                        m2 = rx.search(joined, len(pre))
+            if matched:
+                # Reconstruct paragraphs: split on \n\n not inside <Callout> tags
+                paras = []; buf = []; depth = 0
+                for part in re.split(r'(\n\n)', joined):
+                    if part == '\n\n':
+                        if depth > 0: buf.append(' ')  # inside callout span
+                        else:
+                            t = ''.join(buf).strip()
+                            if t: paras.append(t)
+                            buf = []
+                    else:
+                        buf.append(part)
+                        depth += part.count('<Callout>') - part.count('</Callout>')
+                t = ''.join(buf).strip()
+                if t: paras.append(t)
+                for k, para in enumerate(paras):
+                    result.append(para)
+                    if k < len(paras) - 1: result.append('')
             else:
                 for k in range(i, end): result.append(out[k])
             i = end
