@@ -229,8 +229,8 @@ def build_callout_set(pdf_path, cfg, body_size, page_range=None):
         for ic, text in pb:
             if ic: cur.append(text)
             else:
-                if cur: j = " ".join(cur); (ct.append(j) if len(j) > 15 else None); cur = []
-        if cur: j = " ".join(cur); (ct.append(j) if len(j) > 15 else None)
+                if cur: j = " ".join(cur); j = re.sub(r'(\w)- ([a-z])', r'\1\2', j); (ct.append(j) if len(j) > 15 else None); cur = []
+        if cur: j = " ".join(cur); j = re.sub(r'(\w)- ([a-z])', r'\1\2', j); (ct.append(j) if len(j) > 15 else None)
     return sorted(set(ct), key=len, reverse=True)
 
 def build_rotated_subdivisions(pdf_path, cfg, body_size, page_range=None):
@@ -278,6 +278,27 @@ def build_rotated_subdivisions(pdf_path, cfg, body_size, page_range=None):
                 tw.append(w.capitalize() if (i == 0 or ':' in w or w.upper() not in ('AND','THE','OF','IN','A')) else w.lower())
             results.append((" ".join(tw), normalise_key(anchor), page_num))
     return results
+
+def build_verse_superscript_set(pdf_path, cfg, body_size, page_range=None):
+    """Detect small bold text that represents verse number superscripts.
+    Returns set of strings (e.g. '2:21', '103:1') that Marker renders as
+    bold but should be <sup>."""
+    import fitz
+    doc = fitz.open(str(pdf_path))
+    pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
+    nums = set()
+    for pi in pages:
+        for block in doc[pi].get_text("dict", sort=True)["blocks"]:
+            if block.get("type") != 0: continue
+            for line in block.get("lines", []):
+                for span in line.get("spans", []):
+                    t = span["text"].strip()
+                    if not t: continue
+                    sz = size_bucket(span["size"])
+                    if sz / body_size < 0.75 and "bold" in span["font"].lower():
+                        if re.fullmatch(r'\d+[:\d\-\u2013]*', t):
+                            nums.add(t)
+    return nums
 
 def build_right_aligned_citations(pdf_path, cfg, body_size, page_range=None):
     """Detect short, body-size, right-aligned text that Marker incorrectly
@@ -581,6 +602,7 @@ def fix_structural_labels(md):
         if re.match(r'^<<\s+\*\*[A-Z\s]+\*\*$', s): continue
         if re.match(r'^\*\*[A-Z]\*\*$', s): continue
         if re.match(r'^\*".+\.\.\.\*$', s): continue
+        if re.fullmatch(r'\*\.\.\..*"\*', s): continue
         if s == '\u2022': continue
         if re.match(r'^#{1,6}\s+\w.*:$', s): out.append(re.sub(r'^#{1,6}\s+', '', line)); continue
         if s.startswith('\u2022'): out.append(re.sub(r'^\u2022\s*', '- ', line)); continue
@@ -624,20 +646,45 @@ def fix_callouts(md, callout_texts):
     if not callout_texts: return md
     normalized = [(ct, _normalise_for_callout_match(ct)) for ct in callout_texts]
     regexes = [(ct, nc, _callout_regex(ct)) for ct, nc in normalized]
+    _STRUCT = ('#', '>', '<<', '-', '|', '![')
     lines = md.splitlines(); out = []
+    # Phase 1: Remove standalone callout lines (exact match OR prefix of a callout)
     for line in lines:
         s = line.strip()
-        if s and len(s) < 120 and not s.startswith('#') and not s.startswith('>') and not s.startswith('<<'):
+        if s and len(s) < 120 and not any(s.startswith(p) for p in _STRUCT):
             nl = _normalise_for_callout_match(s)
             if any(nl == nc or nl == nc.rstrip('.') for _, nc, _ in regexes): continue
         out.append(line)
-    for idx in range(len(out)):
-        line = out[idx]
-        if not line or line.startswith('#') or line.startswith('>') or line.startswith('<<') or line.startswith('-'): continue
-        for ct, nc, rx in regexes:
-            m = rx.search(out[idx])
-            if m: out[idx] = out[idx][:m.start()] + f"<Callout>{m.group()}</Callout>" + out[idx][m.end():]
-    return '\n'.join(out)
+    # Phase 2: Group consecutive body paragraphs separated by single blank
+    # lines, join for cross-paragraph callout matching. This handles Marker
+    # fragmenting body paragraphs at callout extraction points.
+    result = []; i = 0
+    while i < len(out):
+        line = out[i]
+        if line.strip() and not any(line.startswith(p) for p in _STRUCT):
+            # Start a body paragraph group
+            group_indices = [i]; j = i + 1
+            while j < len(out):
+                if not out[j].strip():  # blank line
+                    if j+1 < len(out) and out[j+1].strip() and not any(out[j+1].startswith(p) for p in _STRUCT):
+                        group_indices.append(j+1); j += 2; continue
+                    break
+                elif any(out[j].startswith(p) for p in _STRUCT): break
+                else: group_indices.append(j); j += 1
+            end = j
+            joined = ' '.join(out[idx].strip() for idx in group_indices)
+            matched = False
+            for ct, nc, rx in regexes:
+                m = rx.search(joined)
+                if m:
+                    joined = joined[:m.start()] + f'<Callout>{m.group()}</Callout>' + joined[m.end():]
+                    matched = True
+            if matched: result.append(joined)
+            else:
+                for k in range(i, end): result.append(out[k])
+            i = end
+        else: result.append(line); i += 1
+    return '\n'.join(result)
 def fix_empty_tables(md, threshold=0.7):
     lines = md.splitlines(); out = []; i = 0
     while i < len(lines):
@@ -1022,7 +1069,7 @@ def fix_heading_hierarchy(md, cfg, heading_order=None):
     return '\n'.join(clean)
 
 def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
-                 callout_texts=None, inline_bold=None, heading_order=None):
+                 callout_texts=None, inline_bold=None, heading_order=None, verse_sup=None):
     md = md.replace('\r\n','\n').replace('\r','\n')
     md = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', md, flags=re.MULTILINE)
     md = re.sub(r'^-{20,}\s*$', '', md, flags=re.MULTILINE)
@@ -1053,6 +1100,13 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = re.sub(r'^<<\s+\*\*(.+?)\*\*', r'<< \1', md, flags=re.MULTILINE)
     md = fix_front_matter(md, cfg)
     md = fix_heading_hierarchy(md, cfg, heading_order)
+    # Convert verse number superscripts: small bold text in PDF that Marker
+    # renders as **X** or **<sup>X</sup>** should be plain <sup>X</sup>
+    if verse_sup:
+        for v in sorted(verse_sup, key=len, reverse=True):
+            ev = re.escape(v)
+            md = md.replace(f'**<sup>{v}</sup>**', f'<sup>{v}</sup>')
+            md = re.sub(rf'\*\*{ev}\*\*', f'<sup>{v}</sup>', md)
     md = re.sub(r'(\*\*Verse \d+\*\*)\n\n', r'\1\n', md)
     md = re.sub(r'\n{3,}', '\n\n', md)
     return md.strip() + '\n'
@@ -1137,11 +1191,12 @@ def main():
         ib = build_inline_bold_set(pp, cfg, bs, page_range)
         cfg["_rotated_subdivisions"] = build_rotated_subdivisions(pp, cfg, bs, page_range)
         cfg["_right_aligned_map"] = build_right_aligned_citations(pp, cfg, bs, page_range)
+        vs = build_verse_superscript_set(pp, cfg, bs, page_range)
         print(f"  {len(hm)} headings, {len(ho)} ordered, {len(ss)} skips, "
-              f"{len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
+              f"{len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold, {len(vs)} vsup.")
         raw = rp.read_text(encoding="utf-8")
         print("Post-processing...")
-        md = post_process(raw, hm, ss, bq, ci, vm, cfg, ct, ib, ho)
+        md = post_process(raw, hm, ss, bq, ci, vm, cfg, ct, ib, ho, vs)
         op.write_text(md, encoding="utf-8")
         print(f"Done! {op} ({len(md.splitlines())} lines)")
         return
@@ -1160,8 +1215,9 @@ def main():
     ib = build_inline_bold_set(pp, cfg, bs, page_range)
     cfg["_rotated_subdivisions"] = build_rotated_subdivisions(pp, cfg, bs, page_range)
     cfg["_right_aligned_map"] = build_right_aligned_citations(pp, cfg, bs, page_range)
+    vs = build_verse_superscript_set(pp, cfg, bs, page_range)
     print(f"  {len(hm)} headings, {len(ho)} ordered, {len(ss)} skips, "
-          f"{len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold.")
+          f"{len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold, {len(vs)} vsup.")
 
     patch_block_relabel()
     print("Loading models...")
@@ -1201,7 +1257,7 @@ def main():
         print(f"Raw saved: {rp2}")
 
     print("Post-processing...")
-    md = post_process(rendered.markdown, hm, ss, bq, ci, vm, cfg, ct, ib, ho)
+    md = post_process(rendered.markdown, hm, ss, bq, ci, vm, cfg, ct, ib, ho, vs)
     op.write_text(md, encoding="utf-8")
     print(f"Done! {op} ({len(md.splitlines())} lines)")
 
