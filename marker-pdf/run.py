@@ -663,6 +663,12 @@ def fix_callouts(md, callout_texts):
             nl = _normalise_for_callout_match(s)
             if any(nl == nc or nl == nc.rstrip('.') for _, nc, _ in regexes): continue
         out.append(line)
+    # Collapse double blanks left by Phase 1 standalone removal
+    out2 = []
+    for line in out:
+        if not line.strip() and out2 and not out2[-1].strip(): continue
+        out2.append(line)
+    out = out2
     # Phase 2: Group consecutive body paragraphs separated by single blank
     # lines, join for cross-paragraph callout matching. This handles Marker
     # fragmenting body paragraphs at callout extraction points.
