@@ -64,6 +64,8 @@ discussion_question_labels:
   - "##### Seeking the Truth"
   - "##### Evaluating Our Lives"
 
+discussion_heading_pattern: "Discussion Questions"
+
 skip_line_patterns:
   - '^(Session \d+|Conclusion|Introduction) .+\*\*'
   - '^Further Resources\s+\d+$'
@@ -84,7 +86,7 @@ front_matter_corrections:
     - 'This rite of passage belongs to'
   text_replacements:
     # Title page: split to line breaks matching the book layout
-    - match: "<< HomeStead: A Rite of Passage into Christian Hearth and Home"
+    - match: "HomeStead: A Rite of Passage into Christian Hearth and Home"
       replace: "HomeStead:\nA Rite of Passage into Christian\nHearth and Home"
     # Publisher info: split to separate lines
     - match: "> York, Pennsylvania Noble Imprint 2026"
@@ -92,19 +94,6 @@ front_matter_corrections:
     # Authors: split to separate bold lines
     - match: "**Matthew R. Lynskey Bryan D. Platania**"
       replace: "**Matthew R. Lynskey**\n**Bryan D. Platania**"
-    # Copyright page: strip blockquote/citation markers (prefix matches)
-    - match: "<< *HomeStead:"
-      replace: "*HomeStead:"
-    - match: "<< Series:"
-      replace: "Series:"
-    - match: "> © 2026"
-      replace: "© 2026"
-    - match: "<< Published"
-      replace: "Published"
-    - match: "> This book is published"
-      replace: "This book is published"
-    - match: "> Scripture quotations"
-      replace: "Scripture quotations"
     # Dedication page: format with line breaks matching book layout
     - match: "Noble City Church our family of fellow sojourners and exiles"
       replace: "Noble City Church-\nour family of fellow\nsojourners and exiles"

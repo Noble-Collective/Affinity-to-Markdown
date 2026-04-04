@@ -128,7 +128,18 @@ def build_blockquote_set(pdf_path, cfg, body_size, page_range=None):
     bq, cit = set(), set(); doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
     mr = cfg.get("quote_max_ratio", 0.88); cm = cfg.get("citation_max_chars", 80)
+    # Detect copyright pages (contain \u00a9 at small font) and exclude from bq/cit.
+    # Copyright boilerplate shares the same small font as blockquotes but isn't quoted text.
+    copyright_pages = set()
     for pi in pages:
+        for block in doc[pi].get_text("dict", sort=True)["blocks"]:
+            if block.get("type") != 0: continue
+            for line in block.get("lines", []):
+                for span in line.get("spans", []):
+                    if "\u00a9" in span["text"] and size_bucket(span["size"]) / body_size <= mr:
+                        copyright_pages.add(pi)
+    for pi in pages:
+        if pi in copyright_pages: continue
         for block in doc[pi].get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0: continue
             fc = {}; text = ""
@@ -550,10 +561,11 @@ def fix_missing_section_headings(md, cfg):
 def fix_discussion_question_groups(md, cfg):
     lc = cfg.get("discussion_question_labels",[])
     if not lc: return md
-    md = re.sub(r'\n+\*\*[A-Z][A-Z\s]+\*\*\n+(?=\n*#{1,4}\s+Discussion)', '\n\n', md)
+    dhp = re.escape(cfg.get("discussion_heading_pattern", "Discussion Questions"))
+    md = re.sub(rf'\n+\*\*[A-Z][A-Z\s]+\*\*\n+(?=\n*#{{1,4}}\s+{dhp})', '\n\n', md)
     lines = md.splitlines(); out = []; indq = False; gc = 0
     for line in lines:
-        if re.match(r'^####\s+\*?\*?Discussion Questions\*?\*?', line, re.IGNORECASE): indq = True; gc = 0; out.append(line); continue
+        if re.match(rf'^####\s+\*?\*?{dhp}\*?\*?', line, re.IGNORECASE): indq = True; gc = 0; out.append(line); continue
         if indq and re.match(r'^#{1,4}\s+', line) and not re.match(r'^#{5,}', line): indq = False
         if indq and re.match(r'^1\.\s+', line) and gc < len(lc):
             if gc > 0: out.append('')
@@ -778,6 +790,13 @@ def fix_heading_hierarchy(md, cfg, heading_order=None):
     subdiv_labels = hcfg.get("subdivision_labels", [])
     text_fixes = hcfg.get("heading_text_fixes", [])
     remove_headings = {normalise_key(h) for h in hcfg.get("remove_artifact_headings", [])}
+    # Build session word-to-digit map from session_map (e.g. "One"->"1")
+    _session_nums = {}
+    _scount = 0
+    for _sn in session_map:
+        if _sn and re.match(r'^Session ', _sn):
+            _scount += 1
+            _session_nums[_sn.split(' ', 1)[1]] = str(_scount)
     lines = md.splitlines()
     # Phase 1: Find H1s and H2 companions, build session structure
     h1s = []
@@ -829,7 +848,8 @@ def fix_heading_hierarchy(md, cfg, heading_order=None):
         if i in replace or i in skip: continue
         for pm in part_markers:
             if pm in s and not s.startswith('#') and len(s) < 30: skip.add(i)
-        if re.match(r'^(Further Resources\s*)+$', s) and not s.startswith('#'): skip.add(i)
+        _ts_name = trailing.get("session_name", "") if trailing else ""
+        if _ts_name and re.match(rf'^({re.escape(_ts_name)}\s*)+$', s) and not s.startswith('#'): skip.add(i)
     # Phase 2: Build output with level shifts
     out = []
     if front_matter: out.extend(["# " + front_matter, ""])
@@ -864,9 +884,8 @@ def fix_heading_hierarchy(md, cfg, heading_order=None):
                         si = ki; sn = session_map[si] if si < len(session_map) else ""; break
         def _pfx(s):
             if not s: return ""
-            nums = {"One":"1","Two":"2","Three":"3","Four":"4","Five":"5","Six":"6"}
             m2 = re.match(r'^Session (\w+)$', s)
-            return "Session " + nums.get(m2.group(1), m2.group(1)) if m2 else s
+            return "Session " + _session_nums.get(m2.group(1), m2.group(1)) if m2 else s
         cur = -1; used = set(); new_out = []
         for line in out:
             if line.startswith('## ') and not line.startswith('### '): cur += 1
@@ -927,12 +946,12 @@ def fix_heading_hierarchy(md, cfg, heading_order=None):
     subdiv_text_keys = set()
     for sname in session_map:
         if not sname: continue
-        nums = {"One":"1","Two":"2","Three":"3","Four":"4","Five":"5","Six":"6"}
         m2 = re.match(r'^Session (\w+)$', sname)
-        prefix = "Session " + nums.get(m2.group(1), m2.group(1)) if m2 else sname
+        prefix = "Session " + _session_nums.get(m2.group(1), m2.group(1)) if m2 else sname
         for sl in subdiv_labels:
             subdiv_text_keys.add(normalise_key(prefix + " " + sl))
-    subdiv_text_keys.add(normalise_key("Introduction Orientation and Overview"))
+    for ov in hcfg.get("subdivision_overrides", []):
+        subdiv_text_keys.add(normalise_key(ov["label"]))
     clean = []; i = 0
     while i < len(out):
         line = out[i]; s = line.strip()
