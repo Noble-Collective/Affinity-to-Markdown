@@ -105,6 +105,9 @@ front_matter_corrections:
       replace: "This book is published"
     - match: "> Scripture quotations"
       replace: "Scripture quotations"
+    # Dedication page: format with line breaks matching book layout
+    - match: "Noble City Church our family of fellow sojourners and exiles"
+      replace: "Noble City Church-\nour family of fellow\nsojourners and exiles"
 
 # Heading hierarchy restructuring: maps font-based levels to semantic levels.
 # Runs as final pass after all other heading fixes.
