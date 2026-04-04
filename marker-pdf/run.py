@@ -761,6 +761,7 @@ def fix_front_matter(md, cfg):
         for i, line in enumerate(lines):
             if line.strip() == end_marker: end_idx = i; break
     remove_pats = [re.compile(p) for p in fm.get("remove_lines", [])]
+    
     replacements = fm.get("text_replacements", [])
     out = []
     for i, line in enumerate(lines):
@@ -775,6 +776,7 @@ def fix_front_matter(md, cfg):
                     line = rep["replace"] + s[len(m):]; break
         out.append(line)
     return '\n'.join(out)
+    
 
 def fix_heading_hierarchy(md, cfg, heading_order=None):
     """Restructure heading levels from font-based to semantic hierarchy.

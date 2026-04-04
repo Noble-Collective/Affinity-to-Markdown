@@ -95,6 +95,7 @@ front_matter_corrections:
     - match: "**Matthew R. Lynskey Bryan D. Platania**"
       replace: "**Matthew R. Lynskey**\n**Bryan D. Platania**"
     # Dedication page: format with line breaks matching book layout
+    # (em-dash in PDF dropped by Marker, so PyMuPDF line map can't match this one)
     - match: "Noble City Church our family of fellow sojourners and exiles"
       replace: "Noble City Church-\nour family of fellow\nsojourners and exiles"
 
