@@ -392,6 +392,27 @@ def dump_fonts(pdf_path, page_range=None):
 
 # ---- Post-processing passes ----
 
+def fix_split_bold_headings(md):
+    """Join consecutive standalone bold lines where the first ends with ':'.
+    Marker sometimes splits a single heading across two bold lines, e.g.:
+      **At All Times:**
+      **Building Worship Habits to Live in God's Presence**
+    This joins them into a single bold line so fix_headings can match it."""
+    lines = md.splitlines(); out = []; i = 0
+    while i < len(lines):
+        line = lines[i]; s = line.strip()
+        m1 = re.match(r'^\*\*(.+?):\*\*\s*$', s)
+        if m1:
+            j = i + 1
+            if j < len(lines) and not lines[j].strip(): j += 1
+            if j < len(lines):
+                m2 = re.match(r'^\*\*(.+?)\*\*\s*$', lines[j].strip())
+                if m2:
+                    out.append(f"**{m1.group(1)}: {m2.group(1)}**")
+                    i = j + 1; continue
+        out.append(line); i += 1
+    return '\n'.join(out)
+
 def fix_headings(markdown, heading_map, skip_set, heading_order=None):
     lines = markdown.splitlines(); line_level = {}
     if heading_order:
@@ -494,7 +515,10 @@ def fix_blockquotes(md, bq_set, cit_set, right_aligned_map=None):
         else: out.append(line)
     return '\n'.join(out)
 def fix_citations(md, cfg):
-    pats = cfg.get("_citation_res",[]); cm = cfg.get("citation_max_chars",80)
+    """Tag standalone lines matching citation patterns (e.g. scripture refs).
+    Author attributions are handled separately by fix_blockquotes via PyMuPDF
+    right-aligned detection — no heuristic needed here."""
+    pats = cfg.get("_citation_res",[])
     lines = md.splitlines(); out = []
     for i,line in enumerate(lines):
         s = line.strip()
@@ -502,8 +526,6 @@ def fix_citations(md, cfg):
         pb = (i==0) or (lines[i-1].strip()==''); nb = (i==len(lines)-1) or (lines[i+1].strip()=='')
         if not (pb and nb): out.append(line); continue
         if any(p.match(s) for p in pats): out.append(f"<< {s}"); continue
-        pc = next((lines[j].strip() for j in range(i-1,-1,-1) if lines[j].strip()),"")
-        if (pc.startswith('>') or pc.startswith('<<')) and len(s) > 5 and len(s)<cm: out.append(f"<< {s}"); continue
         out.append(line)
     return '\n'.join(out)
 def fix_bullet_numbers(md): return re.sub(r'^- (\d+\.)\s', r'\1 ', md, flags=re.MULTILINE)
@@ -527,7 +549,7 @@ def fix_page_breaks(md):
     Loops until stable to handle cascading breaks."""
     _STRUCT_LINE = ('#', '>', '<<', '|', '![', '<sup')  # current line prefixes to skip
     _STRUCT_CONT = ('#', '>', '<<', '-', '|', '![', '*', '<sup')  # continuation prefixes to skip
-    _END_PUNCT = set('.!?:;*)]\'')
+    _END_PUNCT = set('.!?:;*)]\'') | {'\u2026'}  # U+2026 = ellipsis (fill-in prompts)
     _QUOTE_CHARS = set('"\'"\u201d')
     def _ends_sentence(s):
         if not s: return False
@@ -695,6 +717,8 @@ def fix_structural_labels(md):
         if re.fullmatch(r'\*\.\.\..*"\*', s): continue
         if s == '\u2022': continue
         if re.match(r'^#{1,6}\s+\w.*:$', s): out.append(re.sub(r'^#{1,6}\s+', '', line)); continue
+        # Blockquote-wrapped bullets: Marker sometimes wraps bullet fill-ins in > or << prefix
+        if re.match(r'^(?:>|<<)\s*\u2022', s): out.append(re.sub(r'^(?:>|<<)\s*\u2022\s*', '- ', s)); continue
         if s.startswith('\u2022'): out.append(re.sub(r'^\u2022\s*', '- ', line)); continue
         out.append(line)
     return '\n'.join(out)
@@ -923,24 +947,54 @@ def fix_empty_tables(md, threshold=0.7):
         else: out.append(line); i += 1
     return '\n'.join(out)
 def fix_final_review_table(md, cfg):
+    """Convert table-formatted review questions to numbered items.
+    Handles two patterns Marker produces:
+      A) Header inside table:  | Final Review | ... | 1. Question |
+      B) Header as bold text:  **Final Review**  then  | 1. Question |
+    Pattern B also handles split rows where a question spans multiple
+    table rows (Marker sometimes breaks long cells across rows)."""
     rules = cfg.get("table_to_list",[])
     if not rules: return md
     lines = md.splitlines(); out = []; i = 0
     while i < len(lines):
         line = lines[i]; mr = None
+        # Pattern A: header inside table row
         if line.strip().startswith('|') and i+1 < len(lines) and '|---' in lines[i+1]:
             for rule in rules:
                 if rule["header_contains"] in line: mr = rule; break
+        # Pattern B: header as heading or bold text preceding a table
+        if not mr:
+            stripped = re.sub(r'^#{1,6}\s+', '', line.strip())
+            for rule in rules:
+                hc = rule["header_contains"]
+                if stripped == f'**{hc}**' or stripped == hc:
+                    for k in range(i+1, min(i+4, len(lines))):
+                        if lines[k].strip().startswith('|'): mr = rule; break
+                    break
         if mr:
-            out.append(mr["output_heading"]); out.append(""); i += 2
+            out.append(mr["output_heading"]); out.append("")
+            i += 1
+            # Skip to the table (past blanks and the bold heading line)
+            while i < len(lines) and not lines[i].strip().startswith('|'): i += 1
+            # Extract numbered items, joining continuation rows
+            current_item = ""
             while i < len(lines) and lines[i].strip().startswith('|'):
                 cells = [c.strip() for c in lines[i].strip().strip('|').split('|')]
                 cell = cells[0] if cells else ''
-                if cell and not cell.startswith('---'):
-                    text = re.sub(r'<br\s*/?>', ' ', cell).strip()
-                    m2 = re.match(r'^(\d+)\.\s+(.+)', text)
-                    if m2: out.append(f"{m2.group(1)}. {m2.group(2)}")
+                if '---' in cell: i += 1; continue
+                cell = re.sub(r'<br\s*/?>', ' ', cell).strip()
+                if cell:
+                    if re.match(r'^\d+\.\s+', cell):
+                        if current_item:
+                            m2 = re.match(r'^(\d+)\.\s+(.+)', current_item)
+                            if m2: out.append(f"{m2.group(1)}. {m2.group(2)}")
+                        current_item = cell
+                    else:
+                        current_item = (current_item + ' ' + cell).strip() if current_item else cell
                 i += 1
+            if current_item:
+                m2 = re.match(r'^(\d+)\.\s+(.+)', current_item)
+                if m2: out.append(f"{m2.group(1)}. {m2.group(2)}")
             out.append(""); continue
         out.append(line); i += 1
     return '\n'.join(out)
@@ -1321,6 +1375,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = re.sub(r'^-{20,}\s*$', '', md, flags=re.MULTILINE)
     skip_set = {k for k in skip_set if k not in heading_map or any(l == '#' for l in heading_map[k])}
     md = fix_pullquote_fragments(md)
+    md = fix_split_bold_headings(md)
     md = fix_headings(md, heading_map, skip_set, heading_order)
     md = fix_verse_labels(md, verse_map)
     md = fix_double_blockquote_citations(md)

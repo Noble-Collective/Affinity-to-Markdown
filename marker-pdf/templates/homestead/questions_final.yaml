@@ -1,0 +1,2302 @@
+# questions.yaml - User input areas for HomeStead
+#
+# IDs: deterministic from heading hierarchy + ordinal number.
+# Post-processor matches by: heading context + type + ordinal.
+# Text is for human review only.
+#
+# Types: numbered, heading_prompt, italic_prompt, fill_in_bullet,
+#        bold_bullet, prayer_fill, standalone_prompt, fill_in_line
+#
+
+book: HomeStead
+prefix: Home
+
+questions:
+
+  # === Introduction ===
+
+  - id: Home-ParOnePre-Int-IntComStu-SeeGodWis-BibWis-GroDis-1
+    type: numbered
+    ordinal: 1
+    text: "1. How would you describe your Christian faith and walk with the Lord? Would you describe yourself as a person of integrity?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-Int-IntComStu-SeeGodWis-BibWis-GroDis-2
+    type: numbered
+    ordinal: 2
+    text: "2. Who are people of integrity that you know? What makes them people of integrity? How does integrity lead to blessing on one's children?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-Int-IntComStu-SeeGodWis-BibWis-GroDis-3
+    type: numbered
+    ordinal: 3
+    text: "3. What hopes and dreams do you have for your children? What are God's desires for your children? Are these aligned?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-Int-IntComStu-SeeGodWis-BibWis-GroDis-4
+    type: numbered
+    ordinal: 4
+    text: "4. What areas of your life would need to change for you to better parent your children? What would it look like for your children to experience God's blessing?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-Int-IntComStu-SeeGodWis-BibWis-RecThoBel-1
+    type: heading_prompt
+    ordinal: 1
+    text: "###### Record Your Thoughts Below"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Seeking God's Wisdom > Biblical Wisdom > Record Your Thoughts Below"
+
+  - id: Home-ParOnePre-Int-IntComStu-ExpBibTex-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Family Devotion**: How dedicated were Jesus' parents to God? What did Mary and Joseph do that showed their devotion to God?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-Int-IntComStu-ExpBibTex-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Faith Community**: What do we learn about the the covenant community in the temple during the time of Jesus' dedication? What role can (and should) the community have in our parenting work?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-Int-IntComStu-ExpBibTex-DisQue-SeaTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. **God's Promises**: How does this narrative highlight the importance of God's promises being fulfilled in Christ? What does it look like to have a family that is established on God's promises? What role should the gospel have in our parenting?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-Int-IntComStu-ExpBibTex-DisQue-SeaTex-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Spiritual Growth**: How did Jesus grow and mature over the course of time? How can this provide an inspiring vision for our own children to grow in faith?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-Int-IntComStu-ExpBibTex-DisQue-SeeTru-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Family Devotion**: How does the health and godliness of a marriage impact parenting? How does the faith and godliness of each parent shape the family and children?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-Int-IntComStu-ExpBibTex-DisQue-SeeTru-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Faith Community**: Why is it important for families to be devoted to the life of the church? What happens to marriage and families when this does not take place?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-Int-IntComStu-ExpBibTex-DisQue-SeeTru-3
+    type: numbered
+    ordinal: 3
+    text: "3. **God's Promises**: How important are God's promises for building Christian families? What role should the gospel have in our homes?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-Int-IntComStu-ExpBibTex-DisQue-SeeTru-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Spiritual Growth**: What responsibility do parents have to foster holistic development of their children? What are the blessings and challenges of this work?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-Int-IntComStu-ExpBibTex-DisQue-EvaLiv-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Family Devotion**: During your upbringing, how devoted was your home to the things of God? How devoted is your home now to the Lord?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-Int-IntComStu-ExpBibTex-DisQue-EvaLiv-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Faith Community**: How committed is your family to the church community? What obstacles make this a challenge? What blessings have your received from church community life?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-Int-IntComStu-ExpBibTex-DisQue-EvaLiv-3
+    type: numbered
+    ordinal: 3
+    text: "3. **God's Promises**: How often do you speak about Christ and the gospel? How frequently do you remind your children of God's promises?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-Int-IntComStu-ExpBibTex-DisQue-EvaLiv-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Spiritual Growth**: How would you evaluate the spiritual growth of your children? What are areas to celebrate and to improve?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-Int-IntComStu-ChaPatAhe-FinRev-1
+    type: numbered
+    ordinal: 1
+    text: "1. What key **takeaways**, **noteworthy observations**, or **biblical truths** most stood out to you during this session?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-Int-IntComStu-ChaPatAhe-FinRev-2
+    type: numbered
+    ordinal: 2
+    text: "2. What **lingering questions** do you have about this session's topic?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-Int-IntComStu-ChaPatAhe-FinRev-3
+    type: numbered
+    ordinal: 3
+    text: "3. What **personal applications** most challenged you? How do you most want to apply these teachings to your life?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-Int-IntComStu-ChaPatAhe-SmaGroPra-1
+    type: standalone_prompt
+    ordinal: 1
+    text: "How can I pray for **other members** of my community?"
+    path: "PART ONE: Preparation > Introduction > Introduction Community Study > Charting the Path Ahead > Small Group Prayer"
+
+  # === Session One ===
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-SeeGodWis-BibWis-GroDis-1
+    type: numbered
+    ordinal: 1
+    text: "1. What most excites you about parenting? What feels overwhelming about this sacred calling? Where do you sense the limits of your own ability and understanding for this work?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-SeeGodWis-BibWis-GroDis-2
+    type: numbered
+    ordinal: 2
+    text: "2. How would you describe your walk with the Lord? How are you enjoying your relationship with God as Father? How can you cultivate your trust in the Lord in order to properly prepare for this parenting work?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-SeeGodWis-BibWis-RecThoBel-1
+    type: heading_prompt
+    ordinal: 1
+    text: "###### Record Your Thoughts Below"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Seeking God's Wisdom > Biblical Wisdom > Record Your Thoughts Below"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ExpBibTex-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Family Worship**: How does this psalm worship God? What reasons are given to show that God is worthy of worship?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ExpBibTex-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Fatherly Love**: How does this psalm describe God as a loving Father? What terms and phrases are used to describe God's love for his people?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ExpBibTex-DisQue-SeaTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Fatherly Care**: How does this psalm describe God's care for his people? How does God's love translate into genuine concern for his people?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ExpBibTex-DisQue-SeaTex-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Covenant Relationship**: What is a covenant? Why is it important that God's people are in a covenant relationship with God himself?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ExpBibTex-DisQue-SeeTru-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Family Worship**: Why is worship so central to family life and parenting work? What does it look like for a family to worship God?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ExpBibTex-DisQue-SeeTru-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Fatherly Love**: How is God's love for his people an example for us to follow in our parenting? How is love the foundation of parenting?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ExpBibTex-DisQue-SeeTru-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Fatherly Care**: How can we care for our children like God cares for us?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ExpBibTex-DisQue-SeeTru-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Covenant Relationship**: How is our own relationship with God vital in our parenting work? How is our parenting negatively affected if we have a wrong view of God's Fatherhood? How is our parenting fueled if we enjoy a vibrant relationship with God as Father?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ExpBibTex-DisQue-EvaLiv-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Family Worship**: Did you grow up in a family that worshiped God together? How will you make worship central to the life and culture of your home?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ExpBibTex-DisQue-EvaLiv-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Fatherly Love**: What wrong perspectives of God as Father need to be corrected in your own life? How do you need to experience God's fatherly love to better serve your family and children?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ExpBibTex-DisQue-EvaLiv-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Fatherly Care**: How would you want to grow in your care for your children, making it more like God?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ExpBibTex-DisQue-EvaLiv-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Covenant Relationship**: How will you cultivate your walk with God as Father as the source and foundation of all your parenting? How will your mark your home as a family under God's covenant care?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ChaPatAhe-FinRev-1
+    type: numbered
+    ordinal: 1
+    text: "1. What key **takeaways**, **noteworthy observations**, or **biblical truths** most stood out to you during this session?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ChaPatAhe-FinRev-2
+    type: numbered
+    ordinal: 2
+    text: "2. What **lingering questions** do you have about this session's topic?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ChaPatAhe-FinRev-3
+    type: numbered
+    ordinal: 3
+    text: "3. What **personal applications** most challenged you? How do you most want to apply these teachings to your life?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesOne-Ses1ComStu-ChaPatAhe-SmaGroPra-1
+    type: standalone_prompt
+    ordinal: 1
+    text: "How can I pray for **other members** of my community?"
+    path: "PART ONE: Preparation > Session One > Session 1 Community Study > Charting the Path Ahead > Small Group Prayer"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-ScrRea-ConTru-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Meditate on the meaning of the biblical passage. What observations, questions, or teachings stand out to you. Record any thoughts below.*"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Scripture Reading > Consider the Truth"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-ScrRea-PraTex-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the biblical text as a guide for prayer. Write a prayer to the Lord using specific portions of the biblical text that you read.*"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Scripture Reading > Pray the Text"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-TopStu-ConRef-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- These verses convicted me of my **shortcomings**…"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-TopStu-ConRef-2
+    type: fill_in_bullet
+    ordinal: 2
+    text: "- These verses challenged me to **grow in my faith**…"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-TopStu-ConRef-3
+    type: fill_in_bullet
+    ordinal: 3
+    text: "- These verses comforted me with my **current struggles**…"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-ArtObs-PaiRef-1
+    type: numbered
+    ordinal: 1
+    text: "1. As you observe this painting, what details do you notice? What characters, scenes, or events are depicted in this painting?"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-ArtObs-PaiRef-2
+    type: numbered
+    ordinal: 2
+    text: "2. How does this painting depict the father's care for his son? How does this painting depict the condition of the kneeling son? How is this a portrait of our relationship with God as Father?"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-ArtObs-PaiRef-3
+    type: numbered
+    ordinal: 3
+    text: "3. As you imagine yourself in this story, what questions do you want to ask? What impressions do you get about what it means to relate to God as a loving heavenly Father?"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-ArtObs-Obs-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Record your observations below.*"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Art Observation > Observations"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-SpiPra-MedGodTenCar-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- These are ways that I am **fragile** and **weak**..."
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Spiritual Practice > Meditating on God's Tender Care"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-SpiPra-MedGodTenCar-2
+    type: fill_in_bullet
+    ordinal: 2
+    text: "- These are ways I have **experienced God's tender care**..."
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Spiritual Practice > Meditating on God's Tender Care"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-SpiPra-ImaLifOthWay-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- Without God's tender care, this is where my life would be..."
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Spiritual Practice > Imaginging Life the Other Way"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-SpiPra-RecFinTho-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*After this spiritual practice, record any insights, questions, observations, or clarifications you gained during your time with the Lord.*"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Spiritual Practice > Record Final Thoughts"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-JouRef-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Praising God as Father**: What characteristics of God's fatherly care most encourage you?"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-JouRef-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Thanking God for Progress**: What godly characteristics of God's fatherly care are you demonstrating well?"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-JouRef-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Prayer for Help**: What godly characteristics of God's fatherly care do you need the most growth in?"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesOne-Ses1WeeDis-JouRef-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Seeking Growing Faith**: How can you adjust your parenting to reflect God's parental care of you? How can you cultivate your relationship with God as Father as the main sustenance and fuel of your own parenting?"
+    path: "PART ONE: Preparation > Session One > Session 1 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesOne-Ses1RefPro-ParPro-DisSpo-1
+    type: bold_bullet
+    ordinal: 1
+    text: "- **Reflecting on Your Past**: Did you worship God together as a family? If so, what was that experience like (time, practices, content, etc.)?"
+    path: "PART ONE: Preparation > Session One > Session 1 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  - id: Home-ParOnePre-SesOne-Ses1RefPro-ParPro-DisSpo-2
+    type: bold_bullet
+    ordinal: 2
+    text: "- **Discussing Core Values**: What key practices do you want to be in place as you and your family worship God together?"
+    path: "PART ONE: Preparation > Session One > Session 1 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  - id: Home-ParOnePre-SesOne-Ses1RefPro-ParPro-DisSpo-3
+    type: bold_bullet
+    ordinal: 3
+    text: "- **Anticipating the Future**: What are some of your greatest concerns about worshiping together as a family? What most excites you?"
+    path: "PART ONE: Preparation > Session One > Session 1 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  # === Session Two ===
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-SeeGodWis-BibWis-GroDis-1
+    type: numbered
+    ordinal: 1
+    text: "1. What was your family experience like across the generations? How did you think about your grandparents and parents? Did they bring you a sense of honor or shame?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Seeking God’s Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-SeeGodWis-BibWis-GroDis-2
+    type: numbered
+    ordinal: 2
+    text: "2. What excites you about parenting being an intergenerational work? How do you hope to parent in a way that seeks for an intergenerational impact?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Seeking God’s Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-SeeGodWis-BibWis-RecThoBel-1
+    type: heading_prompt
+    ordinal: 1
+    text: "###### Record Your Thoughts Below"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Seeking God’s Wisdom > Biblical Wisdom > Record Your Thoughts Below"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ExpBibTex-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Stewards of Truth**: How does this psalm describe the truth? What is the core content of the truth? How does it describe the action of delivering and receiving the truth?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ExpBibTex-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Generations**: How did God's ancient people think about previous and future generations?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ExpBibTex-DisQue-SeaTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Community**: In ancient Israel, what role did the faith community have in passing the faith to the next generations? How did this relate to the role of the family?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ExpBibTex-DisQue-SeaTex-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Devotion to God**: How does this biblical passage describe what devotion to God looks like? How does it describe lack of faith in and devotion to God?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ExpBibTex-DisQue-SeeTru-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Stewards of Truth**: Why is it important for Christian parents to view themselves as stewards of the truth? How is parenting a matter passing the faith to the next generations?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ExpBibTex-DisQue-SeeTru-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Generations**: How should we think about previous and future generations? What biblical principles in this text will help make our parenting intentionally intergenerational?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ExpBibTex-DisQue-SeeTru-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Community**: What is the role of the community in faith formation? How should the church and the family work together in passing the faith to the next generation?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ExpBibTex-DisQue-SeeTru-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Devotion to God**: How can we tell when the faith has been passed on the to next generation? What should be the overarching goal parents have for their children?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ExpBibTex-DisQue-EvaLiv-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Stewards of Truth**: How was the faith passed on to you (or not) from previous generations? Were there any believers in your ancestry that were instrumental in bringing the faith to your family?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ExpBibTex-DisQue-EvaLiv-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Generations**: As you think about the previous generations (and your own parents) what are you grateful for? What do you want to reject?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ExpBibTex-DisQue-EvaLiv-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Community**: How will you make your parenting intergenerational and community-based?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ExpBibTex-DisQue-EvaLiv-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Devotion to God**: How will your parenting nurture devotion to God? How would you evaluate your confidence in God? How do you need to grow in confidence of God in order to better parent your children?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ChaPatAhe-FinRev-1
+    type: numbered
+    ordinal: 1
+    text: "1. What key **takeaways**, **noteworthy observations**, or **biblical truths** most stood out to you during this session?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ChaPatAhe-FinRev-2
+    type: numbered
+    ordinal: 2
+    text: "2. What **lingering questions** do you have about this session's topic?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ChaPatAhe-FinRev-3
+    type: numbered
+    ordinal: 3
+    text: "3. What **personal applications** most challenged you? How do you most want to apply these teachings to your life?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesTwo-Ses2ComStu-ChaPatAhe-SmaGroPra-1
+    type: standalone_prompt
+    ordinal: 1
+    text: "How can I pray for **other members** of my community?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Community Study > Charting the Path Ahead > Small Group Prayer"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-ScrRea-ConTru-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Meditate on the meaning of the biblical passage. What observations, questions, or teachings stand out to you. Record any thoughts below.*"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Scripture Reading > Consider the Truth"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-ScrRea-PraTex-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the biblical text as a guide for prayer. Write a prayer to the Lord using specific portions of the biblical text that you read.*"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Scripture Reading > Pray the Text"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-TopStu-ConRef-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- These verses convicted me of my **shortcomings**…"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-TopStu-ConRef-2
+    type: fill_in_bullet
+    ordinal: 2
+    text: "- These verses challenged me to **grow in my faith**…"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-TopStu-ConRef-3
+    type: fill_in_bullet
+    ordinal: 3
+    text: "- These verses comforted me with my **current struggles**…"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-ArtObs-PaiRef-1
+    type: numbered
+    ordinal: 1
+    text: "1. As you observe this painting, what details do you notice? What characters, expressions, or actions are depicted in this painting?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-ArtObs-PaiRef-2
+    type: numbered
+    ordinal: 2
+    text: "2. How does this painting depict the different stages of development? What benefit is there to having meaningful relationship with people in other generations? Specifically, how does this help faith formation?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-ArtObs-PaiRef-3
+    type: numbered
+    ordinal: 3
+    text: "3. How does this give us insight into the importance of an intergenerational and community-based approach to Christian parenting? How would you parent different to impact children's children/future generations?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-ArtObs-PaiRef-4
+    type: numbered
+    ordinal: 4
+    text: "4. As you imagine yourself in this story, what questions do you want to ask? What impressions do you get about the importance of making your parenting intergenerational?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-ArtObs-Obs-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Record your observations below.*"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Art Observation > Observations"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-SpiPra-FamPic-1
+    type: fill_in_line
+    ordinal: 1
+    text: "This is what I **appreciated** about my upbringing…"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Spiritual Practice > Family Picture"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-SpiPra-FamPic-2
+    type: fill_in_line
+    ordinal: 2
+    text: "This is what I would have **changed** about my upbringing…"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Spiritual Practice > Family Picture"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-SpiPra-FamPic-3
+    type: fill_in_line
+    ordinal: 3
+    text: "This is what I **did wrong** in my upbringing…"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Spiritual Practice > Family Picture"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-SpiPra-RecFinTho-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*After this spiritual practice, record any insights, questions, observations, or clarifications you gained during your time with the Lord.*"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Spiritual Practice > Record Final Thoughts"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-JouRef-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Previous Generations**: How have you been impacted by previous generations? Reflect on the positive and negative impact of previous generations on your life."
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-JouRef-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Passing the Faith**: How committed are you to pass the faith and truth to the next generation? What obstacles stand in the way of this being a major objective of your parenting work?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-JouRef-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Devotion to God**: Are you growing in confidence of God? How have you displayed cycles of faithlessness like the ancient Israelites?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesTwo-Ses2WeeDis-JouRef-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Mentors**: How can you make your own faith development more intergenerational? Who are those who can walk alongside you in your faith and parenting journey?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesTwo-Ses2RefPro-ParPro-DisSpo-1
+    type: bold_bullet
+    ordinal: 1
+    text: "- **Reflecting on Your Past**: What traditions did you have growing? How did these traditions shape you? How was your upbringing different than your spouse?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  - id: Home-ParOnePre-SesTwo-Ses2RefPro-ParPro-DisSpo-2
+    type: bold_bullet
+    ordinal: 2
+    text: "- **Discussing Core Values**: How will you tradition your children in the words and works of God? How will your traditions be Godcentered and faith-building and not just human-centered and nostalgic?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  - id: Home-ParOnePre-SesTwo-Ses2RefPro-ParPro-DisSpo-3
+    type: bold_bullet
+    ordinal: 3
+    text: "- **Anticipating the Future**: What are some of your greatest concerns about viewing yourself as a steward of the truth? What excites you about this work? How can you better prepare yourself fo the work?"
+    path: "PART ONE: Preparation > Session Two > Session 2 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  # === Session Three ===
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-SeeGodWis-BibWis-GroDis-1
+    type: numbered
+    ordinal: 1
+    text: "1. What is the condition of your family? What are its greatest needs, challenges, or hardships?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-SeeGodWis-BibWis-GroDis-2
+    type: numbered
+    ordinal: 2
+    text: "2. How can you better know the condition of your family like a shepherd knows the condition of his flocks? In what ways can you pay closer attention and develop a more keen eye into the state of your family?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-SeeGodWis-BibWis-RecThoBel-1
+    type: heading_prompt
+    ordinal: 1
+    text: "###### Record Your Thoughts Below"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Seeking God's Wisdom > Biblical Wisdom > Record Your Thoughts Below"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ExpBibTex-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Shepherds and Sheep**: How does this passage describe God's relationship to his people? How is God like a shepherd to his people and how are we like sheep?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ExpBibTex-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Sheep Needs**: What needs do sheep have? What dangers, difficulties, or basic necessities do sheep face?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ExpBibTex-DisQue-SeaTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Shepherding Care**: How does this passage describe shepherding care? What activities does a good shepherd do to care for his sheep?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ExpBibTex-DisQue-SeaTex-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Divine Shepherd**: How does God shepherd his people? How does God care for his people?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ExpBibTex-DisQue-SeeTru-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Shepherd and Sheep**: How is parenting work like the work of a shepherd? How are parents like shepherds? How are children like sheep? How does this passage illuminate parenting work?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ExpBibTex-DisQue-SeeTru-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Sheep Needs**: What dangers, difficulties, or basic necessities do children face? What are the threats and challenges that face families in your culture and generation?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ExpBibTex-DisQue-SeeTru-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Shepherding Care**: How does a shepherd's work inform and inspire parenting vocation? How is parenting a work of provision, guiding, protecting, correcting, presence, and blessing?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ExpBibTex-DisQue-SeeTru-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Divine Shepherd**: How are parents like sheep more than they are shepherds? Why is it important for parents to experience God's shepherding care in order for them to shepherd their children well? How can we establish our families on God's blessings and promises?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ExpBibTex-DisQue-EvaLiv-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Shepherd and Sheep**: Which aspects of shepherds and sheep most help you think about the life of faith and parenting work?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ExpBibTex-DisQue-EvaLiv-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Sheep Needs**: What are the specific needs of your children? How can you shepherd and care for them at this time as a shepherd?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ExpBibTex-DisQue-EvaLiv-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Shepherding Care**: Which aspects of parenting as a shepherd do you feel most inclined toward? Which aspects do you need to work on developing more?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ExpBibTex-DisQue-EvaLiv-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Divine Shepherd**: How has God been a shepherd to you? How do you need God to be a shepherd to you now?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ChaPatAhe-FinRev-1
+    type: numbered
+    ordinal: 1
+    text: "1. What key **takeaways**, **noteworthy observations**, or **biblical truths** most stood out to you during this session?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ChaPatAhe-FinRev-2
+    type: numbered
+    ordinal: 2
+    text: "2. What **lingering questions** do you have about this session's topic?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ChaPatAhe-FinRev-3
+    type: numbered
+    ordinal: 3
+    text: "3. What **personal applications** most challenged you? How do you most want to apply these teachings to your life?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesThr-Ses3ComStu-ChaPatAhe-SmaGroPra-1
+    type: standalone_prompt
+    ordinal: 1
+    text: "How can I pray for **other members** of my community?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Community Study > Charting the Path Ahead > Small Group Prayer"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-ScrRea-ConTru-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Meditate on the meaning of the biblical passage. What observations, questions, or teachings stand out to you. Record any thoughts below.*"
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Scripture Reading > Consider the Truth"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-ScrRea-PraTex-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the biblical text as a guide for prayer. Write a prayer to the Lord using specific portions of the biblical text that you read.*"
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Scripture Reading > Pray the Text"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-TopStu-ConRef-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- These verses convicted me of my **shortcomings**…"
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-TopStu-ConRef-2
+    type: fill_in_bullet
+    ordinal: 2
+    text: "- These verses challenged me to **grow in my faith**…"
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-TopStu-ConRef-3
+    type: fill_in_bullet
+    ordinal: 3
+    text: "- These verses comforted me with my **current struggles**…"
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-ArtObs-PaiRef-1
+    type: numbered
+    ordinal: 1
+    text: "1. As you observe this painting, what details do you notice? What characters, scenes, or events are depicted in this painting?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-ArtObs-PaiRef-2
+    type: numbered
+    ordinal: 2
+    text: "2. How would you describe the interaction between the shepherd and his flock? How is parenting like shepherding work? What are the challenges and blessings of parenting as a shepherding work?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-ArtObs-PaiRef-3
+    type: numbered
+    ordinal: 3
+    text: "3. As you imagine yourself in this story, what questions do you want to ask? What impressions do you get about what is important about shepherding your family as a good and faithful shepherd?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-ArtObs-Obs-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Record your observations below.*"
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Art Observation > Observations"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-SpiPra-DefHomVal-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- These are the values I want our home to be defined by..."
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Spiritual Practice > Defining Home Values"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-SpiPra-DefHomVal-2
+    type: fill_in_bullet
+    ordinal: 2
+    text: "- These are the principles I do not want our home to be defined by..."
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Spiritual Practice > Defining Home Values"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-SpiPra-ImaInv-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- This is what it will take to have my family embrace these values..."
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Spiritual Practice > Imaginging the Investment"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-SpiPra-RecFinTho-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*After this spiritual practice, record any insights, questions, observations, or clarifications you gained during your time with the Lord.*"
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Spiritual Practice > Record Final Thoughts"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-JouRef-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. **God's Shepherding Care**: How have you experienced God's shepherding care in your own life?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-JouRef-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Parental Care**: How much of your upbringing was under the care of parents who shepherded you? How did you experience their care as a faithful shepherd cares for his sheep?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesThr-Ses3WeeDis-JouRef-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Looking Ahead**: Which aspects of parenting as a shepherd most excite you and most concern you?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesThr-Ses3RefPro-ParPro-DisSpo-1
+    type: bold_bullet
+    ordinal: 1
+    text: "- **Reflecting on Your Past**: How would you describe the culture of your home during your upbringing? What were the values of your home?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  - id: Home-ParOnePre-SesThr-Ses3RefPro-ParPro-DisSpo-2
+    type: bold_bullet
+    ordinal: 2
+    text: "- **Discussing Core Values**: What values do you want to define your home? How would you want someone to describe the culture of your home from the inside and the outside?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  - id: Home-ParOnePre-SesThr-Ses3RefPro-ParPro-DisSpo-3
+    type: bold_bullet
+    ordinal: 3
+    text: "- **Anticipating the Future**: What are some of your greatest concerns about viewing yourself as a shepherd of your family? What excites you about this work? How can you better prepare yourself fo the work?"
+    path: "PART ONE: Preparation > Session Three > Session 3 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  # === Session Four ===
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-SeeGodWis-BibWis-GroDis-1
+    type: numbered
+    ordinal: 1
+    text: "1. How do you feel about your responsibility as the primary teacher of your children? Does this duty cause you excitement or concern?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-SeeGodWis-BibWis-GroDis-2
+    type: numbered
+    ordinal: 2
+    text: "2. What do you hope your children become? How would you describe the faith and character of your children after you have raised them?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-SeeGodWis-BibWis-RecThoBel-1
+    type: heading_prompt
+    ordinal: 1
+    text: "###### Record Your Thoughts Below"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Seeking God's Wisdom > Biblical Wisdom > Record Your Thoughts Below"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ExpBibTex-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Worship**: How does this psalm describe worship of God?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ExpBibTex-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Fear of God**: How does this psalm describe fear? How does the fear of God contrast with other fears?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ExpBibTex-DisQue-SeaTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Character Formation**: How does this psalm describe the person who fears God? What is their life character like?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ExpBibTex-DisQue-SeaTex-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Righteous Suffering**: How should the righteous suffer? How picture does this passage give of a righteous sufferer?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ExpBibTex-DisQue-SeeTru-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Worship**: Why is worship so important to the life of faith and to Christian homebuilding?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ExpBibTex-DisQue-SeeTru-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Fear of God**: What is the fear of God? Why should teaching children the fear of the Lord the ultimate aim of parenting?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ExpBibTex-DisQue-SeeTru-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Character Formation**: What does it look like to instruct children in moral formation? How can you parent toward character development and virtue formation?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ExpBibTex-DisQue-SeeTru-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Righteous Suffering**: What does it look like to parent preparing your children to remain faithful to God in the midst of suffering? How does that affect the way you parent your children now?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ExpBibTex-DisQue-EvaLiv-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Worship**: What actions can foster your home in the worship of God? How can you build your home to be a continual place of worship?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ExpBibTex-DisQue-EvaLiv-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Fear of God**: What is most of your parental instruction about? Is teaching the fear of God the highest priority of your parenting? What would change if this was the main aim of your parenting instruction?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ExpBibTex-DisQue-EvaLiv-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Character Formation**: How well are your children growing in character? What would need to change in your parenting for you to focus on the formation of Christian virtue?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ExpBibTex-DisQue-EvaLiv-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Righteous Suffering**: Are your children being prepared to face difficulty and hardship by maintaining a faith in God? How can you orient your parenting toward this goal?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ChaPatAhe-FinRev-1
+    type: numbered
+    ordinal: 1
+    text: "1. What key **takeaways**, **noteworthy observations**, or **biblical truths** most stood out to you during this session?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ChaPatAhe-FinRev-2
+    type: numbered
+    ordinal: 2
+    text: "2. What **lingering questions** do you have about this session's topic?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ChaPatAhe-FinRev-3
+    type: numbered
+    ordinal: 3
+    text: "3. What **personal applications** most challenged you? How do you most want to apply these teachings to your life?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesFou-Ses4ComStu-ChaPatAhe-SmaGroPra-1
+    type: standalone_prompt
+    ordinal: 1
+    text: "How can I pray for **other members** of my community?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Community Study > Charting the Path Ahead > Small Group Prayer"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-ScrRea-ConTru-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Meditate on the meaning of the biblical passage. What observations, questions, or teachings stand out to you. Record any thoughts below.*"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Scripture Reading > Consider the Truth"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-ScrRea-PraTex-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the biblical text as a guide for prayer. Write a prayer to the Lord using specific portions of the biblical text that you read.*"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Scripture Reading > Pray the Text"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-TopStu-ConRef-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- These verses convicted me of my **shortcomings**…"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-TopStu-ConRef-2
+    type: fill_in_bullet
+    ordinal: 2
+    text: "- These verses challenged me to **grow in my faith**…"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-TopStu-ConRef-3
+    type: fill_in_bullet
+    ordinal: 3
+    text: "- These verses comforted me with my **current struggles**…"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-ArtObs-PaiRef-1
+    type: numbered
+    ordinal: 1
+    text: "1. As you observe this painting, what details do you notice? What characters, scenes, or events are depicted in this painting? What seem to be the values and priorities of this family?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-ArtObs-PaiRef-2
+    type: numbered
+    ordinal: 2
+    text: "2. How would you describe the interaction between the generations? How is the conduct and character of the older generation affecting the younger generation?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-ArtObs-PaiRef-3
+    type: numbered
+    ordinal: 3
+    text: "3. As you imagine yourself in this story, what questions do you want to ask? What impressions do you get about what is important about shepherding your family toward the fear of God and character formation?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-ArtObs-Obs-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Record your observations below.*"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Art Observation > Observations"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-SpiPra-Dar-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- These are the things I fear the most..."
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Spiritual Practice > In the Dark"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-SpiPra-Dar-2
+    type: fill_in_bullet
+    ordinal: 2
+    text: "- This is the fear of God overcomes these fears..."
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Spiritual Practice > In the Dark"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-SpiPra-ImaCha-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- This is how my life would be different if the fear of God overcame all other fears..."
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Spiritual Practice > Imaginging the Change"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-SpiPra-RecFinTho-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*After this spiritual practice, record any insights, questions, observations, or clarifications you gained during your time with the Lord.*"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Spiritual Practice > Record Final Thoughts"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-JouRef-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Fear of God**: How well are you embracing the fear of God in your life?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-JouRef-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Models of Maturity**: How happy would you be if your character was replicated in your children? What areas of growth do you need to become a better model of godly living?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-JouRef-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Personal Appetites**: How are you tasting God's goodness? What appetites and desires in your life need to change?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesFou-Ses4WeeDis-JouRef-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Righteous Suffering**: How well do you endure suffering? What wrong ways of thinking come into your mind as you endure hardship? How can you grow in righteous suffering?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesFou-Ses4RefPro-ParPro-DisSpo-1
+    type: bold_bullet
+    ordinal: 1
+    text: "- **Reflecting on Your Past**: How would you describe your educational experience growing up? How involved were your parents in your education?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  - id: Home-ParOnePre-SesFou-Ses4RefPro-ParPro-DisSpo-2
+    type: bold_bullet
+    ordinal: 2
+    text: "- **Discussing Core Values**: What is most important to you as you consider your educational goals for your children?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  - id: Home-ParOnePre-SesFou-Ses4RefPro-ParPro-DisSpo-3
+    type: bold_bullet
+    ordinal: 3
+    text: "- **Anticipating the Future**: What are some of your greatest concerns about viewing yourself as a teacher of your children? What excites you about this work? How can you better prepare yourself for the work?"
+    path: "PART ONE: Preparation > Session Four > Session 4 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  # === Session Five ===
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-SeeGodWis-BibWis-GroDis-1
+    type: numbered
+    ordinal: 1
+    text: "1. What kind of discipline did you receive as a child? Would you describe this discipline as punitive, passive, or protective?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-SeeGodWis-BibWis-GroDis-2
+    type: numbered
+    ordinal: 2
+    text: "2. What would change in your parenting if you viewed your role as a protector of your home? How would this change your approach to discipline, instruction, and correction?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-ExpBibTex-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Surrounding Godlessness**: How does this psalm describe the evil days and evildoers? What does the psalmist ask God to do?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-ExpBibTex-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Godly Discipline**: How does God discipline his people? What is the character and aim of God's discipline?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-ExpBibTex-DisQue-SeaTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Godly Protection**: How is God a protection for his people? What does God protect his people from?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-ExpBibTex-DisQue-SeeTru-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Surrounding Godlessness**: What evil and wickedness oppose God and his people? Why is it important for parents to be aware of the evil days in which they are raising their children?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-ExpBibTex-DisQue-SeeTru-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Godly Discipline**: What role should discipline have in raising our children? What is godly discipline, and how does godly discipline help create both wisdom and safety?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-ExpBibTex-DisQue-SeeTru-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Godly Protection**: How should parents function as protectors of their home? How can parenting a matter of leading our families into God's protection?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-ExpBibTex-DisQue-EvaLiv-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Surrounding Godlessness**: What evil in the surrounding world most concerns you? What godless influences are you most worried will affect your family and children?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-ExpBibTex-DisQue-EvaLiv-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Godly Discipline**: What is your approach to godly discipline? How will you approach discipline in a way that God has disciplined us?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-ExpBibTex-DisQue-EvaLiv-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Godly Protection**: How have you aimed to make God your ultimate protection? How will you lead your family to rest in God's security and protection?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-ChaPatAhe-FinRev-1
+    type: numbered
+    ordinal: 1
+    text: "1. What key **takeaways**, **noteworthy observations**, or **biblical truths** most stood out to you during this session?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-ChaPatAhe-FinRev-2
+    type: numbered
+    ordinal: 2
+    text: "2. What **lingering questions** do you have about this session's topic?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-ChaPatAhe-FinRev-3
+    type: numbered
+    ordinal: 3
+    text: "3. What **personal applications** most challenged you? How do you most want to apply these teachings to your life?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesFiv-Ses5ComStu-ChaPatAhe-SmaGroPra-1
+    type: standalone_prompt
+    ordinal: 1
+    text: "How can I pray for **other members** of my community?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Community Study > Charting the Path Ahead > Small Group Prayer"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-ScrRea-ConTru-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Meditate on the meaning of the biblical passage. What observations, questions, or teachings stand out to you. Record any thoughts below.*"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Scripture Reading > Consider the Truth"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-ScrRea-PraTex-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the biblical text as a guide for prayer. Write a prayer to the Lord using specific portions of the biblical text that you read.*"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Scripture Reading > Pray the Text"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-TopStu-ConRef-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- These verses convicted me of my **shortcomings**…"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-TopStu-ConRef-2
+    type: fill_in_bullet
+    ordinal: 2
+    text: "- These verses challenged me to **grow in my faith**…"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-TopStu-ConRef-3
+    type: fill_in_bullet
+    ordinal: 3
+    text: "- These verses comforted me with my **current struggles**…"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-ArtObs-PaiRef-1
+    type: numbered
+    ordinal: 1
+    text: "1. As you observe this painting, what details do you notice? What characters, scenes, or events are depicted in this painting?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-ArtObs-PaiRef-2
+    type: numbered
+    ordinal: 2
+    text: "2. How does this painting depict the instruction of the young child? What roles are the mother and father uniquely playing in this scene? How might this portrait represent godly training, discipline, and instruction?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-ArtObs-PaiRef-3
+    type: numbered
+    ordinal: 3
+    text: "3. As you imagine yourself in this story, what questions do you want to ask? What impressions do you get about what it means to relate to God as a God who lovingly disciplines and instructs us?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-ArtObs-Obs-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Record your observations below.*"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Art Observation > Observations"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-SpiPra-MedGodTenCar-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- These are dangers and threats that we face..."
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Spiritual Practice > Meditating on God's Tender Care"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-SpiPra-MedGodTenCar-2
+    type: fill_in_bullet
+    ordinal: 2
+    text: "- This is how God is our protection and refuge..."
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Spiritual Practice > Meditating on God's Tender Care"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-SpiPra-ImaLifOthWay-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- This is how my life and family would look under God's safekeeping..."
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Spiritual Practice > Imaginging Life the Other Way"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-SpiPra-RecFinTho-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*After this spiritual practice, record any insights, questions, observations, or clarifications you gained during your time with the Lord.*"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Spiritual Practice > Record Final Thoughts"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-JouRef-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Danger and Threat**: What do you most fear? What dangers and threats most oppose you and your family? How do these dangers make you feel?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-JouRef-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Wrong Views of Discipline**: What are wrong views of discipline that you need to challenge and change?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-JouRef-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. **God's Discipline**: How have you experienced the Lord's discipline as loving correction? How can God's discipline of you be a model for your parenting work?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesFiv-Ses5WeeDis-JouRef-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Listening to God's Discipline**: What areas of your life do you need the Lord's correction? Are there areas where you are refusing to submit to the Lord?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesFiv-Ses5RefPro-ParPro-DisSpo-1
+    type: bold_bullet
+    ordinal: 1
+    text: "- **Reflecting on Your Past**: What was discipline like in your upbringing? Looking back, what did you appreciate and not appreciate about this approach to discipline?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  - id: Home-ParOnePre-SesFiv-Ses5RefPro-ParPro-DisSpo-2
+    type: bold_bullet
+    ordinal: 2
+    text: "- **Discussing Core Values**: What core principles do you want to guide your discipline of your children? How will you make your discipline both instructive and corrective?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  - id: Home-ParOnePre-SesFiv-Ses5RefPro-ParPro-DisSpo-3
+    type: bold_bullet
+    ordinal: 3
+    text: "- **Anticipating the Future**: What are some of your greatest concerns about viewing yourself as a protector of your home? What excites you about this work? How can you better prepare yourself for the work?"
+    path: "PART ONE: Preparation > Session Five > Session 5 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  # === Session Six ===
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-SeeGodWis-BibWis-GroDis-1
+    type: numbered
+    ordinal: 1
+    text: "1. How do people in the surrounding world try to build their families their own way? How are these modes of homebuilding contrary to God's plan?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-SeeGodWis-BibWis-GroDis-2
+    type: numbered
+    ordinal: 2
+    text: "2. What do you envision when you think about a thriving and flourishing home? What it look like for your home to be strong, established, precious, and beautiful?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Seeking God's Wisdom > Biblical Wisdom > Group Discussion"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-SeeGodWis-BibWis-RecThoBel-1
+    type: heading_prompt
+    ordinal: 1
+    text: "###### Record Your Thoughts Below"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Seeking God's Wisdom > Biblical Wisdom > Record Your Thoughts Below"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ExpBibTex-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Homebuilding**: What do these psalms have to say about homebuilding? How does a home"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ExpBibTex-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Devotion to God**: How do these passages describe devotion to God?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ExpBibTex-DisQue-SeaTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Blessings**: What blessings to godly families enjoy?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ExpBibTex-DisQue-SeaTex-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Impact**: How do these psalms describe the role of the family in God's work and purpose?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Exploring the Biblical Text > Discussion Questions > Searching the Text"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ExpBibTex-DisQue-SeeTru-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Homebuilding**: What is homebuilding? What is it meaningful work?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ExpBibTex-DisQue-SeeTru-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Devotion to God**: How can parents display their devotion to God in the way they parent and raise their children?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ExpBibTex-DisQue-SeeTru-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Blessings**: What blessings do Christian parents hope for? How are these motivating for Christian homebuilding?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ExpBibTex-DisQue-SeeTru-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Impact**: How can families leave an impact in larger society and across the generations?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Exploring the Biblical Text > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ExpBibTex-DisQue-EvaLiv-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Homebuilding**: Do you view Christian homebuilding as meaningful work? What truths support this idea? What wrong ideas distort this perspective?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ExpBibTex-DisQue-EvaLiv-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Devotion to God**: Do you have an \"unless the Lord\" mentality? How well are you modeling devotion to God in the way you go about your parenting work?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ExpBibTex-DisQue-EvaLiv-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Blessings**: How have you experienced God's blessing and favor in your home?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ExpBibTex-DisQue-EvaLiv-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Impact**: As you think about raising your kids to release them into the world, what most excites you about this prospect? What feels most challenging about this idea?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Exploring the Biblical Text > Discussion Questions > Evaluating Our Lives"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ChaPatAhe-FinRev-1
+    type: numbered
+    ordinal: 1
+    text: "1. What key **takeaways**, **noteworthy observations**, or **biblical truths** most stood out to you during this session?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ChaPatAhe-FinRev-2
+    type: numbered
+    ordinal: 2
+    text: "2. What **lingering questions** do you have about this session's topic?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ChaPatAhe-FinRev-3
+    type: numbered
+    ordinal: 3
+    text: "3. What **personal applications** most challenged you? How do you most want to apply these teachings to your life?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Charting the Path Ahead > Final Review"
+
+  - id: Home-ParOnePre-SesSix-Ses6ComStu-ChaPatAhe-SmaGroPra-1
+    type: standalone_prompt
+    ordinal: 1
+    text: "How can I pray for **other members** of my community?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Community Study > Charting the Path Ahead > Small Group Prayer"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-ScrRea-ConTru-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Meditate on the meaning of the biblical passage. What observations, questions, or teachings stand out to you. Record any thoughts below.*"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Scripture Reading > Consider the Truth"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-ScrRea-PraTex-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the biblical text as a guide for prayer. Write a prayer to the Lord using specific portions of the biblical text that you read.*"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Scripture Reading > Pray the Text"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-TopStu-ConRef-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- These verses convicted me of my **shortcomings**…"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-TopStu-ConRef-2
+    type: fill_in_bullet
+    ordinal: 2
+    text: "- These verses challenged me to **grow in my faith**…"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-TopStu-ConRef-3
+    type: fill_in_bullet
+    ordinal: 3
+    text: "- These verses comforted me with my **current struggles**…"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Topical Study > Concluding Reflection"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-ArtObs-PaiRef-1
+    type: numbered
+    ordinal: 1
+    text: "1. As you observe this painting, what details do you notice? What characters, scenes, or events are depicted in this painting?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-ArtObs-PaiRef-2
+    type: numbered
+    ordinal: 2
+    text: "2. How does this painting depict the family gathered around the table? How would this family portrait give insight into what matters most to this family? How is their family shaping their children?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-ArtObs-PaiRef-3
+    type: numbered
+    ordinal: 3
+    text: "3. As you imagine yourself in this story, what questions do you want to ask? What impressions do you get about what it means for families to experience God's blessing, embody contentment, and training children toward God?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Art Observation > Painting Reflection"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-ArtObs-Obs-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Record your observations below.*"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Art Observation > Observations"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-SpiPra-MedGodTenCar-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- This is what I want for my children before they get launched into the world..."
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Spiritual Practice > Meditating on God's Tender Care"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-SpiPra-MedGodTenCar-2
+    type: fill_in_bullet
+    ordinal: 2
+    text: "- This is the impact I want my children and family to make in the world..."
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Spiritual Practice > Meditating on God's Tender Care"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-SpiPra-ImaBle-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- Identify the blessings you have experienced through children..."
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Spiritual Practice > Imaginging Your Blessing"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-SpiPra-RecFinTho-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*After this spiritual practice, record any insights, questions, observations, or clarifications you gained during your time with the Lord.*"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Spiritual Practice > Record Final Thoughts"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-JouRef-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Thriving Home**: What is your vision of a thriving and flourishing home?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-JouRef-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. **God-Given Heritage**: How are your children a heritage from the Lord? What are the blessings your children have brought into your home?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-JouRef-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Personal Change**: What needs to change in your own life so you can better equip your children to be launched into the world?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesSix-Ses6WeeDis-JouRef-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Raising Adults**: How does your role as a parent change as you think about the goal of raise godly adults not merely tending to children?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Weekly Disciplines > Journal Reflection > Reflection Questions"
+
+  - id: Home-ParOnePre-SesSix-Ses6RefPro-ParPro-DisSpo-1
+    type: bold_bullet
+    ordinal: 1
+    text: "- **Reflecting on Your Past**: Did you family of upbringing have a clear vision and mission? What were the driving purposes for your family of upbringing? Looking back, what did you appreciate and not appreciate about your family's vision and mission?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  - id: Home-ParOnePre-SesSix-Ses6RefPro-ParPro-DisSpo-2
+    type: bold_bullet
+    ordinal: 2
+    text: "- **Discussing Core Values**: What core principles do you want to guide your family's vision and mission? How will you connect your family vision and mission to God's purpose for his world?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  - id: Home-ParOnePre-SesSix-Ses6RefPro-ParPro-DisSpo-3
+    type: bold_bullet
+    ordinal: 3
+    text: "- **Anticipating the Future**: What are some of your greatest concerns about clarifying your family vision and mission? What excites you about this work? How can you better prepare yourself to lead your family in a biblical mission?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Reflective Projects > Parenting Project > Discuss with Your Spouse"
+
+  - id: Home-ParOnePre-SesSix-Ses6RefPro-ParPro-FamVisMis-1
+    type: numbered
+    ordinal: 1
+    text: "1. What sphere of influence has God given your family? What is the neighborhood, community, and local sphere God has placed your family?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Reflective Projects > Parenting Project > Family Vision and Mission"
+
+  - id: Home-ParOnePre-SesSix-Ses6RefPro-ParPro-FamVisMis-2
+    type: numbered
+    ordinal: 2
+    text: "2. What impact does God want your family to make in the larger world? What regional and global impact has God given for your family?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Reflective Projects > Parenting Project > Family Vision and Mission"
+
+  - id: Home-ParOnePre-SesSix-Ses6RefPro-ParPro-FamVisMis-3
+    type: numbered
+    ordinal: 3
+    text: "3. How would you want to describe your family in twenty years?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Reflective Projects > Parenting Project > Family Vision and Mission"
+
+  - id: Home-ParOnePre-SesSix-Ses6RefPro-ParPro-FamVisMis-4
+    type: numbered
+    ordinal: 4
+    text: "4. How will you strategically help your family realize its God-given vision?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Reflective Projects > Parenting Project > Family Vision and Mission"
+
+  - id: Home-ParOnePre-SesSix-Ses6RefPro-ParPro-FamVisMis-5
+    type: numbered
+    ordinal: 5
+    text: "1. What is the purpose of your family? Why has God brought your family into existence?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Reflective Projects > Parenting Project > Family Vision and Mission"
+
+  - id: Home-ParOnePre-SesSix-Ses6RefPro-ParPro-FamVisMis-6
+    type: numbered
+    ordinal: 6
+    text: "2. How will your family serve God's purposes in the world? What is the unique role your family can play in God's unfolding work in the world?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Reflective Projects > Parenting Project > Family Vision and Mission"
+
+  - id: Home-ParOnePre-SesSix-Ses6RefPro-ParPro-FamVisMis-7
+    type: numbered
+    ordinal: 7
+    text: "3. How will you measure your family's effectiveness in its mission?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Reflective Projects > Parenting Project > Family Vision and Mission"
+
+  - id: Home-ParOnePre-SesSix-Ses6RefPro-ParPro-FamVisMis-8
+    type: numbered
+    ordinal: 8
+    text: "4. How will you strategically help your family realize its God-given mission?"
+    path: "PART ONE: Preparation > Session Six > Session 6 Reflective Projects > Parenting Project > Family Vision and Mission"
+
+  # === Daily Devotionals ===
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MorRea-ConTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. What does this passage tell children to do? What does this text tell fathers do to?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Morning Reading > Considering the Text"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MorRea-ConTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. Why is it important for children and parents to relate to each other in this way."
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Morning Reading > Considering the Text"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MorRea-ConTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. How well are we following these commands in our family? How do we need to grow?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Morning Reading > Considering the Text"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MorRea-PraTex-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the biblical text as a guide for prayer. Record specific portions of the text in the space below. Turn these portions of Scripture into prayers to God.*"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Morning Reading > Praying the Text"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MorRea-RecKeyImp-1
+    type: numbered
+    ordinal: 1
+    text: "1. After concluding this spiritual discipline, reflect on what God is teaching you. Discuss the following questions as a small group."
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Morning Reading > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MorRea-RecKeyImp-2
+    type: numbered
+    ordinal: 2
+    text: "2. What did you learn (observations, insights, or questions) from this time with God?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Morning Reading > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MorRea-RecKeyImp-3
+    type: numbered
+    ordinal: 3
+    text: "3. What did you think of this spiritual practice? What was encouraging? What was challenging? How can you incorporate this practice into your daily life?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Morning Reading > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MorRea-RecKeyImp-4
+    type: numbered
+    ordinal: 4
+    text: "4. How did you encounter God during this time? What did God teach you about himself? What did God show you about yourself?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Morning Reading > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MidPra-PraWis-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- God, may your grace, mercy, and love cover these things…"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Midday Prayer > Praying for Wisdom"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MidPra-PraWis-2
+    type: fill_in_bullet
+    ordinal: 2
+    text: "- God, in the next hours, I need wisdom and strength for these things…"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Midday Prayer > Praying for Wisdom"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MidPra-AckOneAno-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Reflect on the people you have interacted with today. Anticipate the people you will interact with in the rest of the day. Identify specific people to pray for and consider an encouraging word God may want you to say to another person. Record this person's name and the encouraging word in the space below.*"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Midday Prayer > Acknowledging One Another"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MidPra-RecKeyImp-1
+    type: numbered
+    ordinal: 1
+    text: "1. What did you learn (observations, insights, or questions) from this time with God?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Midday Prayer > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MidPra-RecKeyImp-2
+    type: numbered
+    ordinal: 2
+    text: "2. What did you think of this spiritual practice? What was encouraging? What was challenging? How can you incorporate this practice into your daily life?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Midday Prayer > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-MidPra-RecKeyImp-3
+    type: numbered
+    ordinal: 3
+    text: "3. How did you encounter God during this time? What did God teach you about himself? What did God show you about yourself?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Midday Prayer > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-EveRef-RemDayTha-1
+    type: prayer_fill
+    ordinal: 1
+    text: "God, I thank you for these good things that happened today…"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Evening Reflection > Remembering the Day with Thanks"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-EveRef-RecShoHum-1
+    type: prayer_fill
+    ordinal: 1
+    text: "God, these are the ways I fell short today…"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Evening Reflection > Recalling Your Shortcomings in Humility"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-EveRef-LooAheHop-1
+    type: prayer_fill
+    ordinal: 1
+    text: "God, these are the new ways I want to enter into the next day…"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Evening Reflection > Looking Ahead in Hope"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-EveRef-RecKeyImp-1
+    type: numbered
+    ordinal: 1
+    text: "1. What did you learn (observations, insights, or questions) from this time with God?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Evening Reflection > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-EveRef-RecKeyImp-2
+    type: numbered
+    ordinal: 2
+    text: "2. What did you think of this spiritual practice? What was encouraging? What was challenging? How can you incorporate this practice into your daily life (individually and as a family)?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Evening Reflection > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayOne-EveRef-RecKeyImp-3
+    type: numbered
+    ordinal: 3
+    text: "3. How did you encounter God during this time? What did God teach you about himself? What did God show you about yourself?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day One > Evening Reflection > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MorRea-ConTex-1
+    type: numbered
+    ordinal: 1
+    text: "> 1. What does this passage tell the son to do? Why is it important for children to follow these instructions?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Morning Reading > Considering the Text"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MorRea-ConTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. What promise does this passage give for those who listen to godly instruction?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Morning Reading > Considering the Text"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MorRea-ConTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. How well are we following these commands in our family? How do we need to grow?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Morning Reading > Considering the Text"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MorRea-PraTex-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the biblical text as a guide for prayer. Record specific portions of the text in the space below. Turn these portions of Scripture into prayers to God.*"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Morning Reading > Praying the Text"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MorRea-RecKeyImp-1
+    type: numbered
+    ordinal: 1
+    text: "1. After concluding this spiritual discipline, reflect on what God is teaching you. Discuss the following questions as a small group."
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Morning Reading > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MorRea-RecKeyImp-2
+    type: numbered
+    ordinal: 2
+    text: "2. What did you learn (observations, insights, or questions) from this time with God?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Morning Reading > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MorRea-RecKeyImp-3
+    type: numbered
+    ordinal: 3
+    text: "3. What did you think of this spiritual practice? What was encouraging? What was challenging? How can you incorporate this practice into your daily life?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Morning Reading > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MorRea-RecKeyImp-4
+    type: numbered
+    ordinal: 4
+    text: "4. How did you encounter God during this time? What did God teach you about himself? What did God show you about yourself?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Morning Reading > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MidPra-PraWis-1
+    type: fill_in_bullet
+    ordinal: 1
+    text: "- God, may your grace, mercy, and love cover these things…"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Midday Prayer > Praying for Wisdom"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MidPra-PraWis-2
+    type: fill_in_bullet
+    ordinal: 2
+    text: "- God, in the next hours, I need wisdom and strength for these things…"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Midday Prayer > Praying for Wisdom"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MidPra-AckOneAno-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Reflect on the people you have interacted with today. Anticipate the people you will interact with in the rest of the day. Identify specific people to pray for and consider an encouraging word God may want you to say to another person. Record this person's name and the encouraging word in the space below.*"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Midday Prayer > Acknowledging One Another"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MidPra-RecKeyImp-1
+    type: numbered
+    ordinal: 1
+    text: "1. What did you learn (observations, insights, or questions) from this time with God?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Midday Prayer > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MidPra-RecKeyImp-2
+    type: numbered
+    ordinal: 2
+    text: "2. What did you think of this spiritual practice? What was encouraging? What was challenging? How can you incorporate this practice into your daily life?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Midday Prayer > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-MidPra-RecKeyImp-3
+    type: numbered
+    ordinal: 3
+    text: "3. How did you encounter God during this time? What did God teach you about himself? What did God show you about yourself?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Midday Prayer > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-EveRef-RemDayTha-1
+    type: prayer_fill
+    ordinal: 1
+    text: "God, I thank you for these good things that happened today…"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Evening Reflection > Remembering the Day with Thanks"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-EveRef-RecShoHum-1
+    type: prayer_fill
+    ordinal: 1
+    text: "God, these are the ways I fell short today…"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Evening Reflection > Recalling Your Shortcomings in Humility"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-EveRef-LooAheHop-1
+    type: prayer_fill
+    ordinal: 1
+    text: "God, these are the new ways I want to enter into the next day…"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Evening Reflection > Looking Ahead in Hope"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-EveRef-RecKeyImp-1
+    type: numbered
+    ordinal: 1
+    text: "1. What did you learn (observations, insights, or questions) from this time with God?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Evening Reflection > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-EveRef-RecKeyImp-2
+    type: numbered
+    ordinal: 2
+    text: "2. What did you think of this spiritual practice? What was encouraging? What was challenging? How can you incorporate this practice into your daily life (individually and as a family)?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Evening Reflection > Recounting Key Impressions"
+
+  - id: Home-ParTwoCha-DaiDev-DayTwo-EveRef-RecKeyImp-3
+    type: numbered
+    ordinal: 3
+    text: "3. How did you encounter God during this time? What did God teach you about himself? What did God show you about yourself?"
+    path: "PART TWO: Challenge > Daily Devotionals > Day Two > Evening Reflection > Recounting Key Impressions"
+
+  # === Outdoor Experiences ===
+
+  - id: Home-ParTwoCha-OutExp-OutExpOne-Hom-RefEvaImpWor-1
+    type: numbered
+    ordinal: 1
+    text: "1. How **successfully** did you complete this activity? What **challenges** did you face in this activity?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Outdoor Experience One > Homemaking > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-OutExpOne-Hom-RefEvaImpWor-2
+    type: numbered
+    ordinal: 2
+    text: "2. What did it teach you about your **responsibility** to order your home?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Outdoor Experience One > Homemaking > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-OutExpOne-Hom-RefEvaImpWor-3
+    type: numbered
+    ordinal: 3
+    text: "3. How **unified** were you and your spouse in this task? How well did you and your spouse **complement each other**?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Outdoor Experience One > Homemaking > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-OutExpOne-Hom-ConDedHomGod-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Write a final prayer to consecrate your home to the Lord.*"
+    path: "PART TWO: Challenge > Outdoor Experiences > Outdoor Experience One > Homemaking > Consecration: Dedicating Our Home to God"
+
+  - id: Home-ParTwoCha-OutExp-ExpTwoHeaBui-HeaBui-RefEvaImpWor-1
+    type: numbered
+    ordinal: 1
+    text: "1. How **successfully** did you complete this activity? What **challenges** did you face in this activity?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Two: Hearth Building > Hearth Building > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-ExpTwoHeaBui-HeaBui-RefEvaImpWor-2
+    type: numbered
+    ordinal: 2
+    text: "2. What did it teach you about your **responsibility** to order your home?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Two: Hearth Building > Hearth Building > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-ExpTwoHeaBui-HeaBui-RefEvaImpWor-3
+    type: numbered
+    ordinal: 3
+    text: "3. How **unified** were you and your spouse in this task? How well did you and your spouse **complement each other**?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Two: Hearth Building > Hearth Building > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-ExpTwoHeaBui-HeaBui-ConDedHomGod-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Write a final prayer to consecrate your home to the Lord.*"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Two: Hearth Building > Hearth Building > Consecration: Dedicating Our Home to God"
+
+  - id: Home-ParTwoCha-OutExp-ExpThrSheCar-SheCar-RefEvaImpWor-1
+    type: numbered
+    ordinal: 1
+    text: "1. How **successfully** did you complete this activity? What **challenges** did you face in this activity?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Three: Shepherd’s Carry > Shepherd's Carry > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-ExpThrSheCar-SheCar-RefEvaImpWor-2
+    type: numbered
+    ordinal: 2
+    text: "2. What did it teach you about your **responsibility** to order your home?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Three: Shepherd’s Carry > Shepherd's Carry > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-ExpThrSheCar-SheCar-RefEvaImpWor-3
+    type: numbered
+    ordinal: 3
+    text: "3. How **unified** were you and your spouse in this task? How well did you and your spouse **complement each other**?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Three: Shepherd’s Carry > Shepherd's Carry > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-ExpThrSheCar-SheCar-ConDedHomGod-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Write a final prayer to consecrate your home to the Lord.*"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Three: Shepherd’s Carry > Shepherd's Carry > Consecration: Dedicating Our Home to God"
+
+  - id: Home-ParTwoCha-OutExp-ExpFouTabSet-TabSet-RefEvaImpWor-1
+    type: numbered
+    ordinal: 1
+    text: "1. How **successfully** did you complete this activity? What **challenges** did you face in this activity?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Four: Table Setting > Table Setting > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-ExpFouTabSet-TabSet-RefEvaImpWor-2
+    type: numbered
+    ordinal: 2
+    text: "2. What did it teach you about your **responsibility** to order your home?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Four: Table Setting > Table Setting > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-ExpFouTabSet-TabSet-RefEvaImpWor-3
+    type: numbered
+    ordinal: 3
+    text: "3. How **unified** were you and your spouse in this task? How well did you and your spouse **complement each other**?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Four: Table Setting > Table Setting > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-ExpFivNigVig-NigVig-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Write a final prayer to consecrate your home to the Lord.*"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Five: Night Vigil > Night Vigil"
+
+  - id: Home-ParTwoCha-OutExp-ExpFivNigVig-NigVig-RefEvaImpWor-1
+    type: numbered
+    ordinal: 1
+    text: "1. How **successfully** did you complete this activity? What **challenges** did you face in this activity?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Five: Night Vigil > Night Vigil > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-ExpFivNigVig-NigVig-RefEvaImpWor-2
+    type: numbered
+    ordinal: 2
+    text: "2. What did it teach you about your **responsibility** to order your home?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Five: Night Vigil > Night Vigil > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-ExpFivNigVig-NigVig-RefEvaImpWor-3
+    type: numbered
+    ordinal: 3
+    text: "3. How **unified** were you and your spouse in this task? How well did you and your spouse **complement each other**?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Five: Night Vigil > Night Vigil > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-ExpFivNigVig-NigVig-ConDedHomGod-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Write a final prayer to consecrate your home to the Lord.*"
+    path: "PART TWO: Challenge > Outdoor Experiences > Experience Five: Night Vigil > Night Vigil > Consecration: Dedicating Our Home to God"
+
+  - id: Home-ParTwoCha-OutExp-OutExp-OutExp-RefEvaImpWor-1
+    type: numbered
+    ordinal: 1
+    text: "1. How **successfully** did you complete this activity? What **challenges** did you face in this activity?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Outdoor Experience > Outdoor Experience > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-OutExp-OutExp-RefEvaImpWor-2
+    type: numbered
+    ordinal: 2
+    text: "2. What did it teach you about your **responsibility** to order your home?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Outdoor Experience > Outdoor Experience > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-OutExp-OutExp-RefEvaImpWor-3
+    type: numbered
+    ordinal: 3
+    text: "3. How **unified** were you and your spouse in this task? How well did you and your spouse **complement each other**?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Outdoor Experience > Outdoor Experience > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-OutExp-OutExp-ConDedHomGod-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Write a final prayer to consecrate your home to the Lord.*"
+    path: "PART TWO: Challenge > Outdoor Experiences > Outdoor Experience > Outdoor Experience > Consecration: Dedicating Our Home to God"
+
+  - id: Home-ParTwoCha-OutExp-OutExp-OutExp-RefEvaImpWor-4
+    type: numbered
+    ordinal: 4
+    text: "1. How **successfully** did you complete this activity? What **challenges** did you face in this activity?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Outdoor Experience > Outdoor Experience > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-OutExp-OutExp-RefEvaImpWor-5
+    type: numbered
+    ordinal: 5
+    text: "2. What did it teach you about your **responsibility** to order your home?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Outdoor Experience > Outdoor Experience > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-OutExp-OutExp-RefEvaImpWor-6
+    type: numbered
+    ordinal: 6
+    text: "3. How **unified** were you and your spouse in this task? How well did you and your spouse **complement each other**?"
+    path: "PART TWO: Challenge > Outdoor Experiences > Outdoor Experience > Outdoor Experience > Reflection: Evaluating an Important Work"
+
+  - id: Home-ParTwoCha-OutExp-OutExp-OutExp-ConDedHomGod-2
+    type: italic_prompt
+    ordinal: 2
+    text: "*Write a final prayer to consecrate your home to the Lord.*"
+    path: "PART TWO: Challenge > Outdoor Experiences > Outdoor Experience > Outdoor Experience > Consecration: Dedicating Our Home to God"
+
+  # === Community Building ===
+
+  - id: Home-ParTwoCha-ComBui-MenSesOne-ProRev-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. What areas of your projects do you feel most confident? What areas need help and refinement?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session One > Project Review > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesOne-ProRev-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. What feedback did you mentor give you on your projects? How will you revise your projects to make them better?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session One > Project Review > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesOne-ProRev-RefObs-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the following space to record any observations, insights, or takeaways.*"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session One > Project Review > Reflections or Observations"
+
+  - id: Home-ParTwoCha-ComBui-MenSesTwo-CelStr-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. What are your greatest fears about parenting? What gets you most excited?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Two > Celebrations and Struggles > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesTwo-CelStr-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. What are your biggest burdens in parenting? What gives you the most joy?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Two > Celebrations and Struggles > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesTwo-CelStr-DisQue-SeaTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. What are the biggest challenges? What are some of you greatest wins/success?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Two > Celebrations and Struggles > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesTwo-CelStr-DisQue-SeaTex-4
+    type: numbered
+    ordinal: 4
+    text: "4. What are biggest weaknesses? What are some ways you are seeing God's strength work through your weaknesses?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Two > Celebrations and Struggles > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesTwo-CelStr-RefObs-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the following space to record any observations, insights, or takeaways.*"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Two > Celebrations and Struggles > Reflections or Observations"
+
+  - id: Home-ParTwoCha-ComBui-MenSesThr-WorTra-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Past Reflection**: How much did you family worship God together? What spiritual disciplines did you do as a family when you were growing up? Was your home a place of love and care?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Three > Worship and Tradition > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesThr-WorTra-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Current Evaluation**: Would you describe your home as a place of where love and worship are prevalent? Is your family life focused on devotion to God? What spiritual habits do you practice as a family? (i.e., prayer, Scripture reading, song, fasting, etc.)?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Three > Worship and Tradition > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesThr-WorTra-DisQue-SeaTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Future Vision**: What would be your vision for becoming a family that worships God? How can you make steps now to lead your family in this way?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Three > Worship and Tradition > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesThr-WorTra-DisQue-SeaTex-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Personal Assessment**: How is your personal relationship with the Lord? Are you having difficulty in experiencing God's care as a loving father? How can you personally grow in worship to God?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Three > Worship and Tradition > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesThr-WorTra-DisQue-SeeTru-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Past Reflection**: What traditions shaped your family life? What do you appreciate about the way your parents raised you? What do you not appreciate about how you were raised?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Three > Worship and Tradition > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParTwoCha-ComBui-MenSesThr-WorTra-DisQue-SeeTru-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Current Evaluation**: What influences are shaping your family and children now? How can you counteract the influence of the world with building a godly tradition in your home?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Three > Worship and Tradition > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParTwoCha-ComBui-MenSesThr-WorTra-DisQue-SeeTru-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Future Vision**: What would you like to see three or four generations from now? What would you like your parenting legacy to be? How can you make next steps in this direction?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Three > Worship and Tradition > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParTwoCha-ComBui-MenSesThr-WorTra-DisQue-SeeTru-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Personal Assessment**: How is your marriage? Are you on same page? How can you support and encourage each other in this season?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Three > Worship and Tradition > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParTwoCha-ComBui-MenSesThr-WorTra-RefObs-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the following space to record any observations, insights, or takeaways.*"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Three > Worship and Tradition > Reflections or Observations"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFou-ValEdu-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Past Reflection**: What was your home like when you were growing up? How would you describe the home environment during your upbringing?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Four > Value and Education > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFou-ValEdu-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Current Evaluation**: How would you describe the current culture of your home? What characteristics define your home at the present time? How is your personal faith shaping the character of your home? How is your marriage relationship shaping the culture of your home?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Four > Value and Education > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFou-ValEdu-DisQue-SeaTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Future Vision**: What characteristics would you like to define your home? Do any major changes in lifestyle, house, vocation, finances, priorities need to happen to better realize vision for kids and family? What can you do to start cultivating the culture of your home now?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Four > Value and Education > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFou-ValEdu-DisQue-SeaTex-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Personal Assessment**: What priorities and values are misaligned in your own heart? Do you find yourself prone to anger, impatience, or a critical spirit? How do these need to change so you can be a shepherd after God's own heart?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Four > Value and Education > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFou-ValEdu-DisQue-SeeTru-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Past Reflection**: What role did you parents have in your formation (i.e., spiritual, intellectual, emotional, relational, etc.)? How balanced were all these spheres of development?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Four > Value and Education > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFou-ValEdu-DisQue-SeeTru-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Current Evaluation**: What are some of our current goals for your children? How would you describe your plan to instruct your children in the fear of the Lord?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Four > Value and Education > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFou-ValEdu-DisQue-SeeTru-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Future Vision**: What do you hope your children are like by the time they leave the house? How can you start building into that now?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Four > Value and Education > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFou-ValEdu-DisQue-SeeTru-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Personal Assessment**: What gaps do you have in your own fear of the Lord and character? How will you grow in these areas of godly character?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Four > Value and Education > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFou-ValEdu-RefObs-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the following space to record any observations, insights, or takeaways.*"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Four > Value and Education > Reflections or Observations"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFiv-DisMis-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Past Reflection**: How were you disciplined when you grew up? Do you look back on this with positive or negative emotions?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Five > Discipline and Mission > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFiv-DisMis-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Current Evaluation**: What discipline challenges are you facing in the home? What is God showing you about yourself through this parenting work? What is God showing you about himself?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Five > Discipline and Mission > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFiv-DisMis-DisQue-SeaTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Future Vision**: What are some of your greatest fears about the future? How can you now entrust your family to God's safekeeping?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Five > Discipline and Mission > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFiv-DisMis-DisQue-SeaTex-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Personal Assessment**: What is God revealing in your own life that needs to change? What discipline and instruction are you experiencing from the Lord"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Five > Discipline and Mission > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFiv-DisMis-DisQue-SeeTru-1
+    type: numbered
+    ordinal: 1
+    text: "1. **Past Reflection**: In your upbringing, did you have a compelling mission for your family? What would you describe your family lived for?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Five > Discipline and Mission > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFiv-DisMis-DisQue-SeeTru-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Current Evaluation**: What do you want to be the mission of your family? What do you want your children to become like? What current obstacles are there in your family life to realizing this mission?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Five > Discipline and Mission > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFiv-DisMis-DisQue-SeeTru-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Future Vision**: What do you want your children to say about your family when they have families of their own? How can you start building toward that now?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Five > Discipline and Mission > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFiv-DisMis-DisQue-SeeTru-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Personal Assessment**: Are you focused on serving God's mission in the world? How can you better align your life with God's mission in the world?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Five > Discipline and Mission > Discussion Questions > Seeking the Truth"
+
+  - id: Home-ParTwoCha-ComBui-MenSesFiv-DisMis-RefObs-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the following space to record any observations, insights, or takeaways.*"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Five > Discipline and Mission > Reflections or Observations"
+
+  - id: Home-ParTwoCha-ComBui-MenSesSix-LifSph-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. **God**: What is God teaching you about himself? How is parenting deepening your relationship with the Lord?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Six > Life Spheres > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesSix-LifSph-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. **Self**: What is God teaching you about yourself? How is parenting sanctifying you? What emotions, thoughts, attitudes, habits, and behaviors need to change in your own life? What areas are being revealed where you need growth?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Six > Life Spheres > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesSix-LifSph-DisQue-SeaTex-3
+    type: numbered
+    ordinal: 3
+    text: "3. **Marriage**: How is your marriage? How can you tend to your marriage as one of the greatest ways to parent well?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Six > Life Spheres > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesSix-LifSph-DisQue-SeaTex-4
+    type: numbered
+    ordinal: 4
+    text: "4. **Surrounding Culture**: What cultural pressures are exerting themselves on your family and children? How are you combatting these with a healthy and godly home culture?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Six > Life Spheres > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesSix-LifSph-DisQue-SeaTex-5
+    type: numbered
+    ordinal: 5
+    text: "5. **Relationship with Kids**: How well are you connected and bonded to your kids? How well do you know them? How can you strengthen your relationship with your children? How are you helping to nurture their gifts, deepen their faith, and establish their identity in the Lord?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Six > Life Spheres > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesSix-LifSph-DisQue-SeaTex-6
+    type: numbered
+    ordinal: 6
+    text: "6. **Family Culture** : How are the relationships within your family? How are siblings relating to each other? Are they making good friend choices. How can you help facilitate the culture of your home?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Six > Life Spheres > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesSix-LifSph-DisQue-SeaTex-7
+    type: numbered
+    ordinal: 7
+    text: "7. **Church**: How much of a priority is the church in your family? How can you strengthen your participation in and encouragement from the local church?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Six > Life Spheres > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesSix-LifSph-DisQue-SeaTex-8
+    type: numbered
+    ordinal: 8
+    text: "8. **World**: How are you being a witness to surrounding society? Does your family have a compelling mission to share and show the gospel to the surrounding world? What unbelievers are you ministering to? Is your home a hospitable place ?"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Six > Life Spheres > Discussion Questions > Searching the Text"
+
+  - id: Home-ParTwoCha-ComBui-MenSesSix-LifSph-RefObs-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Use the following space to record any observations, insights, or takeaways.*"
+    path: "PART TWO: Challenge > Community Building > Mentoring Session Six > Life Spheres > Reflections or Observations"
+
+  # === Personal Testimony ===
+
+  - id: Home-ParThrCel-PerTes-PerTes-PerTes-1
+    type: heading_prompt
+    ordinal: 1
+    text: "##### Personal Testimony"
+    path: "PART THREE: Celebration > Personal Testimony > Personal Testimony > Personal Testimony"
+
+  # === Community Confession ===
+
+  - id: Home-ParThrCel-ComCon-ComCon-DisQue-SeaTex-1
+    type: numbered
+    ordinal: 1
+    text: "1. What excites you about making this commitment?"
+    path: "PART THREE: Celebration > Community Confession > Community Confession > Discussion Questions > Searching the Text"
+
+  - id: Home-ParThrCel-ComCon-ComCon-DisQue-SeaTex-2
+    type: numbered
+    ordinal: 2
+    text: "2. What concerns do you have about making this commitment?"
+    path: "PART THREE: Celebration > Community Confession > Community Confession > Discussion Questions > Searching the Text"
+
+  - id: Home-ParThrCel-ComCon-ComCon-ResCom-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*If you feel led to write your own commitment to a life of faith and responsibility, use this space below to record such a statement.*"
+    path: "PART THREE: Celebration > Community Confession > Community Confession > Responsibility Commitment"
+
+  - id: Home-ParThrCel-ComCon-ComCon-Pra-1
+    type: italic_prompt
+    ordinal: 1
+    text: "*Write a prayer that asks for God's help to enable you to fulfill this commitment.*"
+    path: "PART THREE: Celebration > Community Confession > Community Confession > Prayer"
+
+  # === Celebration Ceremony ===
+
+  - id: Home-ParThrCel-CelCer-CelCer-CelCer-CelCer-1
+    type: heading_prompt
+    ordinal: 1
+    text: "##### Celebration Ceremony"
+    path: "PART THREE: Celebration > Celebration Ceremony > Celebration Ceremony > Celebration Ceremony > Celebration Ceremony"
