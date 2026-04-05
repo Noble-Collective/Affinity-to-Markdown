@@ -217,20 +217,35 @@ def build_callout_set(pdf_path, cfg, body_size, page_range=None):
         pb = []
         for block in doc[pi].get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0: continue
-            wr = set(); text = ""
+            wr = set(); text = ""; match_chars = 0; total_chars = 0
             for line in block.get("lines",[]):
                 for span in line.get("spans",[]):
-                    if span["text"].strip(): wr.add((font_weight(span["font"]), size_bucket(span["size"]) / body_size))
+                    t = span["text"].strip()
+                    if t:
+                        w = font_weight(span["font"]); r = size_bucket(span["size"]) / body_size
+                        wr.add((w, r))
+                        total_chars += len(t)
+                        if any(_match_rule(w, r, rule) for rule in sig): match_chars += len(t)
                     text += span["text"]
             text = " ".join(text.split()).strip()
             if not text or not wr: continue
-            pb.append((all(any(_match_rule(w,r,rule) for rule in sig) for w,r in wr), text))
-        cur = []
-        for ic, text in pb:
-            if ic: cur.append(text)
-            else:
-                if cur: j = " ".join(cur); j = re.sub(r'(\w)- ([a-z])', r'\1\2', j); (ct.append(j) if len(j) > 15 else None); cur = []
-        if cur: j = " ".join(cur); j = re.sub(r'(\w)- ([a-z])', r'\1\2', j); (ct.append(j) if len(j) > 15 else None)
+            # Block is callout if dominant font matches signature (>50% of chars)
+            is_callout = total_chars > 0 and match_chars / total_chars > 0.5
+            pb.append((is_callout, text))
+        # Build callout chains, bridging one non-callout gap when the
+        # next block is callout (PDF layout interleaves body text blocks
+        # between parts of the same decorative callout).
+        i = 0
+        while i < len(pb):
+            if pb[i][0]:
+                cur = [pb[i][1]]; i += 1
+                while i < len(pb):
+                    if pb[i][0]: cur.append(pb[i][1]); i += 1
+                    elif i + 1 < len(pb) and pb[i + 1][0]: i += 1  # bridge gap
+                    else: break
+                j = " ".join(cur); j = re.sub(r'(\w)- ([a-z])', r'\1\2', j)
+                if len(j) > 15: ct.append(j)
+            else: i += 1
     # Remove fragments that are substrings of longer callouts (strip
     # trailing punctuation before comparing so "godless society." matches
     # inside "...against a godless society")
@@ -653,16 +668,36 @@ def _callout_regex(ct):
     # Allow optional quote chars after periods (Marker wraps callout excerpts in quotes)
     pat = pat.replace('\\.', '\\.["\'\u201c\u201d]*')
     # Make mid-word hyphens optional (handles PDF line-break hyphens
-    # removed by fix_hyphenation, e.g. right-eous -> righteous)
-    pat = re.sub(r'(\\w)\\\-(\\w)', r'\1\\-?\2', pat)
+    # removed by fix_hyphenation, e.g. right-eous -> righteous).
+    # Handle both escaped (\-) and unescaped (-) hyphens across Python versions.
+    pat = re.sub(r'(\w)\\?-(\w)', r'\1\\-?\2', pat)
     # Replace literal spaces with \s+ so regex matches across line/paragraph breaks
     # (use re.sub to handle both escaped and unescaped spaces across Python versions)
     pat = re.sub(r'(?:\\ | )+', r'\\s+', pat)
-    return re.compile(pat)
+    return re.compile(pat, re.IGNORECASE)
+def _callout_regex_relaxed(ct):
+    """Fallback regex allowing one optional extra word between each pair
+    of required words. Handles decorative callouts that abbreviate body
+    text by omitting words (e.g. 'is to release' vs 'is to eventually release')."""
+    words = ct.rstrip('.').split()
+    if len(words) < 4: return None
+    parts = []
+    for i, w in enumerate(words):
+        ew = re.escape(w)
+        ew = ew.replace(re.escape("\u2019"), "['\u2019]").replace(re.escape("\u2018"), "['\u2018]")
+        ew = re.sub(r'(\w)\\?-(\w)', r'\1\\-?\2', ew)
+        parts.append(ew)
+        if i < len(words) - 1:
+            # Allow one optional word, but not the next required word
+            nw = re.escape(words[i + 1])
+            parts.append(r'\s+(?:(?!' + nw + r'\b)\w+\s+)?')
+    return re.compile(''.join(parts), re.IGNORECASE)
 def fix_callouts(md, callout_texts):
     if not callout_texts: return md
     normalized = [(ct, _normalise_for_callout_match(ct)) for ct in callout_texts]
     regexes = [(ct, nc, _callout_regex(ct)) for ct, nc in normalized]
+    relaxed = [(ct, _callout_regex_relaxed(ct)) for ct in callout_texts]
+    relaxed = [(ct, rx) for ct, rx in relaxed if rx is not None]
     _STRUCT = ('#', '>', '<<', '-', '|', '![')
     lines = md.splitlines(); out = []
     # Phase 1: Remove standalone callout lines.
@@ -715,6 +750,15 @@ def fix_callouts(md, callout_texts):
                         post = joined[m2.end():].lstrip('. ')
                         joined = pre + ' ' + post
                         m2 = rx.search(joined, len(pre))
+            # Relaxed fallback for callouts that abbreviate body text
+            for ct, rx in relaxed:
+                m = rx.search(joined)
+                if m:
+                    # Verify match doesn't overlap existing <Callout> tags
+                    before = joined[:m.start()]
+                    if before.count('<Callout>') == before.count('</Callout>'):
+                        joined = joined[:m.start()] + f'<Callout>{m.group()}</Callout>' + joined[m.end():]
+                        matched = True
             if matched:
                 # Reconstruct paragraphs: split on \n\n not inside <Callout> tags
                 paras = []; buf = []; depth = 0
