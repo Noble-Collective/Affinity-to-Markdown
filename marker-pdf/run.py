@@ -1282,6 +1282,8 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     # Callouts run on final text structure (after heading rearrangement)
     md = fix_callouts(md, callout_texts or [])
     md = re.sub(r'</Callout>\s*<Callout>', ' ', md)
+    # Move trailing punctuation inside callout closing tags
+    md = re.sub(r'</Callout>([.,;:!?])', r'\1</Callout>', md)
     md = fix_page_breaks(md)  # re-run after callouts
     # Convert verse number superscripts: small bold text in PDF that Marker
     # renders as **X** or **<sup>X</sup>** should be plain <sup>X</sup>
@@ -1291,6 +1293,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
             md = md.replace(f'**<sup>{v}</sup>**', f'<sup>{v}</sup>')
             md = re.sub(rf'\*\*{ev}\*\*', f'<sup>{v}</sup>', md)
     md = re.sub(r'(\*\*Verse \d+\*\*)\n\n', r'\1\n', md)
+    md = md.replace('<br>•<br>', '<br>• ')
     md = re.sub(r'\n{3,}', '\n\n', md)
     return md.strip() + '\n'
 
