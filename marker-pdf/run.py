@@ -183,10 +183,14 @@ def build_verse_map(pdf_path, cfg, body_size, page_range=None):
     return vm
 
 def build_inline_bold_set(pdf_path, cfg, body_size, page_range=None):
+    """Collect bold phrases from mixed-weight body blocks with line context.
+    Returns [(phrase, context_line), ...] where context_line is the full
+    text of the PDF line containing the bold span.  fix_inline_bold uses
+    this context to avoid bolding generic words in unrelated lines."""
     import fitz
     doc = fitz.open(str(pdf_path))
     pages = range(doc.page_count) if page_range is None else [p for p in page_range if p < doc.page_count]
-    phrases = set()
+    results = {}  # phrase -> set of context lines
     for pi in pages:
         for block in doc[pi].get_text("dict", sort=True)["blocks"]:
             if block.get("type") != 0: continue
@@ -199,12 +203,21 @@ def build_inline_bold_set(pdf_path, cfg, body_size, page_range=None):
                     else: hr = True
             if not (hb and hr): continue
             for line in block.get("lines",[]):
+                # Build full line text from all spans
+                line_text = "".join(s["text"] for s in line.get("spans",[])).strip()
                 for span in line.get("spans",[]):
                     if not span["text"].strip(): continue
                     if size_bucket(span["size"]) == body_size and "bold" in span["font"].lower():
                         p = span["text"].strip()
-                        if 5 <= len(p) <= 50: phrases.add(p)
-    return sorted(phrases, key=len, reverse=True)
+                        if 5 <= len(p) <= 50:
+                            if p not in results: results[p] = set()
+                            results[p].add(line_text)
+    # Convert to list of (phrase, context_line) tuples, sorted longest-first
+    out = []
+    for phrase in sorted(results.keys(), key=len, reverse=True):
+        for ctx in results[phrase]:
+            out.append((phrase, ctx))
+    return out
 
 def build_callout_set(pdf_path, cfg, body_size, page_range=None):
     import fitz
@@ -515,7 +528,7 @@ def fix_page_breaks(md):
     _STRUCT_LINE = ('#', '>', '<<', '|', '![', '<sup')  # current line prefixes to skip
     _STRUCT_CONT = ('#', '>', '<<', '-', '|', '![', '*', '<sup')  # continuation prefixes to skip
     _END_PUNCT = set('.!?:;*)]\'')
-    _QUOTE_CHARS = set('"\'”')
+    _QUOTE_CHARS = set('"\'"\u201d')
     def _ends_sentence(s):
         if not s: return False
         if s[-1] in _END_PUNCT: return True
@@ -702,12 +715,59 @@ def fix_bold_bullets(md):
         out.append(line)
     return '\n'.join(out)
 def fix_inline_bold(md, bold_phrases):
+    """Restore inline bold in list items using font-derived bold phrases.
+    bold_phrases is either:
+      - List[Tuple[str, str]]: (phrase, context_line) from build_inline_bold_set
+      - List[str]: legacy format (no context, applies everywhere)
+    Context matching: a phrase is only bolded if at least 3 non-trivial
+    context words (excluding the phrase itself) appear in the markdown line."""
     if not bold_phrases: return md
+    # Normalise input: ensure list of (phrase, context) tuples
+    if bold_phrases and isinstance(bold_phrases[0], str):
+        entries = [(p, "") for p in bold_phrases]
+    else:
+        entries = list(bold_phrases)
+    # Build phrase -> list of context word sets
+    _STOP = {'the','a','an','of','in','to','and','is','it','for','that','this',
+             'with','on','as','are','was','by','be','or','at','from','not','but',
+             'how','what','your','you','our','his','her','do','does','did','has',
+             'have','will','can','should','would','may','its','who','which','my'}
+    phrase_contexts = {}
+    for phrase, ctx in entries:
+        if phrase not in phrase_contexts:
+            phrase_contexts[phrase] = []
+        if ctx:
+            # Extract context words: all words NOT in the phrase itself
+            phrase_lower = set(phrase.lower().split())
+            ctx_words = {w.lower().strip('.,;:!?\'"()') for w in ctx.split()
+                        if w.lower().strip('.,;:!?\'"()') not in phrase_lower
+                        and w.lower().strip('.,;:!?\'"()') not in _STOP
+                        and len(w.strip('.,;:!?\'"()')) > 2}
+            if ctx_words:
+                phrase_contexts[phrase].append(ctx_words)
+    # Sort phrases longest-first for greedy matching
+    sorted_phrases = sorted(phrase_contexts.keys(), key=len, reverse=True)
     lines = md.splitlines(); out = []
     for line in lines:
-        if not (re.match(r'^\d+\.\s', line.strip()) or line.strip().startswith('- ')): out.append(line); continue
-        for p in bold_phrases:
+        if not (re.match(r'^\d+\.\s', line.strip()) or line.strip().startswith('- ')):
+            out.append(line); continue
+        line_lower = line.lower()
+        for p in sorted_phrases:
             if f"**{p}**" in line: continue
+            if not re.search(r'(?<!\*)\b' + re.escape(p) + r'\b(?!\*)', line): continue
+            # Check context: if we have context sets, require match
+            ctx_sets = phrase_contexts[p]
+            if ctx_sets:
+                matched = False
+                for ctx_words in ctx_sets:
+                    # Count how many context words appear in the markdown line
+                    hits = sum(1 for w in ctx_words if w in line_lower)
+                    if len(ctx_words) <= 3:
+                        if hits >= 1: matched = True; break
+                    else:
+                        if hits >= 3: matched = True; break
+                if not matched: continue
+            # Apply bold
             line = re.sub(r'(?<!\*)\b' + re.escape(p) + r'\b(?!\*)', f'**{p}**', line)
         out.append(line)
     return '\n'.join(out)
@@ -1292,7 +1352,8 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = re.sub(r'</Callout>\s*<Callout>', ' ', md)
     md = fix_page_breaks(md)  # re-run after callouts
     # Move trailing punctuation inside callout closing tags (must run AFTER
-    # fix_page_breaks — lines ending </Callout> lack sentence punctuation)
+    # fix_page_breaks — lines ending with </Callout> don't end with sentence
+    # punctuation, so fix_page_breaks would incorrectly join paragraphs)
     md = re.sub(r'</Callout>([.,;:!?])', r'\1</Callout>', md)
     # Convert verse number superscripts: small bold text in PDF that Marker
     # renders as **X** or **<sup>X</sup>** should be plain <sup>X</sup>
