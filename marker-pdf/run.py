@@ -506,6 +506,54 @@ def fix_hyphenation(md):
                 if nl and nl[0].islower() and not nl.startswith('#'): out.append(line.rstrip()[:-1] + lines[j].lstrip()); i = j+1; continue
         out.append(line); i += 1
     return '\n'.join(out)
+def fix_page_breaks(md):
+    """Rejoin text split mid-sentence at PDF page/column boundaries.
+    Rule: in well-edited body text, every paragraph ends with sentence-ending
+    punctuation. If a body text line does NOT end with such punctuation, the
+    sentence is unfinished and the next body text line is its continuation.
+    Loops until stable to handle cascading breaks."""
+    _STRUCT_LINE = ('#', '>', '<<', '|', '![', '<sup')  # current line prefixes to skip
+    _STRUCT_CONT = ('#', '>', '<<', '-', '|', '![', '*', '<sup')  # continuation prefixes to skip
+    _END_PUNCT = set('.!?:;\'"*)]\'\u201d')
+    while True:
+        lines = md.splitlines(); out = []; i = 0; changed = False
+        while i < len(lines):
+            line = lines[i]
+            s = line.rstrip()
+            if (s and len(s) > 40
+                    and not any(s.startswith(p) for p in _STRUCT_LINE)
+                    and s[-1] not in _END_PUNCT
+                    and not line.rstrip('\r\n').endswith('  ')):  # skip hard breaks
+                j = i + 1
+                if j < len(lines) and not lines[j].strip(): j += 1
+                if j < len(lines):
+                    cont = lines[j].lstrip()
+                    if (cont and not any(cont.startswith(p) for p in _STRUCT_CONT)
+                            and not re.match(r'^\d+\.\s', cont)):
+                        out.append(s + ' ' + cont)
+                        i = j + 1; changed = True; continue
+            out.append(line); i += 1
+        md = '\n'.join(out)
+        if not changed: break
+    return md
+def fix_blockquote_continuations(md):
+    """Rejoin blockquote text split at page boundaries.
+    When Marker splits an italic blockquote (scripture passage) across pages,
+    the continuation loses its '>' prefix. Only applies when the previous
+    blockquote line ends with italic marker (*)."""
+    lines = md.splitlines(); out = []; i = 0
+    while i < len(lines):
+        out.append(lines[i])
+        s = lines[i].strip()
+        if s.startswith('>') and s.endswith('*') and i+1 < len(lines) and not lines[i+1].strip():
+            j = i + 2
+            if j < len(lines):
+                cont = lines[j].strip()
+                if cont and cont[0].islower() and len(cont) > 20 and not any(cont.startswith(p) for p in ('#','>','<<','-','|','![')):
+                    out.append('> ' + cont)
+                    i = j + 1; continue
+        i += 1
+    return '\n'.join(out)
 def fix_pullquote_fragments(md):
     lines = md.splitlines(); out = []
     for line in lines:
@@ -706,11 +754,20 @@ def fix_callouts(md, callout_texts):
     for line in lines:
         s = line.strip()
         removed = False
+        # Check plain body text lines
         if s and not any(s.startswith(p) for p in _STRUCT):
             for ct, nc, rx in regexes:
                 m = rx.match(s)
                 if m and not s[m.end():].strip().strip('.,;:!?\'"\''):
                     removed = True; break
+        # Also check blockquote lines (Marker sometimes wraps standalone callouts in >)
+        if not removed and s.startswith('>'):
+            bq_content = s.lstrip('>').strip()
+            if bq_content:
+                for ct, nc, rx in regexes:
+                    m = rx.match(bq_content)
+                    if m and not bq_content[m.end():].strip().strip('.,;:!?\'"\''):
+                        removed = True; break
         if not removed: out.append(line)
     # Collapse double blanks left by Phase 1 standalone removal
     out2 = []
@@ -747,7 +804,7 @@ def fix_callouts(md, callout_texts):
                     m2 = rx.search(joined, sf)
                     while m2:
                         pre = joined[:m2.start()].rstrip()
-                        post = joined[m2.end():].lstrip('. ')
+                        post = joined[m2.end():].lstrip(' .\n')
                         joined = pre + ' ' + post
                         m2 = rx.search(joined, len(pre))
             # Relaxed fallback for callouts that abbreviate body text
@@ -923,6 +980,7 @@ def fix_front_matter(md, cfg):
     
 
 def fix_heading_hierarchy(md, cfg, heading_order=None):
+
     """Restructure heading levels from font-based to semantic hierarchy.
     Merges H1+H2 pairs into H4, shifts H3-H5 down one level, converts
     H6 verses to bold text. Inserts H1 Part, H2 Session, and H3
@@ -1007,7 +1065,17 @@ def fix_heading_hierarchy(md, cfg, heading_order=None):
         if m:
             lv = len(m.group(1)); tx = m.group(2)
             if normalise_key(tx) in remove_headings: continue
-            if lv == 6: out.append("**" + tx + "**")
+            if lv == 6:
+
+                # H6 headings may have body text merged on same line by Marker.
+                # If tx contains **heading** followed by body text, split them.
+                bm = re.match(r'^\*\*(.+?)\*\*\s+(.+)', tx)
+                if bm and len(bm.group(2)) > 30:
+                    out.append("**" + bm.group(1) + "**")
+                    out.append("")
+                    out.append(bm.group(2))
+                else:
+                    out.append("**" + tx + "**")
             elif 3 <= lv <= 5: out.append('#' * (lv + 1) + ' ' + tx)
             elif lv == 2: out.append("#### " + tx)
             else: out.append(line)
@@ -1048,6 +1116,19 @@ def fix_heading_hierarchy(md, cfg, heading_order=None):
                 new_out.append('')
                 for rl in inserts_after[i]: new_out.append(rl)
         out = new_out
+    # Phase 2c: Split H6 headings that have body text merged on same line.
+    # Marker sometimes puts heading + body in one block. After H5→H6 shift,
+    # these appear as '###### **heading** body text...' which needs splitting.
+    new_out = []
+    for line in out:
+        m6 = re.match(r'^(#{6})\s+\*\*(.+?)\*\*\s+(.+)', line)
+        if m6 and len(m6.group(3)) > 30:
+            new_out.append(m6.group(1) + ' **' + m6.group(2) + '**')
+            new_out.append('')
+            new_out.append(m6.group(3))
+        else:
+            new_out.append(line)
+    out = new_out
     # Phase 3: Insert H3 sub-division headings from heading_order
     if heading_order and subdiv_labels:
         subdiv_keys = {normalise_key(s) for s in subdiv_labels}
@@ -1176,6 +1257,9 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = fix_verse_labels(md, verse_map)
     md = fix_double_blockquote_citations(md)
     md = fix_blockquotes(md, bq_set, cit_set, cfg.get('_right_aligned_map'))
+    # Remove decorative italic pull-quotes (ellipsis excerpts within scripture passages)
+    md = re.sub(r'^> \*\.\.\..*?\*\s*$', '', md, flags=re.MULTILINE)
+    md = fix_blockquote_continuations(md)
     md = fix_citations(md, cfg)
     md = fix_bullet_numbers(md)
     md = fix_hyphenation(md)
@@ -1198,6 +1282,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     # Callouts run on final text structure (after heading rearrangement)
     md = fix_callouts(md, callout_texts or [])
     md = re.sub(r'</Callout>\s*<Callout>', ' ', md)
+    md = fix_page_breaks(md)  # re-run after callouts
     # Convert verse number superscripts: small bold text in PDF that Marker
     # renders as **X** or **<sup>X</sup>** should be plain <sup>X</sup>
     if verse_sup:
