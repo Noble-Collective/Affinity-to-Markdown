@@ -43,7 +43,7 @@ PDF
     ├── bq_set / cit_set: blockquote/citation text (small font)
     ├── verse_map: hymn verse text with proper line breaks
     ├── callout_texts: pull-quote text from callout font signature
-    ├── inline_bold: bold phrases from mixed-weight body blocks
+    ├── inline_bold: [(phrase, context_line), ...] with PDF line context
     ├── verse_sup: small bold text for verse number superscripts
     ├── right_aligned_map: short right-aligned text (citations)
     └── rotated_subdivisions: rotated sidebar heading labels
@@ -64,7 +64,7 @@ PDF
     ├── Insert missing headings from heading_order
     ├── Fix blockquotes, citations, verse labels
     ├── Rejoin text split at page boundaries (fix_page_breaks)
-    ├── Restore inline bold, callouts
+    ├── Restore context-aware inline bold, callouts
     ├── Convert artwork references to image tags
     ├── Remove empty tables, decorative content
     └── Structural cleanup + final normalization
@@ -80,6 +80,7 @@ PDF
 - **Content-specific entries belong in template config only.** The code (`run.py`) is generic across all books. Template-specific data (font ratios, discussion labels, skip patterns) lives in `pdf_config.yaml`.
 - **Diagnose first, fix second.** When an output issue is reported, trace through raw Marker output, PyMuPDF font/position data, and pipeline passes to identify the root cause. Design rule-level fixes based on PDF properties (font, size, ratio, position). Never jump to text-specific config fixes without exhausting rule-based options first.
 - **Fix the source when possible.** If Affinity exports a text block as an image (non-selectable text in the PDF), the best fix is to change the Affinity source — not to add OCR or config workarounds.
+- **The converter is a QA tool.** The pipeline surfaces issues in the source PDF itself — truncated text at page boundaries, missing content, layout problems. When the output looks wrong, check the PDF before assuming a code bug.
 
 ---
 
@@ -89,7 +90,7 @@ PDF
 |------|---------|
 | `run.py` | Generic local runner — all conversion and post-processing logic |
 | `templates/homestead/pdf_config.yaml` | Homestead book config (font ratios, headings, hierarchy, etc.) |
-| `testing/extract_pdf_data.py` | Extracts PyMuPDF font data to JSON for offline pipeline testing |
+| `testing/claude debug scripts/extract_pdf_data.py` | Extracts PyMuPDF font data to JSON for offline pipeline testing |
 | `app.py` | Cloud Run FastAPI server (separate from local runner) |
 | `Dockerfile` | Cloud Run image (uses pre-built base) |
 | `Dockerfile.base` | One-time base image build (includes model downloads) |
@@ -225,7 +226,7 @@ Applied in order inside `post_process()`. Passes are grouped by function.
 | 12 | `fix_empty_tables` | Remove tables where >70% of cells are empty |
 | 13 | `fix_toc_tables` | Remove tables where >80% of rows have page numbers in last cell |
 | 14 | `fix_final_review_table` | Convert specific tables to headed numbered lists (config-driven) |
-| 15 | `fix_inline_bold` | Restore inline bold in list items using font-derived bold phrase set |
+| 15 | `fix_inline_bold` | Restore inline bold in list items using context-aware bold phrase matching (see section below) |
 | 16 | `fix_junk_content` | Remove lines/tables matching config skip patterns |
 | 17 | `fix_artwork_images` | Convert artwork attribution lines to `![Title](filename)` image tags |
 
@@ -244,7 +245,7 @@ Applied in order inside `post_process()`. Passes are grouped by function.
 | # | Pass | What it does |
 |---|------|-------------|
 | 23 | `fix_structural_labels` | Remove ALL-CAPS labels, single-char bold, bullet chars. Demote headings ending `:` |
-| 24 | `fix_bold_bullets` | Convert `**• Text**:` → `- **Text**:` |
+| 24 | `fix_bold_bullets` | Convert `**bullet Text**:` → `- **Text**:` |
 | 25 | Citation bold strip | Remove bold from `<< **text**` citation lines |
 | 26 | `fix_front_matter` | Config-driven line removal and text replacement for title/copyright pages |
 
@@ -261,14 +262,16 @@ Applied in order inside `post_process()`. Passes are grouped by function.
 | 28 | `fix_callouts` | Two-pass: Phase 1 removes standalone callout lines (including blockquote-wrapped). Phase 2 tags inline matches with `<Callout>` across paragraph groups |
 | 29 | Callout adjacency merge | Merge `</Callout> <Callout>` into single span |
 | 30 | `fix_page_breaks` | Rejoin text split mid-sentence at PDF page boundaries (see section below) |
+| 31 | Callout punctuation | Move trailing punctuation inside `</Callout>` tags. Must run AFTER fix_page_breaks (see section below) |
 
 ### Final normalization
 
 | # | Pass | What it does |
 |---|------|-------------|
-| 31 | Verse superscript conversion | Convert bold verse numbers (`**103:1**`) to `<sup>103:1</sup>` |
-| 32 | Bold verse spacing | Remove extra blank after `**Verse N**` lines |
-| 33 | Triple-blank collapse | `\n{3,}` → `\n\n` |
+| 32 | Verse superscript conversion | Convert bold verse numbers (`**103:1**`) to `<sup>103:1</sup>` |
+| 33 | Bold verse spacing | Remove extra blank after `**Verse N**` lines |
+| 34 | Table bullet fix | `<br>bullet<br>` → `<br>bullet ` (prevent bullets on own line in table cells) |
+| 35 | Triple-blank collapse | `\n{3,}` → `\n\n` |
 
 ---
 
@@ -306,7 +309,9 @@ Removes misplaced headings, duplicate artifacts, and plain-text labels that now 
 
 `fix_page_breaks` detects and repairs text split at PDF page/column boundaries.
 
-**Rule:** In well-edited body text, every paragraph ends with sentence-ending punctuation (`.!?:;'"*)]`). If a body text line does NOT end with such punctuation, the sentence is unfinished and the next body text line is its continuation.
+**Rule:** In well-edited body text, every paragraph ends with sentence-ending punctuation. If a body text line does NOT end with such punctuation, the sentence is unfinished and the next body text line is its continuation.
+
+**Smart quote-ending:** Quote characters (`"`, `'`, right double quote) only count as sentence-ending punctuation if the character immediately before them is `.`, `!`, `?`, or `'`. This prevents false matches on lines ending with quoted text mid-sentence (e.g. `"I will dwell in the house of the Lord forever"` followed by a verse reference on the next line).
 
 **Key details:**
 - Loops until stable (cascading breaks across multiple page boundaries)
@@ -319,13 +324,57 @@ Removes misplaced headings, duplicate artifacts, and plain-text labels that now 
 
 ## Callout Detection
 
-Callout/pull-quote text has a distinctive font (regular weight, ~1.6× body size). The detection works in two phases:
+Callout/pull-quote text has a distinctive font (regular weight, ~1.6x body size). The detection works in two phases:
 
 **`build_callout_set`** (PyMuPDF scan): Finds callout-font blocks per page, chains adjacent blocks (bridging one non-callout gap), deduplicates fragments that are substrings of longer callouts.
 
 **`fix_callouts`** (post-processing):
 - **Phase 1**: Remove standalone callout lines. Checks both plain body text AND blockquote-wrapped lines (`>` prefix stripped before matching). Uses regex matching with flexible whitespace, optional hyphens, and quote-char tolerance.
 - **Phase 2**: Group consecutive body paragraphs, join with `\n\n`, search for callout regex matches across paragraph boundaries. Tag inline matches with `<Callout>` tags. Remove duplicate occurrences. Relaxed fallback regex allows one optional extra word between required words.
+
+**Callout punctuation ordering:** Trailing punctuation (`.,:;!?`) is moved inside the `</Callout>` tag so `</Callout>.` becomes `.</Callout>`. This MUST run after `fix_page_breaks` — if it ran before, lines ending with `.</Callout>` would end with `>` which `fix_page_breaks` doesn't recognize as sentence-ending punctuation, causing incorrect paragraph merges. This ordering dependency was discovered the hard way when 40+ paragraphs got incorrectly merged.
+
+---
+
+## Context-Aware Inline Bold
+
+Marker loses inline bold formatting in certain contexts (especially Figure/Picture blocks reclassified to Text). The pipeline restores it using font data from PyMuPDF, with context awareness to prevent false positives.
+
+### The problem
+
+`build_inline_bold_set` scans for body-size bold text in mixed-weight PDF blocks (blocks containing both bold and regular text at body font size). This correctly identifies bold words like `**Family Worship**` in discussion questions: `**Family Worship**: How does this psalm worship God?`
+
+But short common words like "Church", "Worship", "Community" appear bold in discussion labels AND plain in other contexts (e.g. `- Sabbath Rest and Church Fellowship`). Without context, `fix_inline_bold` would bold every occurrence — creating false positives.
+
+### The solution: PDF line context
+
+`build_inline_bold_set` now returns `[(phrase, context_line), ...]` where `context_line` is the full text of the PDF line containing the bold span. For example:
+- `("Church", "7. Church: How much of a priority is the church in your family?")`
+- `("Family Worship", "1. Family Worship: How does this psalm worship God?")`
+
+`fix_inline_bold` extracts non-trivial context words from each context line (excluding the phrase itself, stop words, and words ≤2 chars). Before applying bold, it checks that enough context words appear in the markdown line:
+- If context has ≤3 words: require at least 1 match
+- If context has >3 words: require at least 3 matches
+
+This means `"Church"` with context words `["priority", "church", "family"]` only bolds in lines containing those words — not in `"Sabbath Rest and Church Fellowship"` which has none of them.
+
+### Backward compatibility
+
+`fix_inline_bold` accepts both formats:
+- `List[Tuple[str, str]]`: new format with context (from `build_inline_bold_set`)
+- `List[str]`: legacy format (no context, applies bold everywhere — same as old behavior)
+
+The JSON from `extract_pdf_data.py` automatically uses the new format when `build_inline_bold_set` returns tuples.
+
+### False positives eliminated
+
+Words that were incorrectly bolded in v57 but are now correctly plain:
+- `**Church**` in "Sabbath Rest and Church Fellowship" (spiritual habits list)
+- `**Worship**` in "Praise and Worship" (spiritual habits list)
+- `**Community**` in "Community Events" (traditions list)
+- `**Part One**` / `**Part Two**` in mentor instructions
+
+All discussion question labels (`**Family Worship**: ...`, `**Church**: ...`) remain correctly bold because their context words match.
 
 ---
 
@@ -337,6 +386,15 @@ The heading_map from PyMuPDF determines what IS a heading. If Marker marks text 
 ### Page breaks follow punctuation rules
 Well-edited prose always ends paragraphs with sentence-ending punctuation. Any body text line NOT ending with punctuation is an unfinished sentence split at a page boundary. This rule has zero false positives across the entire HomeStead book (~4,600 lines).
 
+### Quote characters need special handling in page break detection
+A line ending with `"` is NOT necessarily a sentence ending. `"I will dwell in the house of the Lord forever"` ends with `"` but the sentence continues on the next line with `(23:6)`. The smart quote-ending check requires `.!?'` before the quote character. Without this, the page break joiner misses legitimate mid-sentence breaks at quoted text boundaries.
+
+### Pass ordering is critical — callout punctuation must come after page breaks
+Moving `.` inside `</Callout>` tags changes line endings from `</Callout>.` (ends with `.` = punctuation) to `.</Callout>` (ends with `>` = not punctuation). If this ran before `fix_page_breaks`, every callout paragraph would get merged with the next paragraph. This caused a 40+ paragraph regression before the ordering was corrected.
+
+### Context-aware bold prevents false positives on short common words
+Short words like "Church", "Worship", "Community" appear bold in the PDF only in specific contexts (discussion question labels). Without context checking, `fix_inline_bold` would bold them everywhere — including in plain-text lists where they are NOT bold in the PDF. Storing the PDF line context alongside each bold phrase and requiring context word matches eliminates these false positives while preserving all true positives.
+
 ### Callouts must run after heading hierarchy
 `fix_callouts` runs after `fix_heading_hierarchy` because heading rearrangement changes line positions. If callouts ran before heading hierarchy, Phase 1 standalone removal would target the wrong lines. Similarly, `fix_page_breaks` runs after callouts to avoid merging standalone callout text into body paragraphs.
 
@@ -347,7 +405,7 @@ The PDF includes decorative italic excerpts within scripture passages (e.g. `> *
 Some scripture citations are right-aligned body-size text that Marker blockquotes. `build_right_aligned_citations` detects these by checking block position (left edge past 55% page width) and `fix_blockquotes` converts them from `>` to `<<`.
 
 ### Copyright page exclusion
-Pages containing © at small font are excluded from blockquote/citation detection. Copyright boilerplate shares the same small font as blockquotes but isn't quoted text.
+Pages containing copyright symbol at small font are excluded from blockquote/citation detection. Copyright boilerplate shares the same small font as blockquotes but isn't quoted text.
 
 ### Conditional bold on heading demotion
 When Marker assigns a heading that gets demoted, bold is preserved only if Marker's original content had `**bold**` markers.
@@ -369,7 +427,10 @@ python run.py book.raw.md book.pdf --postprocess
 This takes ~2 seconds instead of 6+ minutes.
 
 ### Offline pipeline testing
-`testing/extract_pdf_data.py` extracts all PyMuPDF font data to a JSON file. This allows running the full post-processing pipeline without PyMuPDF installed — useful for AI-assisted debugging where the environment doesn't have fitz.
+`testing/claude debug scripts/extract_pdf_data.py` extracts all PyMuPDF font data to a JSON file. This allows running the full post-processing pipeline without PyMuPDF installed — useful for AI-assisted debugging where the environment doesn't have fitz. The JSON must be regenerated after changes to any `build_*` function (e.g. when `build_inline_bold_set` changed from returning strings to returning `(phrase, context)` tuples).
+
+### The converter surfaces PDF source issues
+The pipeline faithfully reproduces what's in the PDF. When text appears truncated in the output (e.g. "How does a home" with no continuation), check the PDF itself — the text may be incomplete in the source layout, not a converter bug. This makes the converter a useful QA tool for the Affinity Publisher source files.
 
 ---
 
@@ -439,7 +500,29 @@ The Cloud Run service is separate from the local runner and uses `app.py` + `con
 
 ## Changelog
 
-### April 2026 — Page breaks, callout overhaul, heading hierarchy
+### April 2026 (late) — Context-aware bold, smart quote-ending, callout punctuation
+
+**Context-aware inline bold:**
+- `build_inline_bold_set` now returns `[(phrase, context_line), ...]` with the full PDF line text as context
+- `fix_inline_bold` checks context word overlap before applying bold — requires 1-3 non-trivial context words to appear in the markdown line
+- Eliminates false positives: "Church", "Worship", "Community" etc. no longer incorrectly bolded in plain-text lists
+- Backward compatible: accepts legacy `List[str]` format (applies bold everywhere)
+
+**Smart quote-ending in fix_page_breaks:**
+- Quote chars (`"`, `'`, right-double-quote) only count as sentence-ending if preceded by `.!?'`
+- Fixes: `"I will dwell in the house of the Lord forever"` no longer treated as sentence end
+- Implemented via `_ends_sentence()` helper with separate `_END_PUNCT` and `_QUOTE_CHARS` sets
+
+**Callout punctuation inside tags:**
+- `</Callout>.` → `.</Callout>` — trailing punctuation moved inside closing tag
+- MUST run after `fix_page_breaks` (lines ending `.</Callout>` end with `>` which isn't punctuation)
+- Ordering mistake caused 40+ paragraph merge regression before being corrected
+
+**Table bullet fix:**
+- `<br>bullet<br>` → `<br>bullet ` prevents bullet characters from appearing on their own line in table cells
+- Affects 22 instances in Marker's table cell output
+
+### April 2026 (mid) — Page breaks, callout overhaul, heading hierarchy
 
 **New passes:**
 - **`fix_page_breaks`**: Rejoins text split mid-sentence at PDF page/column boundaries using punctuation-termination rule. Loops until stable, supports bullet/italic items via separate `_STRUCT_LINE`/`_STRUCT_CONT` prefix checks, guards against merging numbered list items
