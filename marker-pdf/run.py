@@ -514,7 +514,15 @@ def fix_page_breaks(md):
     Loops until stable to handle cascading breaks."""
     _STRUCT_LINE = ('#', '>', '<<', '|', '![', '<sup')  # current line prefixes to skip
     _STRUCT_CONT = ('#', '>', '<<', '-', '|', '![', '*', '<sup')  # continuation prefixes to skip
-    _END_PUNCT = set('.!?:;\'"*)]\'\u201d')
+    _END_PUNCT = set('.!?:;*)]\'')
+    _QUOTE_CHARS = set('"\'”')
+    def _ends_sentence(s):
+        if not s: return False
+        if s[-1] in _END_PUNCT: return True
+        # Quote chars only end a sentence if preceded by .!?'
+        if s[-1] in _QUOTE_CHARS:
+            return len(s) >= 2 and s[-2] in '.!?\''
+        return False
     while True:
         lines = md.splitlines(); out = []; i = 0; changed = False
         while i < len(lines):
@@ -522,7 +530,7 @@ def fix_page_breaks(md):
             s = line.rstrip()
             if (s and len(s) > 40
                     and not any(s.startswith(p) for p in _STRUCT_LINE)
-                    and s[-1] not in _END_PUNCT
+                    and not _ends_sentence(s)
                     and not line.rstrip('\r\n').endswith('  ')):  # skip hard breaks
                 j = i + 1
                 if j < len(lines) and not lines[j].strip(): j += 1
@@ -1282,9 +1290,10 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     # Callouts run on final text structure (after heading rearrangement)
     md = fix_callouts(md, callout_texts or [])
     md = re.sub(r'</Callout>\s*<Callout>', ' ', md)
-    # Move trailing punctuation inside callout closing tags
-    md = re.sub(r'</Callout>([.,;:!?])', r'\1</Callout>', md)
     md = fix_page_breaks(md)  # re-run after callouts
+    # Move trailing punctuation inside callout closing tags (must run AFTER
+    # fix_page_breaks — lines ending </Callout> lack sentence punctuation)
+    md = re.sub(r'</Callout>([.,;:!?])', r'\1</Callout>', md)
     # Convert verse number superscripts: small bold text in PDF that Marker
     # renders as **X** or **<sup>X</sup>** should be plain <sup>X</sup>
     if verse_sup:
