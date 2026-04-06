@@ -2,13 +2,9 @@
 
 Windows desktop app for the PDF-to-Markdown conversion pipeline.
 
-## Quick Start (Development)
+## Installing
 
-```bash
-cd windows-installer
-source ../marker-pdf/venv311/Scripts/activate   # Git Bash
-python main.py
-```
+Download the latest `Affinity-PDF-Markdown-Converter_Setup.exe` from [GitHub Actions](../../actions/workflows/build-installers.yml) (click the latest green run → Artifacts → Windows-Installer). Run the installer — it installs to Program Files with Start Menu shortcuts.
 
 ## Using the App
 
@@ -18,15 +14,23 @@ python main.py
 4. **Choose mode:**
    - **Full Conversion** — Marker ML + post-processing (~10-15 min on CPU)
    - **Post-process Only** — From existing `.raw.md` (~2 seconds)
-5. **Click Convert** — Watch progress in the log pane and progress bar
+5. **Click Convert** — Watch per-page Marker progress in the log pane and progress bar
 
 ### Optional settings
 - **Page Range** — e.g. `37-84` for Session 1 only
 - **Save raw Marker output** — Saves `.raw.md` for later post-process-only runs
 
+### Automatic Updates
+
+The app checks for pipeline updates every 30 seconds in the background. When a new version is available, a green banner appears at the top of the window. Click **Update Now** to download the latest `run.py` and template configs — takes 2 seconds, no reinstall needed. Fails silently if offline.
+
 ## Building the Installer
 
-### Step 1: PyInstaller
+### Cloud Build (recommended)
+
+Go to [Actions → Build Installers](../../actions/workflows/build-installers.yml) → Run workflow. The Windows `.exe` installer is uploaded as an artifact. No local toolchain needed.
+
+### Local Build (alternative)
 
 Open a **Command Prompt** (not Git Bash):
 
@@ -35,34 +39,29 @@ cd C:\Users\Steve\Affinity-to-Markdown\windows-installer
 build.bat
 ```
 
-Produces `dist\Affinity-PDF-Markdown Converter\`.
-
-### Step 2: Inno Setup (optional)
-
-1. Install [Inno Setup 6](https://jrsoftware.org/isinfo.php)
-2. Re-run `build.bat` — auto-detects Inno Setup
-3. Output: `Output\Affinity-PDF-Markdown-Converter_Setup.exe`
+Requires Python 3.11 venv with deps installed. Optionally installs [Inno Setup 6](https://jrsoftware.org/isinfo.php) for the `.exe` wrapper.
 
 ## Architecture
 
 ```
 windows-installer/
   main.py                          # Entry point
-  gui.py                           # tkinter GUI
-  pipeline.py                      # Wraps run.py in background thread
-  config.py                        # Paths, platform detection
+  gui.py                           # tkinter GUI with update banner
+  pipeline.py                      # Wraps run.py, captures tqdm progress
+  config.py                        # OTA-aware path resolution
+  updater.py                       # Checks GitHub for pipeline updates
   affinity_converter_win.spec      # PyInstaller build spec
   installer.iss                    # Inno Setup installer config
-  build.bat                        # Automated build script
+  build.bat                        # Local build script
   requirements.txt                 # Python dependencies
 ```
 
 ### Key design
 
-- `run.py` is **imported, not copied** — no code duplication
-- GUI **never blocks** — pipeline runs in a background thread
-- **stdout capture** — `print()` from `run.py` goes to the GUI log pane
-- **Progress ticker** — during Marker extraction, shows elapsed time every 3s
+- `run.py` is **imported, not copied** — no code duplication with the pipeline
+- GUI **never blocks** — pipeline runs in a background thread with a message queue
+- **Real Marker progress** — captures tqdm output from stderr, shows per-page progress with ETA
+- **OTA updates** — checks `update-manifest.json` on GitHub every 30s, downloads to `~/.affinity-converter/updates/`
 
 ## Environment Variables
 
