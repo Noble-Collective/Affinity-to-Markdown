@@ -2,11 +2,13 @@
 pipeline.py — Wraps the run.py pipeline for GUI integration.
 
 Runs the conversion in a background thread, reporting progress and log
-messages back to the GUI via callbacks.  The GUI polls a queue to pick
-up these messages without blocking the tkinter event loop.
+messages back to the GUI via callbacks.  Captures both stdout (run.py
+print statements) and stderr (Marker's tqdm progress bars) to provide
+real-time progress updates in the GUI.
 """
 
 import io
+import re
 import sys
 import threading
 import traceback
@@ -24,9 +26,10 @@ def _ensure_import_path():
 
 
 class _LogCapture(io.TextIOBase):
-    def __init__(self, callback, real_stdout):
+    """Captures stdout and forwards to a callback."""
+    def __init__(self, callback, real_stream):
         self._callback = callback
-        self._real = real_stdout
+        self._real = real_stream
 
     def write(self, text):
         if text and text.strip():
@@ -34,6 +37,99 @@ class _LogCapture(io.TextIOBase):
         if self._real:
             self._real.write(text)
         return len(text)
+
+    def flush(self):
+        if self._real:
+            self._real.flush()
+
+
+# Regex to parse tqdm output like:
+#   Recognizing Layout:  22%|█████| 108/481 [18:39<1:03:26, 10.20s/it]
+_TQDM_RE = re.compile(
+    r'(.+?):\s+(\d+)%\|.*?\|\s*(\d+)/(\d+)\s*\[([^<]+)<([^,]+)'
+)
+
+
+class _TqdmCapture(io.TextIOBase):
+    """
+    Captures stderr, parses tqdm progress bars from Marker, and
+    forwards progress updates to GUI callbacks.
+
+    tqdm uses \\r (carriage return) to overwrite lines, so we buffer
+    text and process on each \\r or \\n.
+    """
+    def __init__(self, log_callback, progress_callback, real_stderr,
+                 progress_base=0.35, progress_end=0.85):
+        self._log = log_callback
+        self._progress = progress_callback
+        self._real = real_stderr
+        self._base = progress_base
+        self._end = progress_end
+        self._phases_seen = []
+        self._buffer = ""
+        self._last_log_pct = -10  # only log every 10%
+
+    def write(self, text):
+        if self._real:
+            self._real.write(text)
+
+        self._buffer += text
+
+        # Process complete lines (tqdm uses \r to overwrite)
+        while '\r' in self._buffer or '\n' in self._buffer:
+            idx_r = self._buffer.find('\r')
+            idx_n = self._buffer.find('\n')
+            if idx_r >= 0 and (idx_n < 0 or idx_r < idx_n):
+                line = self._buffer[:idx_r]
+                self._buffer = self._buffer[idx_r + 1:]
+            elif idx_n >= 0:
+                line = self._buffer[:idx_n]
+                self._buffer = self._buffer[idx_n + 1:]
+            else:
+                break
+            line = line.strip()
+            if line:
+                self._process_line(line)
+
+        return len(text)
+
+    def _process_line(self, line):
+        m = _TQDM_RE.match(line)
+        if not m:
+            # Non-tqdm stderr line — log it (skip ANSI escape sequences)
+            if line and not line.startswith('\x1b'):
+                self._log(line)
+            return
+
+        label = m.group(1).strip()
+        pct = int(m.group(2))
+        current = int(m.group(3))
+        total = int(m.group(4))
+        elapsed = m.group(5).strip()
+        eta = m.group(6).strip()
+
+        # Track phase transitions
+        if label not in self._phases_seen:
+            self._phases_seen.append(label)
+            self._log(f"Marker: {label} ({total} items)")
+            self._last_log_pct = -10
+
+        # Log progress every 10% within each phase
+        if pct >= self._last_log_pct + 10:
+            self._log(f"  {label}: {pct}% ({current}/{total}) — elapsed: {elapsed}, ETA: {eta}")
+            self._last_log_pct = pct
+
+        # Map to overall progress bar.
+        # Divide the Marker range among phases seen so far.
+        n_phases = max(len(self._phases_seen), 1)
+        est_total = max(n_phases + 1, 3)  # assume at least 3 phases
+        phase_idx = self._phases_seen.index(label)
+        phase_width = (self._end - self._base) / est_total
+        phase_base = self._base + phase_idx * phase_width
+        frac = phase_base + (pct / 100.0) * phase_width
+        frac = min(frac, self._end - 0.01)
+
+        self._progress(frac, f"{label}: {pct}% ({current}/{total}) — ETA: {eta}")
 
     def flush(self):
         if self._real:
@@ -77,12 +173,12 @@ class PipelineRunner:
 
     def _run_full(self, pdf_path, template, output_path, page_range_str, save_raw):
         _ensure_import_path()
-        old_stdout = sys.stdout
+        old_stdout, old_stderr = sys.stdout, sys.stderr
         sys.stdout = _LogCapture(self._log, old_stdout)
+        sys.stderr = _TqdmCapture(self._log, self._progress, old_stderr, 0.35, 0.85)
         try:
             import run
-            pp = Path(pdf_path)
-            op = Path(output_path)
+            pp, op = Path(pdf_path), Path(output_path)
 
             self._step(0.02, "Loading template config...")
             cfg = run.load_template(template)
@@ -118,7 +214,7 @@ class PipelineRunner:
             if self._check_cancel(): return
 
             self._step(0.32, "Starting Marker PDF extraction...")
-            self._log("Marker ML extraction — the slow step (~10-15 min on CPU)...")
+            self._log("Marker ML extraction — per-page progress will appear below...")
             import os
             from marker.converters.pdf import PdfConverter
 
@@ -147,19 +243,10 @@ class PipelineRunner:
             if pr:
                 mcfg["page_range"] = pr
 
-            self._step(0.35, "Running Marker (this takes a while)...")
+            self._step(0.35, "Running Marker...")
             t0 = time.time()
-            ticker_stop = threading.Event()
-            ticker = threading.Thread(
-                target=self._progress_ticker,
-                args=(ticker_stop, 0.35, 0.85, "Marker extracting"),
-                daemon=True,
-            )
-            ticker.start()
             conv = PdfConverter(artifact_dict=models, processor_list=None, config=mcfg, llm_service=llm)
             rendered = conv(str(pp))
-            ticker_stop.set()
-            ticker.join(timeout=2)
             self._log(f"Marker extraction complete ({time.time()-t0:.0f}s)")
 
             if save_raw:
@@ -183,6 +270,7 @@ class PipelineRunner:
             self._done(False, None, str(e))
         finally:
             sys.stdout = old_stdout
+            sys.stderr = old_stderr
 
     # ── Post-process only ──────────────────────────────────────────────────
 
@@ -305,17 +393,3 @@ class PipelineRunner:
         self._step(end_frac, "Font maps complete.")
         self._font_maps = (hm, ss, bq, ci, vm)
         self._extra_maps = (ct, ib, ho, vs)
-
-    def _progress_ticker(self, stop_event, start_frac, end_frac, label):
-        """Slowly advances progress bar while Marker runs, so the app
-        never appears frozen. Uses a log curve that never reaches end_frac."""
-        elapsed = 0
-        while not stop_event.is_set():
-            stop_event.wait(timeout=3.0)
-            if stop_event.is_set(): break
-            elapsed += 3
-            progress = 1.0 - (1.0 / (1.0 + elapsed / 60.0))
-            frac = start_frac + progress * (end_frac - start_frac)
-            m, s = divmod(elapsed, 60)
-            ts = f"{m}m {s}s" if m > 0 else f"{s}s"
-            self._progress(frac, f"{label}... ({ts} elapsed)")
