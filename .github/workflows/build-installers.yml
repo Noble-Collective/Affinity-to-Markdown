@@ -99,10 +99,25 @@ jobs:
           # Add to keychain search list
           security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
 
-          # Clean up
+          # Clean up cert file
           rm certificate.p12
 
+          # Find the signing identity automatically
+          echo "Available signing identities:"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
+          IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+
+          if [ -z "$IDENTITY" ]; then
+            echo "ERROR: No Developer ID Application identity found in keychain"
+            echo "All identities:"
+            security find-identity -v "$KEYCHAIN_PATH"
+            exit 1
+          fi
+
+          echo "Found identity: $IDENTITY"
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
+          echo "SIGNING_IDENTITY=$IDENTITY" >> $GITHUB_ENV
 
       - name: Run PyInstaller
         working-directory: mac-installer
@@ -110,21 +125,16 @@ jobs:
 
       # ── Code sign the .app ────────────────────────────────────────
       - name: Sign the app bundle
-        env:
-          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           APP_PATH="mac-installer/dist/Affinity-PDF-Markdown Converter.app"
-          IDENTITY="Developer ID Application: Steve Lundy ($TEAM_ID)"
 
-          echo "Signing with identity: $IDENTITY"
+          echo "Signing with: $SIGNING_IDENTITY"
 
-          # Sign all nested binaries first, then the app itself
           codesign --deep --force --options runtime \
-            --sign "$IDENTITY" \
+            --sign "$SIGNING_IDENTITY" \
             --timestamp \
             "$APP_PATH"
 
-          # Verify
           codesign --verify --deep --strict "$APP_PATH"
           echo "Code signing verified successfully"
 
@@ -148,9 +158,7 @@ jobs:
 
           rm -rf "$DMG_DIR"
 
-          # Sign the DMG too
-          codesign --force --sign "Developer ID Application: Steve Lundy (${{ secrets.APPLE_TEAM_ID }})" \
-            --timestamp "$DMG_PATH"
+          codesign --force --sign "$SIGNING_IDENTITY" --timestamp "$DMG_PATH"
 
       # ── Notarize with Apple ───────────────────────────────────────
       - name: Notarize DMG
