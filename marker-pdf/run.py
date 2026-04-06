@@ -503,6 +503,10 @@ def fix_blockquotes(md, bq_set, cit_set, right_aligned_map=None):
             if right_aligned_map and bq_key in right_aligned_map:
                 for rl in right_aligned_map[bq_key]:
                     out.append(f"<< {rl}")
+            # Numbered items are never blockquotes — Marker sometimes
+            # mis-classifies indented questions as blockquotes.
+            elif re.match(r'\d+\.\s', bq_content):
+                out.append(bq_content)
             else:
                 out.append(line)
             continue
@@ -1368,8 +1372,79 @@ def fix_heading_hierarchy(md, cfg, heading_order=None):
         clean.append(line); i += 1
     return '\n'.join(clean)
 
+# ---- Question tagging ----
+
+_ABBREV_STOP = {'the','a','an','of','in','to','and','our','your','on','for','as','is',
+                'it','us','we','my','me','be','by','or','with'}
+
+def _q_abbrev(heading_text):
+    """Deterministic abbreviation: first 3 chars of each significant word."""
+    t = re.sub(r'^#{1,6}\s+', '', heading_text).strip()
+    t = re.sub(r'\*+', '', t)
+    parts = []
+    for w in re.split(r'[\s:\-]+', t):
+        c = re.sub(r"[^a-zA-Z0-9']", '', w)
+        if not c or c.lower().rstrip("'") in _ABBREV_STOP: continue
+        parts.append(c if c.isdigit() else c[:3].capitalize())
+    return ''.join(parts)
+
+def _q_classify(line):
+    """Classify a line by structural type for question matching."""
+    s = line.strip()
+    if re.match(r'^>?\s*\d+\.\s+', s): return 'numbered'
+    if s.startswith('#'): return 'heading_prompt'
+    if re.match(r'^- \*\*', s): return 'bold_bullet'
+    if s.startswith('- ') and ('...' in s or '\u2026' in s): return 'fill_in_bullet'
+    if re.match(r'^God,', s) and (s.endswith('\u2026') or s.endswith('...')): return 'prayer_fill'
+    if s.startswith('*') and s.endswith('*') and len(s) > 10: return 'italic_prompt'
+    if 'How can I pray for' in s: return 'standalone_prompt'
+    if ('...' in s or '\u2026' in s) and '**' in s and not s.startswith('#') and not s.startswith('-'): return 'fill_in_line'
+    return None
+
+def fix_questions(md, questions_cfg):
+    """Wrap user input areas with <Question id="...">...</Question> tags.
+
+    Matches entries structurally by heading context + type + ordinal.
+    Does NOT depend on exact question text — only on document structure.
+    The heading context is built by applying _q_abbrev to each heading
+    level, producing the same deterministic ID base used in the config."""
+    if not questions_cfg: return md
+    from collections import defaultdict
+    by_context = defaultdict(list)
+    for q in questions_cfg:
+        m = re.match(r'^(.+)-(\d+)$', q['id'])
+        if not m: continue
+        by_context[m.group(1)].append((int(m.group(2)), q['type'], q['id']))
+    for b in by_context: by_context[b].sort()
+
+    lines = md.splitlines(); out = []; ch = {}
+    tc = defaultdict(lambda: defaultdict(int))
+    tagged = 0
+    for line in lines:
+        s = line.strip()
+        hm = re.match(r'^(#{1,6})\s+(.+)$', s)
+        if hm:
+            lv = len(hm.group(1)); ch[lv] = s
+            for l in list(ch.keys()):
+                if l > lv: del ch[l]
+        ctx = '-'.join(['Home'] + [_q_abbrev(ch[l]) for l in sorted(ch.keys())])
+        lt = _q_classify(s)
+        if lt and ctx in by_context:
+            tc[ctx][lt] += 1; co = tc[ctx][lt]
+            matched = False
+            for o, qt, qid in by_context[ctx]:
+                if qt == lt and o == co:
+                    out.append(f'<Question id="{qid}">{line}</Question>')
+                    matched = True; tagged += 1; break
+            if not matched: out.append(line)
+        else:
+            out.append(line)
+    print(f"  {tagged} question tags applied")
+    return '\n'.join(out)
+
 def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
-                 callout_texts=None, inline_bold=None, heading_order=None, verse_sup=None):
+                 callout_texts=None, inline_bold=None, heading_order=None, verse_sup=None,
+                 questions_cfg=None):
     md = md.replace('\r\n','\n').replace('\r','\n')
     md = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', md, flags=re.MULTILINE)
     md = re.sub(r'^-{20,}\s*$', '', md, flags=re.MULTILINE)
@@ -1420,6 +1495,9 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = re.sub(r'(\*\*Verse \d+\*\*)\n\n', r'\1\n', md)
     md = md.replace('<br>•<br>', '<br>• ')
     md = re.sub(r'\n{3,}', '\n\n', md)
+    # Question tagging: wrap user input areas with <Question> tags.
+    # Must run last so all heading restructuring is complete.
+    md = fix_questions(md, questions_cfg)
     return md.strip() + '\n'
 
 # ---- Marker bug patch ----
@@ -1482,6 +1560,13 @@ def main():
 
     cfg = load_template(args.template)
     print(f"Template: {args.template}")
+    # Load question tagging config (optional)
+    qpath = SCRIPT_DIR / "templates" / args.template / "questions_final.yaml"
+    qcfg = None
+    if qpath.exists():
+        qd = _load_yaml(qpath)
+        qcfg = qd.get("questions", [])
+        print(f"Questions config: {len(qcfg)} entries")
 
     if args.postprocess:
         rp = Path(args.input)
@@ -1507,7 +1592,7 @@ def main():
               f"{len(bq)} bq, {len(ci)} cit, {len(vm)} verses, {len(ct)} callouts, {len(ib)} bold, {len(vs)} vsup.")
         raw = rp.read_text(encoding="utf-8")
         print("Post-processing...")
-        md = post_process(raw, hm, ss, bq, ci, vm, cfg, ct, ib, ho, vs)
+        md = post_process(raw, hm, ss, bq, ci, vm, cfg, ct, ib, ho, vs, questions_cfg=qcfg)
         op.write_text(md, encoding="utf-8")
         print(f"Done! {op} ({len(md.splitlines())} lines)")
         return
@@ -1568,7 +1653,7 @@ def main():
         print(f"Raw saved: {rp2}")
 
     print("Post-processing...")
-    md = post_process(rendered.markdown, hm, ss, bq, ci, vm, cfg, ct, ib, ho, vs)
+    md = post_process(rendered.markdown, hm, ss, bq, ci, vm, cfg, ct, ib, ho, vs, questions_cfg=qcfg)
     op.write_text(md, encoding="utf-8")
     print(f"Done! {op} ({len(md.splitlines())} lines)")
 

@@ -1070,7 +1070,7 @@ questions:
   - id: Home-ParOnePre-SesFou-Ses4RefPro-ParPro-DisSpo-1
     type: bold_bullet
     ordinal: 1
-    text: "- **Reflecting on Your Past**: How would you describe your educational experience growing up? How involved were your parents in your education?"
+    text: "- **Reflecting on Your Past**: How would you describe your educational experience growing up? How involved were your parents in your training and formation?"
     path: "PART ONE: Preparation > Session Four > Session 4 Reflective Projects > Parenting Project > Discuss with Your Spouse"
 
   - id: Home-ParOnePre-SesFou-Ses4RefPro-ParPro-DisSpo-2
@@ -1082,7 +1082,7 @@ questions:
   - id: Home-ParOnePre-SesFou-Ses4RefPro-ParPro-DisSpo-3
     type: bold_bullet
     ordinal: 3
-    text: "- **Anticipating the Future**: What are some of your greatest concerns about viewing yourself as a teacher of your children? What excites you about this work? How can you better prepare yourself for the work?"
+    text: "- **Anticipating the Future**: What are some of your greatest concerns about viewing yourself as a teacher of your family? What excites you about this work? How can you better prepare yourself fo the work?"
     path: "PART ONE: Preparation > Session Four > Session 4 Reflective Projects > Parenting Project > Discuss with Your Spouse"
 
   # === Session Five ===
@@ -1706,7 +1706,7 @@ questions:
   - id: Home-ParTwoCha-DaiDev-DayTwo-MorRea-ConTex-1
     type: numbered
     ordinal: 1
-    text: "> 1. What does this passage tell the son to do? Why is it important for children to follow these instructions?"
+    text: "1. What does this passage tell the son to do? Why is it important for children to follow these instructions?"
     path: "PART TWO: Challenge > Daily Devotionals > Day Two > Morning Reading > Considering the Text"
 
   - id: Home-ParTwoCha-DaiDev-DayTwo-MorRea-ConTex-2
