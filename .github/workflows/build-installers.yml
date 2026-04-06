@@ -1,0 +1,98 @@
+name: Build Installers
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g. 0.1.0)'
+        required: false
+        default: '0.1.0'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: win-pip-${{ hashFiles('windows-installer/requirements.txt') }}
+          restore-keys: win-pip-
+      - name: Install dependencies
+        working-directory: windows-installer
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install marker-pdf==1.10.2 pymupdf pyyaml
+          pip install "pyinstaller>=6.0"
+      - name: Run PyInstaller
+        working-directory: windows-installer
+        run: pyinstaller affinity_converter_win.spec --noconfirm
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+      - name: Build installer
+        working-directory: windows-installer
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Windows-Installer
+          path: windows-installer/Output/Affinity-PDF-Markdown-Converter_Setup.exe
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: Windows-Portable
+          path: windows-installer/dist/Affinity-PDF-Markdown Converter/
+          retention-days: 30
+
+  build-macos:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/pip
+          key: mac-pip-${{ hashFiles('mac-installer/requirements.txt') }}
+          restore-keys: mac-pip-
+      - name: Install dependencies
+        working-directory: mac-installer
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          pip install torch
+          pip install marker-pdf==1.10.2 pymupdf pyyaml
+          pip install "pyinstaller>=6.0"
+      - name: Run PyInstaller
+        working-directory: mac-installer
+        run: pyinstaller affinity_converter_mac.spec --noconfirm
+      - name: Create DMG
+        working-directory: mac-installer
+        run: |
+          APP_NAME="Affinity-PDF-Markdown Converter"
+          VERSION="${{ github.event.inputs.version }}"
+          DMG_DIR="dist/dmg-staging"
+          DMG_PATH="dist/Affinity-PDF-Markdown-Converter-${VERSION}.dmg"
+          mkdir -p "$DMG_DIR"
+          cp -R "dist/${APP_NAME}.app" "$DMG_DIR/"
+          ln -s /Applications "$DMG_DIR/Applications"
+          hdiutil create -volname "$APP_NAME" -srcfolder "$DMG_DIR" -ov -format UDZO "$DMG_PATH"
+          rm -rf "$DMG_DIR"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macOS-Installer
+          path: mac-installer/dist/Affinity-PDF-Markdown-Converter-*.dmg
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: macOS-App-Bundle
+          path: mac-installer/dist/Affinity-PDF-Markdown Converter.app/
+          retention-days: 30
