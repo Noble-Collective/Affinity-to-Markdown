@@ -17,6 +17,9 @@ from pipeline import PipelineRunner
 MSG_LOG = "log"
 MSG_PROGRESS = "progress"
 MSG_DONE = "done"
+MSG_UPDATE = "update"
+
+_UPDATE_CHECK_INTERVAL_MS = 30_000  # check every 30 seconds
 
 
 class ConverterApp:
@@ -28,6 +31,8 @@ class ConverterApp:
         self._queue = queue.Queue()
         self._runner = None
         self._last_output = None
+        self._update_info = None
+        self._update_banner_shown = False
         self._build_ui()
         self._start_polling()
         self.root.after(100, self._startup_checks)
@@ -44,28 +49,32 @@ class ConverterApp:
         main = ttk.Frame(self.root, padding=12)
         main.pack(fill=tk.BOTH, expand=True)
 
-        # PDF file picker
-        row = 0
+        self.update_frame = tk.Frame(main, bg="#2d5a27", padx=8, pady=6)
+        self.update_label = tk.Label(self.update_frame, text="", bg="#2d5a27", fg="white",
+            font=("Segoe UI" if IS_WINDOWS else "Helvetica", 10))
+        self.update_label.pack(side="left", fill="x", expand=True)
+        self.update_btn = tk.Button(self.update_frame, text="Update Now", command=self._on_update,
+            bg="#4a8c3f", fg="white", relief="flat", padx=12, pady=2)
+        self.update_btn.pack(side="right", padx=(8, 0))
+
+        row = 1
         ttk.Label(main, text="PDF File:").grid(row=row, column=0, sticky="w", pady=(0,4))
         self.pdf_var = tk.StringVar()
         ttk.Entry(main, textvariable=self.pdf_var, width=55).grid(row=row, column=1, sticky="ew", pady=(0,4), padx=(4,4))
         ttk.Button(main, text="Browse", command=self._browse_pdf).grid(row=row, column=2, pady=(0,4))
 
-        # Template
         row += 1
         ttk.Label(main, text="Template:").grid(row=row, column=0, sticky="w", pady=(0,4))
         templates = get_available_templates()
         self.template_var = tk.StringVar(value=templates[0] if templates else "homestead")
         ttk.Combobox(main, textvariable=self.template_var, values=templates, state="readonly", width=30).grid(row=row, column=1, sticky="w", pady=(0,4), padx=(4,4))
 
-        # Output
         row += 1
         ttk.Label(main, text="Output:").grid(row=row, column=0, sticky="w", pady=(0,4))
         self.output_var = tk.StringVar()
         ttk.Entry(main, textvariable=self.output_var, width=55).grid(row=row, column=1, sticky="ew", pady=(0,4), padx=(4,4))
         ttk.Button(main, text="Browse", command=self._browse_output).grid(row=row, column=2, pady=(0,4))
 
-        # Mode
         row += 1
         mode_frame = ttk.LabelFrame(main, text="Mode", padding=6)
         mode_frame.grid(row=row, column=0, columnspan=3, sticky="ew", pady=(4,4))
@@ -73,7 +82,6 @@ class ConverterApp:
         ttk.Radiobutton(mode_frame, text="Full Conversion (Marker ML + post-processing)", variable=self.mode_var, value="full", command=self._on_mode_change).pack(anchor="w")
         ttk.Radiobutton(mode_frame, text="Post-process Only (from existing .raw.md)", variable=self.mode_var, value="postprocess", command=self._on_mode_change).pack(anchor="w")
 
-        # Raw .md picker
         row += 1
         self.raw_frame = ttk.Frame(main)
         self.raw_frame.grid(row=row, column=0, columnspan=3, sticky="ew", pady=(0,4))
@@ -83,7 +91,6 @@ class ConverterApp:
         ttk.Button(self.raw_frame, text="Browse", command=self._browse_raw).pack(side="left")
         self.raw_frame.grid_remove()
 
-        # Options
         row += 1
         opts = ttk.Frame(main)
         opts.grid(row=row, column=0, columnspan=3, sticky="ew", pady=(0,4))
@@ -95,7 +102,6 @@ class ConverterApp:
         self.saveraw_check = ttk.Checkbutton(opts, text="Save raw Marker output", variable=self.saveraw_var)
         self.saveraw_check.pack(side="right")
 
-        # Progress
         row += 1
         self.progress_var = tk.DoubleVar(value=0.0)
         ttk.Progressbar(main, variable=self.progress_var, maximum=1.0, length=400).grid(row=row, column=0, columnspan=3, sticky="ew", pady=(8,2))
@@ -103,7 +109,6 @@ class ConverterApp:
         self.status_var = tk.StringVar(value="Ready")
         ttk.Label(main, textvariable=self.status_var, foreground="gray").grid(row=row, column=0, columnspan=3, sticky="w", pady=(0,4))
 
-        # Log
         row += 1
         log_frame = ttk.LabelFrame(main, text="Log", padding=4)
         log_frame.grid(row=row, column=0, columnspan=3, sticky="nsew", pady=(4,4))
@@ -116,7 +121,6 @@ class ConverterApp:
         sb.pack(side="right", fill="y")
         self.log_text.pack(fill="both", expand=True)
 
-        # Buttons
         row += 1
         btn = ttk.Frame(main)
         btn.grid(row=row, column=0, columnspan=3, sticky="ew", pady=(4,0))
@@ -135,13 +139,52 @@ class ConverterApp:
                 "Could not find marker-pdf/run.py.\n\nMake sure this app's folder is inside the Affinity-to-Markdown repo alongside marker-pdf/.")
             return
         if not check_models_downloaded():
-            self._log_append("NOTE: ML models not found in local cache. They will be downloaded on first full conversion (~500MB). This is a one-time download.")
+            self._log_append("NOTE: ML models not found. They will download on first full conversion (~500MB).")
+        from updater import has_local_updates, get_installed_version
+        if has_local_updates():
+            self._log_append(f"Pipeline update v{get_installed_version()} installed.")
         templates = get_available_templates()
         if templates:
-            self._log_append(f"Templates available: {', '.join(templates)}")
-        else:
-            self._log_append("WARNING: No templates found in marker-pdf/templates/")
+            self._log_append(f"Templates: {', '.join(templates)}")
         self._log_append("Ready.")
+        self._schedule_update_check()
+
+    def _schedule_update_check(self):
+        from updater import check_for_updates_async
+        check_for_updates_async(lambda info: self._queue.put((MSG_UPDATE, info)))
+        self.root.after(_UPDATE_CHECK_INTERVAL_MS, self._schedule_update_check)
+
+    def _show_update_banner(self, info):
+        self._update_info = info
+        self._update_banner_shown = True
+        n = len(info.files)
+        self.update_label.configure(text=f"Update v{info.remote_version} available \u2014 {info.notes} ({n} files)")
+        parent = self.root.winfo_children()[0]
+        self.update_frame.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(0, 8), in_=parent)
+
+    def _on_update(self):
+        if not self._update_info: return
+        info = self._update_info
+        self.update_btn.configure(state="disabled", text="Updating...")
+        self._log_append(f"Downloading update v{info.remote_version}...")
+        import threading
+        from updater import download_updates
+        def _do():
+            def _prog(cur, tot, fn):
+                self._queue.put((MSG_LOG, f"  Downloading {fn} ({cur+1}/{tot})..."))
+            ok, msg = download_updates(info.files, info.remote_version, info.notes, _prog)
+            self._queue.put((MSG_LOG, msg))
+            if ok:
+                self._queue.put((MSG_LOG, "Update complete! New pipeline used on next conversion."))
+                self.root.after(0, self._hide_update_banner)
+            else:
+                self.root.after(0, lambda: self.update_btn.configure(state="normal", text="Retry"))
+        threading.Thread(target=_do, daemon=True).start()
+
+    def _hide_update_banner(self):
+        self.update_frame.grid_remove()
+        self.update_btn.configure(state="normal", text="Update Now")
+        self._update_banner_shown = False
 
     def _on_mode_change(self):
         if self.mode_var.get() == "postprocess":
@@ -155,15 +198,14 @@ class ConverterApp:
         path = filedialog.askopenfilename(title="Select PDF file", filetypes=[("PDF files", "*.pdf"), ("All files", "*.*")])
         if path:
             self.pdf_var.set(path)
-            if not self.output_var.get():
-                self.output_var.set(str(Path(path).with_suffix(".md")))
+            if not self.output_var.get(): self.output_var.set(str(Path(path).with_suffix(".md")))
 
     def _browse_output(self):
         path = filedialog.asksaveasfilename(title="Save output as", defaultextension=".md", filetypes=[("Markdown files", "*.md"), ("All files", "*.*")])
         if path: self.output_var.set(path)
 
     def _browse_raw(self):
-        path = filedialog.askopenfilename(title="Select raw Marker .md file", filetypes=[("Markdown files", "*.md *.raw.md"), ("All files", "*.*")])
+        path = filedialog.askopenfilename(title="Select raw .md file", filetypes=[("Markdown files", "*.md *.raw.md"), ("All files", "*.*")])
         if path: self.raw_var.set(path)
 
     def _on_convert(self):
@@ -183,7 +225,6 @@ class ConverterApp:
             if Path(output_path).resolve() == Path(raw_path).resolve():
                 output_path = str(Path(raw_path).with_stem(Path(raw_path).stem + "_processed"))
                 self.output_var.set(output_path)
-
         self.log_text.configure(state="normal")
         self.log_text.delete("1.0", "end")
         self.log_text.configure(state="disabled")
@@ -194,7 +235,6 @@ class ConverterApp:
         self.cancel_btn.configure(state="normal")
         self.open_output_btn.configure(state="disabled")
         self.open_folder_btn.configure(state="disabled")
-
         self._runner = PipelineRunner(
             log_callback=lambda msg: self._queue.put((MSG_LOG, msg)),
             progress_callback=lambda frac, label: self._queue.put((MSG_PROGRESS, frac, label)),
@@ -210,16 +250,13 @@ class ConverterApp:
             self._runner.cancel()
             self.status_var.set("Cancelling...")
 
-    def _start_polling(self):
-        self._poll_queue()
+    def _start_polling(self): self._poll_queue()
 
     def _poll_queue(self):
         try:
             while True:
-                msg = self._queue.get_nowait()
-                self._handle_message(msg)
-        except queue.Empty:
-            pass
+                self._handle_message(self._queue.get_nowait())
+        except queue.Empty: pass
         self.root.after(50, self._poll_queue)
 
     def _handle_message(self, msg):
@@ -227,9 +264,8 @@ class ConverterApp:
         if kind == MSG_LOG:
             self._log_append(msg[1])
         elif kind == MSG_PROGRESS:
-            _, frac, label = msg
-            self.progress_var.set(frac)
-            self.status_var.set(label)
+            self.progress_var.set(msg[1])
+            self.status_var.set(msg[2])
         elif kind == MSG_DONE:
             _, success, output_path, error = msg
             self.convert_btn.configure(state="normal")
@@ -246,6 +282,11 @@ class ConverterApp:
             else:
                 self.status_var.set(f"Failed: {error}")
                 messagebox.showerror("Conversion Failed", f"Error:\n\n{error}")
+        elif kind == MSG_UPDATE:
+            info = msg[1]
+            if info.available and not self._update_banner_shown:
+                self._log_append(f"Update v{info.remote_version} available: {info.notes}")
+                self._show_update_banner(info)
 
     def _log_append(self, text):
         self.log_text.configure(state="normal")
