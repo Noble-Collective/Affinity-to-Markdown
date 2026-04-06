@@ -1,0 +1,21 @@
+# HomeStead Converter — Desktop App Dependencies
+#
+# These are the same deps as marker-pdf plus PyInstaller for packaging.
+# Install into a Python 3.11 venv:
+#   python -m venv venv311
+#   venv311\Scripts\activate       (Windows)
+#   source venv311/bin/activate    (macOS/Linux)
+#   pip install -r requirements.txt
+
+# Core pipeline deps (shared with marker-pdf)
+marker-pdf==1.10.2
+pymupdf
+pyyaml
+
+# torch (CPU only — saves ~1.5GB vs CUDA build)
+# On Windows/macOS:
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+
+# Packaging
+pyinstaller>=6.0
