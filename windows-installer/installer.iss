@@ -1,24 +1,22 @@
-; HomeStead Converter — Inno Setup Installer Script
-; ──────────────────────────────────────────────────
+; Affinity-PDF-Markdown Converter — Inno Setup Installer Script
 ;
 ; Prerequisites:
-;   1. Run `build.bat` first to create the PyInstaller dist folder
+;   1. Run build.bat first to create the PyInstaller dist folder
 ;   2. Install Inno Setup from https://jrsoftware.org/isinfo.php
-;   3. Open this file in Inno Setup Compiler and click Build → Compile
-;      (or run: iscc installer.iss)
+;   3. Open this file in Inno Setup Compiler and click Build > Compile
 ;
-; Output: Output\HomeStead_Converter_Setup.exe
+; Output: Output\Affinity-PDF-Markdown-Converter_Setup.exe
 
 [Setup]
-AppName=HomeStead Converter
+AppName=Affinity-PDF-Markdown Converter
 AppVersion=0.1.0
 AppPublisher=Noble Collective
 AppPublisherURL=https://github.com/Noble-Collective/Affinity-to-Markdown
-DefaultDirName={autopf}\HomeStead Converter
-DefaultGroupName=HomeStead Converter
-UninstallDisplayIcon={app}\HomeStead Converter.exe
+DefaultDirName={autopf}\Affinity-PDF-Markdown Converter
+DefaultGroupName=Affinity-PDF-Markdown Converter
+UninstallDisplayIcon={app}\Affinity-PDF-Markdown Converter.exe
 OutputDir=Output
-OutputBaseFilename=HomeStead_Converter_Setup
+OutputBaseFilename=Affinity-PDF-Markdown-Converter_Setup
 Compression=lzma2/ultra64
 SolidCompression=yes
 ; Uncomment once you have an icon file in assets\icon.ico:
@@ -33,16 +31,12 @@ DisableProgramGroupPage=yes
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional shortcuts:"
 
 [Files]
-; Bundle everything from the PyInstaller dist folder
-Source: "dist\HomeStead Converter\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\Affinity-PDF-Markdown Converter\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-; Start Menu shortcut
-Name: "{group}\HomeStead Converter"; Filename: "{app}\HomeStead Converter.exe"
-Name: "{group}\Uninstall HomeStead Converter"; Filename: "{uninstallexe}"
-; Desktop shortcut (optional, user-selected)
-Name: "{autodesktop}\HomeStead Converter"; Filename: "{app}\HomeStead Converter.exe"; Tasks: desktopicon
+Name: "{group}\Affinity-PDF-Markdown Converter"; Filename: "{app}\Affinity-PDF-Markdown Converter.exe"
+Name: "{group}\Uninstall Affinity-PDF-Markdown Converter"; Filename: "{uninstallexe}"
+Name: "{autodesktop}\Affinity-PDF-Markdown Converter"; Filename: "{app}\Affinity-PDF-Markdown Converter.exe"; Tasks: desktopicon
 
 [Run]
-; Option to launch the app after install
-Filename: "{app}\HomeStead Converter.exe"; Description: "Launch HomeStead Converter"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Affinity-PDF-Markdown Converter.exe"; Description: "Launch Affinity-PDF-Markdown Converter"; Flags: nowait postinstall skipifsilent
