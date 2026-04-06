@@ -1,0 +1,73 @@
+=== 1. RAW MARKER around 'filled with wisdom' ===
+  Line 316: '**<sup>36</sup>** There was also a prophetess named Anna, the daughter of Phanuel, of the tribe of Asher, who was well a'
+  Line 322: '*...He was filled with wisdom, and the grace of God was upon Him."*'
+  Line 428: 'worship in the Jerusalem temple continued as faithful family formation in "their own town of Nazareth" (2:39). Over the '
+
+=== 2. PyMuPDF font data for 'filled with wisdom' ===
+
+  Page 38:
+    bold 6.0pt ratio=0.60 | '36'
+    regular 10.0pt ratio=1.00 | ' There was also a prophetess named Anna, the daughter of Phanuel, '
+    regular 10.0pt ratio=1.00 | 'of the tribe of Asher, who was well along in years. She had been '
+    regular 10.0pt ratio=1.00 | 'married for seven years, 37 and then was a widow to the age of eighty-'
+    regular 10.0pt ratio=1.00 | 'four. She never left the temple, but worshiped night and day, fasting '
+    regular 10.0pt ratio=1.00 | 'and praying. '
+    bold 6.0pt ratio=0.60 | '38'
+    regular 10.0pt ratio=1.00 | ' Coming forward at that moment, she gave thanks to '
+    regular 10.0pt ratio=1.00 | 'God and spoke about the Child to all who were waiting for the '
+    regular 10.0pt ratio=1.00 | 'redemption of Jerusalem. '
+    bold 6.0pt ratio=0.60 | '39'
+    regular 10.0pt ratio=1.00 | ' When Jesus’ parents had done everything '
+    regular 10.0pt ratio=1.00 | 'required by the Law of the Lord, they returned to Galilee, to their own '
+    regular 10.0pt ratio=1.00 | 'town of Nazareth. '
+    bold 6.0pt ratio=0.60 | '40'
+    regular 10.0pt ratio=1.00 | ' And the Child grew and became strong. He was '
+    regular 10.0pt ratio=1.00 | 'filled with wisdom, and the grace of God was upon Him.'
+
+  Page 39:
+    italic 18.0pt ratio=1.80 | '...He was filled with wisdom, and the '
+
+  Page 49:
+    regular 10.0pt ratio=1.00 | 'worship in the Jerusalem temple '
+    regular 10.0pt ratio=1.00 | 'continued as faithful family forma-'
+    regular 10.0pt ratio=1.00 | 'tion in “their own town of '
+    regular 10.0pt ratio=1.00 | 'Nazareth” (2:39). Over the course '
+    regular 10.0pt ratio=1.00 | 'of time, Jesus “grew and became '
+    regular 10.0pt ratio=1.00 | 'strong,” he was “filled with '
+    regular 10.0pt ratio=1.00 | 'wisdom,” and “the grace of God '
+    regular 10.0pt ratio=1.00 | 'was upon Him” (2:40). In fact, we '
+    regular 10.0pt ratio=1.00 | 'learn that Jesus grew holistically '
+    regular 10.0pt ratio=1.00 | 'across various domains of life '
+    regular 10.0pt ratio=1.00 | '(2:52).'
+
+=== 3. All italic truncated snippets in raw (both patterns) ===
+  A5 MATCH  line 314: *"And when the time of purification according to the Law of Moses was complete..
+  A5 MATCH  line 320: *"And the Child grew and became strong...*
+  REVERSE   line 322: *...He was filled with wisdom, and the grace of God was upon Him."*
+  A5 MATCH  line 666: *"As a father has compassion on his children...*
+  A5 MATCH  line 1243: *"We will not hide them from their children...*
+  A5 MATCH  line 1257: *"And they remembered that God was their Rock...*
+  A5 MATCH  line 1267: *"He built His sanctuary like the heights...*
+  REVERSE   line 1269: *...like the earth He has established forever."*
+  A5 MATCH  line 1815: *"The Lord is my shepherd...*
+  A5 MATCH  line 2374: *"Come, children, listen to me...*
+  A5 MATCH  line 2977: *"Blessed is the man You discipline, O Lord...*
+  A5 MATCH  line 3525: *"Unless the Lord builds the house...*
+  A5 MATCH  line 3531: *"Your wife will be like a fruitful vine flourishing within your house...*
+
+=== 4. Current output around this line ===
+   294: <sup>33</sup> The Child's father and mother were amazed at what was spoken about Him. <sup>34</sup> 
+   295: 
+   296: <sup>36</sup> There was also a prophetess named Anna, the daughter of Phanuel, of the tribe of Asher
+   297: 
+   298: << Luke 2:21–40
+   298: << Luke 2:21–40
+   299: 
+   300: *...He was filled with wisdom, and the grace of God was upon Him."*
+   301: 
+   302: ##### Discussion Questions
+   387: <Callout>Building home is like planting and cultivating a garden where seeds of infants and sprout, 
+   388: 
+   389: worship in the Jerusalem temple continued as faithful family formation in "their own town of Nazaret
+   390: 
+   391: Parents hope for growth in their children like the development Jesus experienced. When the gospel is

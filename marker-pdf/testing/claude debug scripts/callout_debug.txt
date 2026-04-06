@@ -1,0 +1,697 @@
+Phase 1: 5148 input lines -> 5131 after standalone removal
+
+GROUP 2 lines (idx 3-5), 65 chars
+  First 100: Series Titles Passage: Crossing Thresholds in the Sojourn of Life
+
+GROUP 20 lines (idx 15-45), 1238 chars
+  First 100: HomeStead: A Rite of Passage into Christian Hearth and Home **Matthew R. Lynskey** **Bryan D. Platan
+
+GROUP 4 lines (idx 63-67), 65 chars
+  First 100: for Noble City Church- our family of fellow sojourners and exiles
+
+GROUP 8 lines (idx 103-117), 7567 chars
+  First 100: Growth in life and faith occurs in stages of development. Just as there are common markers for biolo
+
+GROUP 10 lines (idx 138-156), 9159 chars
+  First 100: Cultivating Christian hearth and home is honorable and holy work. Parents, who are the primary overs
+
+GROUP 36 lines (idx 208-250), 703 chars
+  First 100: **Verse 1** Be thou my vision, O Lord of my heart; Naught be all else to me Save that thou art. Thou
+
+GROUP 5 lines (idx 260-268), 458 chars
+  First 100: **Reader**: Hallelujah! Sing to the Lord a new song—His praise in the assembly of the godly. **All**
+
+GROUP 4 lines (idx 308-311), 539 chars
+  First 100: 1. How would you describe your Christian faith and walk with the Lord? Would you describe yourself a
+
+GROUP 3 lines (idx 321-325), 1800 chars
+  First 100: **2:21** When the eight days until His circumcision had passed, He was named Jesus, the name the ang
+
+GROUP 4 lines (idx 339-342), 730 chars
+  First 100: 1. **Family Devotion**: How dedicated were Jesus' parents to God? What did Mary and Joseph do that s
+
+GROUP 4 lines (idx 346-349), 642 chars
+  First 100: 1. **Family Devotion**: How does the health and godliness of a marriage impact parenting? How does t
+
+GROUP 4 lines (idx 353-356), 583 chars
+  First 100: 1. **Family Devotion**: During your upbringing, how devoted was your home to the things of God? How 
+
+GROUP 5 lines (idx 371-379), 2333 chars
+  First 100: Bearing children is a major milestone in life and faith. But *childbearing* is not the same as *chil
+  MATCH: Through the family, society is shaped, the community is form
+
+GROUP 2 lines (idx 383-385), 1566 chars
+  First 100: Soon after Jesus' birth, Mary and Joseph performed several faithful acts which dedicated the infant 
+  MATCH: Our very first acts as Christian parents should not be child
+
+GROUP 4 lines (idx 388-394), 1476 chars
+  First 100: God's word as authoritative are fundamental foundations for all faithful families. Joseph and Mary t
+  MATCH: Holiness and intimacy enjoyed between husband and wife irrig
+
+GROUP 3 lines (idx 401-405), 2049 chars
+  First 100: Even though Jesus was born when Mary was a virgin, both Mary and Joseph raised Jesus as his parents 
+
+GROUP 2 lines (idx 408-410), 903 chars
+  First 100: One cannot exist without the other. There is a mutual interdependence that exists between families a
+
+GROUP 2 lines (idx 414-416), 2032 chars
+  First 100: Parenting in community is fueled by divine promises. Jesus' dedication in the temple was more than j
+
+GROUP 8 lines (idx 423-437), 3900 chars
+  First 100: All child dedication and homebuilding rests on the hopeful gospel message announced during Christ's 
+  MATCH: and sprout, grow, blossom, and bear fruit for righteousness.
+  MATCH: planting and cultivating a garden where seeds of infants
+  MATCH: Christian homebuilding is a matter of establishing
+  MATCH: our homes on the foundation of Christ.
+  MATCH: Building home is like
+
+GROUP 3 lines (idx 457-459), 308 chars
+  First 100: 1. What key **takeaways**, **noteworthy observations**, or **biblical truths** most stood out to you
+
+GROUP 3 lines (idx 583-587), 127 chars
+  First 100: The tender love a father has For all his children dear, Such love the Lord bestows on them Who worsh
+
+GROUP 2 lines (idx 590-592), 135 chars
+  First 100: The Lord remembers we are dust, And all our frailty knows; Man's days are like the tender grass And 
+
+GROUP 2 lines (idx 595-597), 137 chars
+  First 100: The flow'r is withered by the wind that smites with blighting breath; so man is quickly swept away b
+
+GROUP 7 lines (idx 600-608), 254 chars
+  First 100: Unchanging is the love of God, From age to age the same, Displayed to all who do his will And revere
+
+GROUP 5 lines (idx 618-626), 365 chars
+  First 100: **All**: Do not be terrified or afraid! **Reader**: The Lord your God, who goes before you, will fig
+
+GROUP 2 lines (idx 662-663), 384 chars
+  First 100: 1. What most excites you about parenting? What feels overwhelming about this sacred calling? Where d
+
+GROUP 4 lines (idx 673-679), 2149 chars
+  First 100: **103:1** Bless the Lord, O my soul; all that is within me, bless His holy name. **<sup>2</sup>** Bl
+
+GROUP 4 lines (idx 688-691), 545 chars
+  First 100: 1. **Family Worship**: How does this psalm worship God? What reasons are given to show that God is w
+
+GROUP 4 lines (idx 695-698), 620 chars
+  First 100: 1. **Family Worship**: Why is worship so central to family life and parenting work? What does it loo
+
+GROUP 4 lines (idx 702-705), 653 chars
+  First 100: 1. **Family Worship**: Did you grow up in a family that worshiped God together? How will you make wo
+
+GROUP 2 lines (idx 720-722), 1418 chars
+  First 100: In this first session, we explore this fundamental principle: each parent's relationship with God as
+  MATCH: Relationship with God best outfits us for our parenting voca
+
+GROUP 3 lines (idx 729-733), 1942 chars
+  First 100: The dominant refrain in Psalm 103 is "bless the Lord" (103:1; cf. 103:2, 20–22), an invitation to pr
+
+GROUP 3 lines (idx 736-740), 887 chars
+  First 100: lead their homes by regularly acknowledging God as King. Parental authority is only a derivative aut
+  MATCH: Parenting work is buoyed by a life of vibrant worship to the
+
+GROUP 3 lines (idx 747-751), 2310 chars
+  First 100: In great detail, this psalm celebrates God's love for his people. God's love is compared to the love
+  MATCH: God’s compassion for his people is the great pattern and pow
+
+GROUP 2 lines (idx 755-757), 1222 chars
+  First 100: God's fatherly and covenantal love is expressed in unparalleled divine care. The body of this psalm 
+
+GROUP 3 lines (idx 760-764), 995 chars
+  First 100: show grace. Christian homes should be places of healing and little communities where divine redempti
+
+GROUP 2 lines (idx 767-769), 1867 chars
+  First 100: pered by its fleeting and passing life: "as for man, his days are like grass" (103:15) and after a s
+  MATCH: God’s care for us is our model and means to care for our chi
+
+GROUP 4 lines (idx 773-779), 1770 chars
+  First 100: If the parent's primary duty is to bring their children under God's everlasting covenant love, then 
+  MATCH: Homebuilding in piety—encouraging genuine faith in and earne
+
+GROUP 2 lines (idx 786-788), 294 chars
+  First 100: Christian homebuilding is a matter of cultivating vibrant worship of the Lord, encountering God's te
+
+GROUP 3 lines (idx 808-810), 308 chars
+  First 100: 1. What key **takeaways**, **noteworthy observations**, or **biblical truths** most stood out to you
+
+GROUP 3 lines (idx 847-851), 272 chars
+  First 100: *Reread the biblical passage studied in this session. Read it slowly and reflectively. You will use 
+
+GROUP 33 lines (idx 875-939), 4209 chars
+  First 100: *Prayerfully read through the selected passages of Scripture, identifying important truths they teac
+
+GROUP 4 lines (idx 963-967), 632 chars
+  First 100: *Take time to observe the painting. Use the following questions to prompt your reflection. Record ob
+
+GROUP 4 lines (idx 1034-1037), 529 chars
+  First 100: 1. **Praising God as Father**: What characteristics of God's fatherly care most encourage you? 2. **
+
+GROUP 2 lines (idx 1072-1074), 566 chars
+  First 100: In this project, you and your spouse should sketch out a typical week for your family. Identify the 
+
+GROUP 2 lines (idx 1085-1087), 400 chars
+  First 100: Design a family worship session that you can use to lead your house in a time of praising the Lord. 
+
+GROUP 3 lines (idx 1143-1147), 137 chars
+  First 100: Let children hear the mighty deeds Which God performed of old, Which in our younger years we saw, An
+
+GROUP 4 lines (idx 1150-1156), 272 chars
+  First 100: He bids us make his glories known, His works of power and grace; And we'll convey his wonders down T
+
+GROUP 4 lines (idx 1169-1175), 636 chars
+  First 100: **Reader**: Lord, You have been our dwelling place through all generations. Before the mountains wer
+
+GROUP 2 lines (idx 1212-1213), 312 chars
+  First 100: 1. What was your family experience like across the generations? How did you think about your grandpa
+
+GROUP 4 lines (idx 1223-1229), 2458 chars
+  First 100: **78:1** Give ear, O my people, to my instruction; listen to the words of my mouth. **<sup>2</sup>**
+
+GROUP 4 lines (idx 1235-1241), 3203 chars
+  First 100: down manna for them to eat; He gave them grain from heaven. **<sup>25</sup>** Man ate the bread of a
+
+GROUP 2 lines (idx 1247-1249), 1563 chars
+  First 100: tested and disobeyed God Most High, for they did not keep His decrees. **<sup>57</sup>** They turned
+
+GROUP 4 lines (idx 1260-1263), 594 chars
+  First 100: 1. **Stewards of Truth**: How does this psalm describe the truth? What is the core content of the tr
+
+GROUP 4 lines (idx 1267-1270), 695 chars
+  First 100: 1. **Stewards of Truth**: Why is it important for Christian parents to view themselves as stewards o
+
+GROUP 4 lines (idx 1274-1277), 637 chars
+  First 100: 1. **Stewards of Truth**: How was the faith passed on to you (or not) from previous generations? Wer
+
+GROUP 2 lines (idx 1292-1294), 1523 chars
+  First 100: When we think about the nature of a family unit, we must marvel at God's creative genius. Through fa
+  MATCH: Parents are frontline workers in faith formation.
+
+GROUP 6 lines (idx 1304-1314), 2039 chars
+  First 100: their children by being faithful custodians of the truth. Parents must not be mere defenders of the 
+
+GROUP 2 lines (idx 1317-1319), 830 chars
+  First 100: which all other truth claims are measured. The character of God should be the defining standard of w
+
+GROUP 3 lines (idx 1323-1327), 2900 chars
+  First 100: The work of faith formation is an intergenerational work. But as this psalm attests, the influence a
+  MATCH: The Christian family is the glad beneficiary of the faith fr
+
+GROUP 2 lines (idx 1330-1332), 199 chars
+  First 100: And no parenting plan would ever be complete, without a concerted effort to incorporate the faith co
+
+GROUP 5 lines (idx 1336-1344), 2136 chars
+  First 100: The transfer of truth to the next generation is a community venture. The appeal to faith formation i
+  MATCH: Christian hearth-building must be set within the context of 
+
+GROUP 2 lines (idx 1348-1350), 1776 chars
+  First 100: Faith formation in the home and in the faith community aims to nurture people in devotion to God. Th
+  MATCH: Faith formation in the home and in the faith community aims 
+
+GROUP 4 lines (idx 1357-1363), 2296 chars
+  First 100: people across the generations recounts God's miraculous liberation from Egyptian slavery (78:12– 14,
+  MATCH: The redemptive story faithfully recorded in the Bible is the
+
+GROUP 2 lines (idx 1366-1368), 742 chars
+  First 100: worship and praise. God's grace and forgiveness should encourage us to embrace a broken and contrite
+
+GROUP 3 lines (idx 1391-1393), 308 chars
+  First 100: 1. What key **takeaways**, **noteworthy observations**, or **biblical truths** most stood out to you
+
+GROUP 3 lines (idx 1429-1433), 266 chars
+  First 100: *Reread the biblical passage studied in this session. Read it slowly and reflectively. You will use 
+
+GROUP 31 lines (idx 1457-1517), 4772 chars
+  First 100: *Prayerfully read through the selected passages of Scripture, identifying important truths they teac
+
+GROUP 5 lines (idx 1541-1546), 866 chars
+  First 100: *Take time to observe the painting. Use the following questions to prompt your reflection. Record ob
+
+GROUP 4 lines (idx 1576-1582), 315 chars
+  First 100: *If you can, find a picture of your parents. Spend time reflecting on your upbringing, identifying w
+
+GROUP 4 lines (idx 1610-1613), 650 chars
+  First 100: 1. **Previous Generations**: How have you been impacted by previous generations? Reflect on the posi
+
+GROUP 2 lines (idx 1649-1651), 652 chars
+  First 100: In this project, you and your spouse will think through how you want to pass the faith to your child
+
+GROUP 3 lines (idx 1708-1712), 268 chars
+  First 100: Savior, like a shepherd lead us, Much we need Thy tender care; In Thy pleasant pastures feed us, For
+
+GROUP 5 lines (idx 1715-1723), 515 chars
+  First 100: We are Thine, do Thou befriend us, Be the guardian of our way; Keep Thy flock, from sin defend us, S
+
+GROUP 5 lines (idx 1736-1744), 577 chars
+  First 100: **All**: "Hear, O nations, the word of the Lord, and proclaim it in distant coastlands." **Reader**:
+
+GROUP 2 lines (idx 1780-1781), 307 chars
+  First 100: 1. What is the condition of your family? What are its greatest needs, **challenges**, or hardships? 
+
+GROUP 4 lines (idx 1802-1805), 499 chars
+  First 100: 1. **Shepherds and Sheep**: How does this passage describe God's relationship to his people? How is 
+
+GROUP 4 lines (idx 1809-1812), 819 chars
+  First 100: 1. **Shepherd and Sheep**: How is parenting work like the work of a shepherd? How are parents like s
+
+GROUP 4 lines (idx 1816-1819), 523 chars
+  First 100: 1. **Shepherd and Sheep**: Which aspects of shepherds and sheep most help you think about the life o
+
+GROUP 2 lines (idx 1835-1837), 614 chars
+  First 100: Perhaps no context more shapes a person than the family setting. Family life is intensely formative.
+
+GROUP 2 lines (idx 1840-1842), 1258 chars
+  First 100: culture as we do from direct instruction. Consequently, how we parent our children is as important a
+
+GROUP 2 lines (idx 1846-1848), 1687 chars
+  First 100: God rules with divine strength, righteous character, and loving concern. He is unrivaled in the way 
+  MATCH: Parenting work done in a shepherding mode emulates God himse
+
+GROUP 2 lines (idx 1852-1854), 542 chars
+  First 100: the vulnerable, and guarding the flock from harmful predators. But godly parents must not only learn
+
+GROUP 3 lines (idx 1860-1864), 2608 chars
+  First 100: testify: "He restores my soul" (23:3). God nurtures and uplifts, feeds and encourages, and nourishes
+  MATCH: God nurtures and uplifts, feeds and encourages, and nourishe
+
+GROUP 2 lines (idx 1868-1870), 984 chars
+  First 100: God's provision for his people includes his protection over them. God's loving supply is matched by 
+  MATCH: Comfort is found in God’s safeguarding rod and his correctiv
+
+GROUP 2 lines (idx 1873-1875), 1401 chars
+  First 100: fiend, adversary and opponent. But sheep also come to love God's merciful correction as much as his 
+
+GROUP 2 lines (idx 1879-1881), 1152 chars
+  First 100: Divine protection does not mean that God keeps his people from all danger and difficulty. This psalm
+  MATCH: Our faithful presence with our children can be one of our gr
+
+GROUP 5 lines (idx 1884-1892), 2284 chars
+  First 100: children more their more independent release into the world. As children build their trust in parent
+  MATCH: a dangerous world—a world rife with dark valleys, deadly sha
+  MATCH: In many ways, parenting amounts to preparing our children to
+
+GROUP 2 lines (idx 1899-1901), 1300 chars
+  First 100: (23:6). A faithful shepherd, God leads his people securely from this life into the world to come. Go
+  MATCH: A faithful shepherd, God leads his people securely from this
+
+GROUP 3 lines (idx 1923-1925), 308 chars
+  First 100: 1. What key **takeaways**, **noteworthy observations**, or **biblical truths** most stood out to you
+
+GROUP 4 lines (idx 1962-1968), 270 chars
+  First 100: *Reread the biblical passage studied in this session. Read it slowly and reflectively. You will use 
+
+GROUP 15 lines (idx 1992-2020), 2892 chars
+  First 100: *Prayerfully read through the selected passages of Scripture, identifying important truths they teac
+
+GROUP 10 lines (idx 2024-2042), 2196 chars
+  First 100: **John 10:11–15** I am the good shepherd. The good shepherd lays down His life for the sheep. The hi
+
+GROUP 4 lines (idx 2066-2070), 657 chars
+  First 100: *Take time to observe the painting. Use the following questions to prompt your reflection. Record ob
+
+GROUP 3 lines (idx 2137-2139), 375 chars
+  First 100: 1. **God's Shepherding Care**: How have you experienced God's shepherding care in your own life? 2. 
+
+GROUP 2 lines (idx 2236-2238), 99 chars
+  First 100: And that your days be long, Let not a false or spiteful word Be found upon your tongue. **Verse 2**
+
+GROUP 4 lines (idx 2241-2247), 140 chars
+  First 100: Depart from mischief, practice love, Pursue the works of peace; So shall the Lord your ways approve,
+
+GROUP 2 lines (idx 2250-2252), 133 chars
+  First 100: His eyes awake to guard the just, His ears attend their cry; When broken spirits dwell in dust, The 
+
+GROUP 3 lines (idx 2255-2259), 140 chars
+  First 100: What though the sorrows here they taste Are sharp and tedious too, The Lord, who saves them all at l
+
+GROUP 7 lines (idx 2262-2271), 259 chars
+  First 100: Evil shall smite the wicked dead; But God secures His own, Prevents the mischief when they slide, Or
+
+GROUP 5 lines (idx 2281-2289), 480 chars
+  First 100: **Reader**: To fear the Lord is to hate evil; I hate arrogant pride, evil conduct, and perverse spee
+
+GROUP 2 lines (idx 2323-2324), 271 chars
+  First 100: 1. How do you feel about your **responsibility** as the primary teacher of your children? Does this 
+
+GROUP 3 lines (idx 2334-2338), 2018 chars
+  First 100: **34:1** I will bless the Lord at all times; His praise will always be on my lips. **<sup>2</sup>** 
+
+GROUP 4 lines (idx 2348-2351), 406 chars
+  First 100: 1. **Worship**: How does this psalm describe worship of God? 2. **Fear of God**: How does this psalm
+
+GROUP 4 lines (idx 2356-2360), 580 chars
+  First 100: 1. **Worship**: Why is worship so important to the life of faith and to Christian homebuilding? 2. *
+
+GROUP 4 lines (idx 2365-2369), 699 chars
+  First 100: 1. **Worship**: What actions can foster your home in the worship of God? How can you build your home
+
+GROUP 2 lines (idx 2384-2386), 832 chars
+  First 100: As we seek to build our home on biblical and God-honoring foundations, we realize that homes are mor
+  MATCH: At its core, parenting is a work of faith development and mo
+
+GROUP 6 lines (idx 2389-2399), 2259 chars
+  First 100: cultivate an environment where our children can come to experience and embrace God for themselves in
+  MATCH: Parents serve their family by cultivating habits of worship 
+
+GROUP 3 lines (idx 2405-2409), 2999 chars
+  First 100: A life of worship is fueled by the fear of God. At the center of this psalm and at the center of the
+
+GROUP 3 lines (idx 2412-2416), 1248 chars
+  First 100: to be rescued from the path of condemnation. To treat the holy God as the one and only and in a cate
+  MATCH: Godly parenting in the fear of the Lord teaches children to 
+
+GROUP 8 lines (idx 2420-2434), 3902 chars
+  First 100: Biblical fear of God produces godly character and conduct. According to the psalm, those who fear th
+  MATCH: The fear of the Lord establishes a hearty and unfeigned fait
+  MATCH: Genuine faith in God that is expressed in a holy fear of God
+  MATCH: in deep, dynamic, and enduring change in life and character.
+
+GROUP 5 lines (idx 2438-2446), 2518 chars
+  First 100: Christian parents are called to train their children to maintain faith in God in a godless and hosti
+  MATCH: The fear of the Lord establishes a hearty and unfeigned fait
+  MATCH: What a wonderful and demanding parental vocation:
+
+GROUP 4 lines (idx 2450-2456), 1161 chars
+  First 100: In this psalm, we learn about an important goal of parenting: character development in the fear of G
+  MATCH: Godly parents aim for children to experience God for themsel
+
+GROUP 3 lines (idx 2512-2516), 269 chars
+  First 100: *Reread the biblical passage studied in this session. Read it slowly and reflectively. You will use 
+
+GROUP 33 lines (idx 2540-2604), 4972 chars
+  First 100: *Prayerfully read through the selected passages of Scripture, identifying important truths they teac
+
+GROUP 4 lines (idx 2628-2632), 692 chars
+  First 100: *Take time to observe the painting. Use the following questions to prompt your reflection. Record ob
+
+GROUP 4 lines (idx 2697-2700), 546 chars
+  First 100: 1. **Fear of God**: How well are you embracing the fear of God in your life? 2. **Models of Maturity
+
+GROUP 2 lines (idx 2737-2739), 372 chars
+  First 100: **Family Education Plan** In this project, you will outline out an education plan for your children.
+
+GROUP 2 lines (idx 2798-2800), 260 chars
+  First 100: A mighty fortress is our God, A bulwark never failing; Our helper he, amid the flood Of mortal ills 
+
+GROUP 2 lines (idx 2803-2805), 270 chars
+  First 100: Did we in our own strength confide, our striving would be losing, were not the right Man on our side
+
+GROUP 2 lines (idx 2808-2810), 287 chars
+  First 100: And though this world, with devils filled, Should threaten to undo us, We will not fear, for God has
+
+GROUP 4 lines (idx 2823-2829), 319 chars
+  First 100: **Reader**: How can a young man keep his way pure? By guarding it according to Your word. **All**: W
+
+GROUP 2 lines (idx 2865-2866), 298 chars
+  First 100: 1. What kind of discipline did you receive as a child? Would you describe this discipline as punitiv
+
+GROUP 4 lines (idx 2874-2880), 2085 chars
+  First 100: **94:1** O Lord, God of vengeance, O God of vengeance, shine forth. **<sup>2</sup>** Rise up, O Judg
+
+GROUP 3 lines (idx 2890-2892), 343 chars
+  First 100: 1. **Surrounding Godlessness**: How does this psalm describe the evil days and evildoers? What does 
+
+GROUP 3 lines (idx 2897-2899), 517 chars
+  First 100: 1. **Surrounding Godlessness**: What evil and wickedness oppose God and his people? Why is it import
+
+GROUP 3 lines (idx 2904-2907), 461 chars
+  First 100: 1. **Surrounding Godlessness**: What evil in the surrounding world most concerns you? What godless i
+
+GROUP 3 lines (idx 2922-2926), 1060 chars
+  First 100: The world is filled with danger—physical, spiritual, emotional, and relational. The broken and fract
+  MATCH: In his revolt against the Lord, the prince of darkness marks
+
+GROUP 10 lines (idx 2936-2954), 4025 chars
+  First 100: play his justice, act on behalf of his creation, and pay retribution to God's enemies. It is a confe
+  MATCH: A godly home fosters a sense of justice in its collective co
+  MATCH: godless society.
+
+GROUP 10 lines (idx 2958-2976), 4491 chars
+  First 100: The second portion of this psalm addresses humanity. It calls people to "take notice" (94:8) and "be
+  MATCH: A godly home fosters a sense of justice in its collective co
+  MATCH: The Christian family is designed by God to incubate a counte
+  MATCH: godless society.
+
+GROUP 4 lines (idx 2980-2986), 1860 chars
+  First 100: While parents need spiritual vigilance in order to rightly parent their children in a godless societ
+  MATCH: While parents need spiritual vigilance in order to rightly p
+  MATCH: godless society.
+
+GROUP 5 lines (idx 2990-2998), 1282 chars
+  First 100: The battle for hearth and home is where spiritual combat is often most fierce. The enemy knows that 
+  MATCH: Christian homes that are secure in God’s stronghold can in t
+
+GROUP 2 lines (idx 3018-3020), 186 chars
+  First 100: 2. What **lingering questions** do you have about this session's topic? 3. What **personal applicati
+
+GROUP 4 lines (idx 3056-3062), 269 chars
+  First 100: Reread the biblical passage studied in this session. Read it slowly and reflectively. You will use t
+
+GROUP 15 lines (idx 3086-3114), 2605 chars
+  First 100: *Prayerfully read through the selected passages of Scripture, identifying important truths they teac
+
+GROUP 20 lines (idx 3120-3158), 1501 chars
+  First 100: **Proverbs 12:1** Whoever loves discipline loves knowledge, but he who hates correction is stupid. *
+
+GROUP 4 lines (idx 3182-3186), 680 chars
+  First 100: *Take time to observe the painting. Use the following questions to prompt your reflection. Record ob
+
+GROUP 4 lines (idx 3253-3256), 571 chars
+  First 100: 1. **Danger and Threat**: What do you most fear? What dangers and threats most oppose you and your f
+
+GROUP 2 lines (idx 3342-3344), 282 chars
+  First 100: 1 God is working this purpose out, as year succeeds to year; God is working this purpose out, and th
+
+GROUP 2 lines (idx 3347-3349), 272 chars
+  First 100: From utmost east to utmost west, where human feet have trod, by the mouth of many messengers goes fo
+
+GROUP 2 lines (idx 3352-3354), 309 chars
+  First 100: Let us go forth in the strength of God, with the banner of Christ unfurled, that the light of the gl
+
+GROUP 3 lines (idx 3367-3371), 247 chars
+  First 100: **All**: Come, bless the Lord, all you servants of the Lord who serve by night in the house of the L
+
+GROUP 2 lines (idx 3407-3408), 306 chars
+  First 100: 1. How do people in the surrounding world try to build their families their own way? How are these m
+
+GROUP 4 lines (idx 3433-3436), 313 chars
+  First 100: 1. **Homebuilding**: What do these psalms have to say about homebuilding? How does a home 2. **Devot
+
+GROUP 4 lines (idx 3441-3445), 400 chars
+  First 100: 1. **Homebuilding**: What is homebuilding? What is it meaningful work? 2. **Devotion to God**: How c
+
+GROUP 4 lines (idx 3450-3454), 558 chars
+  First 100: 1. **Homebuilding**: Do you view Christian homebuilding as meaningful work? What truths support this
+
+GROUP 3 lines (idx 3469-3473), 1334 chars
+  First 100: All families have a purpose. A family's values are shaped by this purpose, creating a sort of househ
+  MATCH: In order to build Christian hearth and home in a godly way, 
+
+GROUP 10 lines (idx 3480-3498), 3805 chars
+  First 100: Establishing a home is good and godly work. The opening of the psalm highlights and honors the work 
+  MATCH: Building a godly household is one of the main ways we can ha
+  MATCH: Building hearth and home is set within the larger endeavor o
+  MATCH: the best for larger society.
+
+GROUP 2 lines (idx 3502-3504), 1592 chars
+  First 100: Both psalms invite families into a deep devotion to God. The repeated refrain "unless the Lord" (127
+  MATCH: The personal faith of the individual members of a household 
+  MATCH: character of a home.
+
+GROUP 2 lines (idx 3508-3510), 2023 chars
+  First 100: The fear of the Lord puts us in the path to receive God's blessing (127:5; 128:1–2, 4–5) and guards 
+
+GROUP 4 lines (idx 3514-3520), 2293 chars
+  First 100: Psalm 127 concludes by saying that a full and flourishing home will be a man's honor and defense in 
+  MATCH: The personal heritage and blessing that is a godly family is
+  MATCH: A well-ordered home aligned after God’s design is one of our
+  MATCH: godless society.
+
+GROUP 4 lines (idx 3524-3530), 2418 chars
+  First 100: Godly parents who take their responsibility seriously not only seek to raise children fit for the fi
+  MATCH: The personal heritage and blessing that is a godly family is
+
+GROUP 4 lines (idx 3534-3540), 1024 chars
+  First 100: God's wisdom in the psalms is rich and rewarding. It not only offers us a blueprint for a godly hous
+  MATCH: God’s design, few vocations like Christian homebuilding make
+  MATCH: Done according to
+
+GROUP 3 lines (idx 3558-3560), 308 chars
+  First 100: 1. What key **takeaways**, **noteworthy observations**, or **biblical truths** most stood out to you
+
+GROUP 3 lines (idx 3597-3601), 291 chars
+  First 100: *Reread the biblical passage studied in this session. Read it slowly and reflectively. You will use 
+
+GROUP 15 lines (idx 3625-3653), 2972 chars
+  First 100: *Prayerfully read through the selected passages of Scripture, identifying important truths they teac
+
+GROUP 14 lines (idx 3657-3683), 1687 chars
+  First 100: **Psalm 132:11** The Lord swore an oath to David, a promise He will not revoke: "One of your descend
+
+GROUP 4 lines (idx 3707-3711), 689 chars
+  First 100: *Take time to observe the painting. Use the following questions to prompt your reflection. Record ob
+
+GROUP 4 lines (idx 3779-3782), 492 chars
+  First 100: 1. **Thriving Home**: What is your vision of a thriving and flourishing home? 2. **God-Given Heritag
+
+GROUP 4 lines (idx 3844-3847), 409 chars
+  First 100: 1. What sphere of influence has God given your family? What is the neighborhood, community, and loca
+
+GROUP 4 lines (idx 3851-3854), 374 chars
+  First 100: 1. What is the purpose of your family? Why has God brought your family into existence? 2. How will y
+
+GROUP 2 lines (idx 3901-3903), 198 chars
+  First 100: As for me and my house, We will all serve the Lord; We will walk in His footsteps Day by day; All ou
+
+GROUP 2 lines (idx 3906-3908), 202 chars
+  First 100: As for me and my house, We will all serve the Lord; His commands and His precepts We'll obey, What H
+
+GROUP 2 lines (idx 3911-3913), 215 chars
+  First 100: As for me and my house, We will all serve the Lord; We will walk in His footsteps Day by day, We wil
+
+GROUP 4 lines (idx 3926-3932), 461 chars
+  First 100: **Reader**: Now, therefore, fear the Lord and serve Him in sincerity and truth; cast aside the gods 
+
+GROUP 2 lines (idx 3946-3948), 167 chars
+  First 100: **Main Idea Review** Review all sessions and their main ideas. Share which sessions, biblical texts,
+
+GROUP 4 lines (idx 4042-4046), 407 chars
+  First 100: *Reflect on the meaning of the biblical text you read above. Use the following prompts to guide your
+
+GROUP 3 lines (idx 4050-4054), 309 chars
+  First 100: *Use the biblical text as a guide for prayer. Record specific portions of the text in the space belo
+
+GROUP 4 lines (idx 4066-4069), 496 chars
+  First 100: 1. After concluding this spiritual discipline, reflect on what God is teaching you. Discuss the foll
+
+GROUP 2 lines (idx 4110-4112), 208 chars
+  First 100: *Conclude your time with the Lord by declaring God's glory in and through the church. Use the follow
+
+GROUP 4 lines (idx 4118-4122), 495 chars
+  First 100: *After concluding this spiritual discipline, reflect on what God is teaching you. Discuss the follow
+
+GROUP 2 lines (idx 4146-4148), 285 chars
+  First 100: *Remember the ways you fell short today. Recall times when you were weak, disobedient, divisive, afr
+
+GROUP 4 lines (idx 4174-4178), 526 chars
+  First 100: *After concluding this spiritual discipline, reflect on what God is teaching you. Discuss the follow
+
+GROUP 2 lines (idx 4207-4208), 164 chars
+  First 100: 2. What promise does this passage give for those who listen to godly instruction? 3. How well are we
+
+GROUP 4 lines (idx 4228-4231), 496 chars
+  First 100: 1. After concluding this spiritual discipline, reflect on what God is teaching you. Discuss the foll
+
+GROUP 4 lines (idx 4280-4284), 495 chars
+  First 100: *After concluding this spiritual discipline, reflect on what God is teaching you. Discuss the follow
+
+GROUP 2 lines (idx 4298-4300), 269 chars
+  First 100: *Take a moment to look back on your day. As you consider major events and the ordinary moments, reca
+
+GROUP 2 lines (idx 4318-4320), 435 chars
+  First 100: *Anticipate what tomorrow will be like and could be like. Think about how you want to live different
+
+GROUP 2 lines (idx 4328-4330), 235 chars
+  First 100: *At the end of your time of personal reflection, entrust yourself to God's care. Pray this final ver
+
+GROUP 4 lines (idx 4336-4340), 526 chars
+  First 100: *After concluding this spiritual discipline, reflect on what God is teaching you. Discuss the follow
+
+GROUP 2 lines (idx 4381-4383), 694 chars
+  First 100: *Follow the directions below to perform this outdoor activity.* Christian homebuilding seeks to esta
+
+GROUP 4 lines (idx 4392-4396), 361 chars
+  First 100: *Record your thoughts on this experience in the space below.* 1. How **successfully** did you comple
+
+GROUP 2 lines (idx 4423-4425), 785 chars
+  First 100: *Follow the directions below to perform this outdoor activity.* Christian homebuilding seeks to cult
+
+GROUP 4 lines (idx 4436-4440), 361 chars
+  First 100: *Record your thoughts on this experience in the space below.* 1. How **successfully** did you comple
+
+GROUP 2 lines (idx 4467-4469), 793 chars
+  First 100: *Follow the directions below to perform this outdoor activity.* Christian homebuilding tends to the 
+
+GROUP 4 lines (idx 4479-4483), 361 chars
+  First 100: *Record your thoughts on this experience in the space below.* 1. How **successfully** did you comple
+
+GROUP 2 lines (idx 4510-4512), 873 chars
+  First 100: *Follow the directions below to perform this outdoor activity.* Christian homebuilding sets the tabl
+
+GROUP 4 lines (idx 4521-4525), 361 chars
+  First 100: *Record your thoughts on this experience in the space below.* 1. How **successfully** did you comple
+
+GROUP 2 lines (idx 4552-4554), 850 chars
+  First 100: *Follow the directions below to perform this outdoor activity.* Christian homebuilding involves guar
+
+GROUP 4 lines (idx 4563-4567), 361 chars
+  First 100: *Record your thoughts on this experience in the space below.* 1. How **successfully** did you comple
+
+GROUP 4 lines (idx 4588-4592), 361 chars
+  First 100: *Record your thoughts on this experience in the space below.* 1. How **successfully** did you comple
+
+GROUP 4 lines (idx 4610-4614), 361 chars
+  First 100: *Record your thoughts on this experience in the space below.* 1. How **successfully** did you comple
+
+GROUP 2 lines (idx 4649-4650), 209 chars
+  First 100: 1. What areas of your projects do you feel most confident? What areas need help and refinement? 2. W
+
+GROUP 4 lines (idx 4667-4670), 347 chars
+  First 100: 1. What are your greatest fears about parenting? What gets you most excited? 2. What are your bigges
+
+GROUP 4 lines (idx 4689-4692), 794 chars
+  First 100: 1. **Past Reflection**: How much did you family worship God together? What spiritual disciplines did
+
+GROUP 4 lines (idx 4699-4702), 675 chars
+  First 100: 1. **Past Reflection**: What traditions shaped your family life? What do you appreciate about the wa
+
+GROUP 4 lines (idx 4721-4724), 931 chars
+  First 100: 1. **Past Reflection**: What was your home like when you were growing up? How would you describe the
+
+GROUP 5 lines (idx 4731-4736), 636 chars
+  First 100: 1. **Past Reflection**: What role did you parents have in your formation (i.e., spiritual, intellect
+
+GROUP 4 lines (idx 4755-4758), 611 chars
+  First 100: 1. **Past Reflection**: How were you disciplined when you grew up? Do you look back on this with pos
+
+GROUP 4 lines (idx 4765-4768), 657 chars
+  First 100: 1. **Past Reflection**: In your upbringing, did you have a compelling mission for your family? What 
+
+GROUP 8 lines (idx 4787-4794), 1505 chars
+  First 100: 1. **God**: What is God teaching you about himself? How is parenting deepening your relationship wit
+
+GROUP 2 lines (idx 4873-4874), 108 chars
+  First 100: 1. What excites you about making this commitment? 2. What concerns do you have about making this com
+
+GROUP 11 lines (idx 5018-5038), 1319 chars
+  First 100: Between the dark and the daylight, When the night is beginning to lower, Comes a pause in the day's 
+
+GROUP 8 lines (idx 5042-5056), 963 chars
+  First 100: What doth this noise of thoughts within my heart, As if they had a part? What do these loud complain
+
+GROUP 6 lines (idx 5060-5070), 721 chars
+  First 100: Blest is the home where Jesus is A welcome and a constant guest,— Where His great Love to all is kno
+
+GROUP 6 lines (idx 5074-5084), 852 chars
+  First 100: I never can forget the day I heard my mother kindly say, "You're leaving now my tender care; Remembe
+
+GROUP 2 lines (idx 5088-5090), 1478 chars
+  First 100: We should describe him [God] as not only the greatest. but the best of beings. We should teach them 
+
+GROUP 2 lines (idx 5094-5096), 1021 chars
+  First 100: The example of a father is acknowledged to be all-important. The stream must not be expected to rise
+
+GROUP 2 lines (idx 5100-5102), 2273 chars
+  First 100: Very young children … require to be taught not so much anything as everything. Babies need not to be
+
+GROUP 2 lines (idx 5106-5108), 1815 chars
+  First 100: The elements of good family government are strength, justice, discrimination, uniformity, and love. 
+
+GROUP 2 lines (idx 5112-5114), 1920 chars
+  First 100: Consider what your children are now capable of, even in the days of their childhood. They are capabl
+
+GROUP 2 lines (idx 5118-5120), 2149 chars
+  First 100: Christian children mainly need to be taught the doctrine, precept, and life of the gospel: they requ
+
+GROUP 2 lines (idx 5124-5126), 533 chars
+  First 100: Hear this, ye fathers, bring your children up with great care 'in the nurture and admonition of the 
+
+Phase 2 done: 4901 output lines

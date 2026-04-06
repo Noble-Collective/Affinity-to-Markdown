@@ -1,0 +1,5851 @@
+{
+  "body_font_name": "TimesNewRomanPSMT",
+  "body_font_size": 10.0,
+  "template": "homestead",
+  "heading_map": {
+    "matthew r. lynskey": [
+      "#####"
+    ],
+    "bryan d. platania": [
+      "#####"
+    ],
+    "passage": [
+      "#"
+    ],
+    "crossing thresholds in the sojourn of life": [
+      "##"
+    ],
+    "series' preface": [
+      "####"
+    ],
+    "homestead": [
+      "#"
+    ],
+    "building christian hearth and home": [
+      "##"
+    ],
+    "preface": [
+      "####"
+    ],
+    "no longer two": [
+      "#"
+    ],
+    "receiving children as gifts from god": [
+      "##"
+    ],
+    "overview": [
+      "####",
+      "#",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "key idea": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "community study": [
+      "#",
+      "#",
+      "#",
+      "#",
+      "#",
+      "#",
+      "#"
+    ],
+    "tuning our hearts to the lord": [
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###"
+    ],
+    "community confession": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "###",
+      "####"
+    ],
+    "corporate song": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "be thou my vision": [
+      "#####"
+    ],
+    "scripture reading": [
+      "####",
+      "####",
+      "###",
+      "####",
+      "###",
+      "####",
+      "###",
+      "####",
+      "###",
+      "####",
+      "###",
+      "####",
+      "###",
+      "####"
+    ],
+    "responsive call": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "opening prayer": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "seeking god's wisdom": [
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###"
+    ],
+    "introduction": [
+      "####",
+      "#####",
+      "####",
+      "#####",
+      "####",
+      "#####",
+      "####",
+      "#####",
+      "####",
+      "#####",
+      "####",
+      "#####",
+      "####",
+      "#####"
+    ],
+    "biblical wisdom": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "core principle": [
+      "#####",
+      "#####",
+      "#####",
+      "#####",
+      "#####",
+      "#####",
+      "#####"
+    ],
+    "group discussion": [
+      "#####",
+      "#####",
+      "#####",
+      "#####",
+      "#####",
+      "#####",
+      "#####"
+    ],
+    "record your thoughts below": [
+      "#####",
+      "#####",
+      "#####",
+      "#####",
+      "#####",
+      "#####"
+    ],
+    "exploring the biblical text": [
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###"
+    ],
+    "scriptural passage": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "discussion questions": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "dedicating hearth and home to god": [
+      "####"
+    ],
+    "consecrated to the lord: establishing a family devoted to go": [
+      "#####"
+    ],
+    "into the temple courts: raising a family rooted in faith com": [
+      "#####"
+    ],
+    "as you have promised: fastening a family secure to god's wor": [
+      "#####"
+    ],
+    "and the child grew: cultivating a family as context for spir": [
+      "#####"
+    ],
+    "conclusion": [
+      "#####",
+      "#####",
+      "#####",
+      "#####",
+      "#####",
+      "#####",
+      "#####"
+    ],
+    "session summary": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "charting the path ahead": [
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###"
+    ],
+    "final review": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "small group prayer": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "corporate prayer": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "next steps": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "orientation and": [
+      "#"
+    ],
+    "orientation and overview": [
+      "###"
+    ],
+    "structure and overview": [
+      "####"
+    ],
+    "part one: preparation": [
+      "#####"
+    ],
+    "part two: challenge": [
+      "#####"
+    ],
+    "part three: celebration": [
+      "#####"
+    ],
+    "part four: journal": [
+      "#####"
+    ],
+    "mentoring and community roles": [
+      "####"
+    ],
+    "under god's fatherly care": [
+      "#",
+      "#"
+    ],
+    "building a home devoted to god": [
+      "##",
+      "##"
+    ],
+    "the tender love a father has": [
+      "#####"
+    ],
+    "nurturing family life in god's fatherly love": [
+      "####"
+    ],
+    "all that is within me: being captured by a vision of god's g": [
+      "#####"
+    ],
+    "as a father has compassion: resting in the fountain of god's": [
+      "#####"
+    ],
+    "crowned with loving devotion: following the pattern of god's": [
+      "#####"
+    ],
+    "those who keep his covenant: enjoying relationship within go": [
+      "#####"
+    ],
+    "weekly disciplines": [
+      "#",
+      "#",
+      "#",
+      "#",
+      "#",
+      "#"
+    ],
+    "prepare your heart": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "read the passage": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "consider the truth": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "pray the text": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "rest in god's presence": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "topical study": [
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###"
+    ],
+    "verse collection": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "concluding reflection": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "art observation": [
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###"
+    ],
+    "scriptural reading": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "painting reflection": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "observations": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "spiritual practice": [
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###"
+    ],
+    "getting quiet before god": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "acknowledging god as father": [
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "meditating on god's tender care": [
+      "####",
+      "####",
+      "####"
+    ],
+    "praising god for his care": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "imaginging life the other way": [
+      "####",
+      "####"
+    ],
+    "entrusting yourself to the lord": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "record final thoughts": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "journal reflection": [
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###"
+    ],
+    "reflection questions": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "reflective projects": [
+      "#",
+      "#",
+      "#",
+      "#",
+      "#",
+      "#"
+    ],
+    "personal project": [
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###"
+    ],
+    "project explanation": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "example prayer": [
+      "####",
+      "####",
+      "####"
+    ],
+    "parenting project": [
+      "###",
+      "###",
+      "###",
+      "###",
+      "###",
+      "###"
+    ],
+    "discuss with your spouse": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "weekly habits for family worship": [
+      "#####",
+      "####"
+    ],
+    "family worship liturgy": [
+      "#####",
+      "####"
+    ],
+    "between the ages": [
+      "#"
+    ],
+    "nurturing faith in the next generation": [
+      "##"
+    ],
+    "let children hear the mighty deeds": [
+      "#####"
+    ],
+    "passing the faith to the next generations": [
+      "####"
+    ],
+    "our fathers have relayed to us: parents as stewards of divin": [
+      "#####"
+    ],
+    "to the next generation: being intentional about intergenerat": [
+      "#####"
+    ],
+    "he established a testimony:": [
+      "#####"
+    ],
+    "recentering the role of the faith community": [
+      "#####"
+    ],
+    "that they should put their confidence in god: nurturing devo": [
+      "#####"
+    ],
+    "again and again: retelling the sacred story to our sons and ": [
+      "#####"
+    ],
+    "family picture": [
+      "####"
+    ],
+    "humbling yourself before god": [
+      "####"
+    ],
+    "seeking god's help": [
+      "####"
+    ],
+    "project instructions": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "example letter": [
+      "####"
+    ],
+    "monthly and yearly habits for family tradition": [
+      "#####"
+    ],
+    "monthly planning calendar": [
+      "####"
+    ],
+    "over the flock": [
+      "#"
+    ],
+    "tending to our children like shepherds": [
+      "##"
+    ],
+    "savior, like a shepherd lead us": [
+      "#####"
+    ],
+    "shepherding work in the family flock": [
+      "####"
+    ],
+    "the lord is my shepherd: exploring god's shepherding work": [
+      "#####"
+    ],
+    "green pastures and quiet waters: enjoying god's plentiful pr": [
+      "#####"
+    ],
+    "your rod and staff comfort me: receiving god's caring protec": [
+      "#####"
+    ],
+    "you are with me: experiencing god's peace-giving presence an": [
+      "#####"
+    ],
+    "i will dwell in the house of the lord forever: looking ahead": [
+      "#####"
+    ],
+    "acknowledging god as shepherd": [
+      "####"
+    ],
+    "defining home values": [
+      "####"
+    ],
+    "imaginging the investment": [
+      "####"
+    ],
+    "shepherding job description": [
+      "####"
+    ],
+    "family values": [
+      "####",
+      "#####"
+    ],
+    "in the fear of god": [
+      "#"
+    ],
+    "instructing children in godliness": [
+      "##"
+    ],
+    "come, children, learn to fear the lord": [
+      "#####"
+    ],
+    "forming faith in the fear of the lord": [
+      "####"
+    ],
+    "at all times: building worship habits to live in god's prese": [
+      "#####"
+    ],
+    "come, children, listen to me: calling our children to the fe": [
+      "#####"
+    ],
+    "the man who delights in life: aiming for deep transformation": [
+      "#####"
+    ],
+    "the afflictions of the righteous: raising children who can b": [
+      "#####"
+    ],
+    "acknowledging god": [
+      "####"
+    ],
+    "in the dark": [
+      "####"
+    ],
+    "imaginging the change": [
+      "####"
+    ],
+    "family education plan | child's name:": [
+      "####",
+      "####",
+      "####"
+    ],
+    "under god's protection": [
+      "#"
+    ],
+    "godly discipline and divine protection": [
+      "##"
+    ],
+    "a might fortress is our god": [
+      "#####"
+    ],
+    "a daring and dangerous venture": [
+      "####"
+    ],
+    "how long will the wicked exult: raising godly families in a ": [
+      "#####"
+    ],
+    "blessed is the man you discipline, o lord: committing to dis": [
+      "#####"
+    ],
+    "the lord has been my stronghold: seeking divine protection f": [
+      "#####"
+    ],
+    "family discipline plan": [
+      "####"
+    ],
+    "for the world": [
+      "#"
+    ],
+    "leaving a legacy in society": [
+      "##"
+    ],
+    "god is working this purpose out": [
+      "#####"
+    ],
+    "of arrows, quivers, and olive shoots": [
+      "####"
+    ],
+    "building the house: viewing homebuilding as meaningful work": [
+      "#####"
+    ],
+    "unless the lord: establishing deep dependence upon the lord": [
+      "#####"
+    ],
+    "may the lord bless you: enjoying divine favor, full peace, a": [
+      "#####"
+    ],
+    "when he confronts the enemies: treating family life as a bat": [
+      "#####"
+    ],
+    "may see your children's children: hoping for generational im": [
+      "#####"
+    ],
+    "imaginging your blessing": [
+      "####"
+    ],
+    "family beatitudes": [
+      "####"
+    ],
+    "family vision and mission": [
+      "####"
+    ],
+    "review": [
+      "#"
+    ],
+    "as for me and my house": [
+      "#####"
+    ],
+    "session review": [
+      "###",
+      "####"
+    ],
+    "planning and logistics": [
+      "#",
+      "###"
+    ],
+    "planning": [
+      "####"
+    ],
+    "logistics": [
+      "####"
+    ],
+    "near to those who call on him": [
+      "#"
+    ],
+    "cultivating intimacy with god": [
+      "##"
+    ],
+    "morning reading": [
+      "###",
+      "###"
+    ],
+    "drawing near to god": [
+      "####",
+      "####"
+    ],
+    "reading the text": [
+      "####",
+      "####"
+    ],
+    "considering the text": [
+      "####",
+      "####"
+    ],
+    "praying the text": [
+      "####",
+      "####"
+    ],
+    "walking with god": [
+      "####",
+      "####"
+    ],
+    "recounting key impressions": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "midday prayer": [
+      "###",
+      "###"
+    ],
+    "sitting in silence": [
+      "####",
+      "####"
+    ],
+    "sing the psalms": [
+      "####",
+      "####"
+    ],
+    "committing to memory": [
+      "####",
+      "####"
+    ],
+    "praying for wisdom": [
+      "####",
+      "####"
+    ],
+    "acknowledging one another": [
+      "####",
+      "####"
+    ],
+    "declaring god's glory in the church": [
+      "####",
+      "####"
+    ],
+    "evening reflection": [
+      "###",
+      "###"
+    ],
+    "acknowledging god's presence in faith": [
+      "####",
+      "####"
+    ],
+    "remembering the day with thanks": [
+      "####",
+      "####"
+    ],
+    "recalling your shortcomings in humility": [
+      "####",
+      "####"
+    ],
+    "looking ahead in hope": [
+      "####",
+      "####"
+    ],
+    "resting in god with peace": [
+      "####",
+      "####"
+    ],
+    "homesteading": [
+      "#"
+    ],
+    "practicing parental duty in the outdoors": [
+      "##"
+    ],
+    "homemaking": [
+      "###"
+    ],
+    "inspiration: getting the right mindset": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "implementation: fulfilling our family duty": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "reflection: evaluating an important work": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "consecration: dedicating our home to god": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "hearth building": [
+      "###"
+    ],
+    "shepherd's carry": [
+      "###"
+    ],
+    "table setting": [
+      "###"
+    ],
+    "night vigil": [
+      "###"
+    ],
+    "outdoor experience": [
+      "###",
+      "###"
+    ],
+    "homes of holy testimony": [
+      "#"
+    ],
+    "locating homebuilding in the household of faith": [
+      "##"
+    ],
+    "project review": [
+      "###"
+    ],
+    "reflections or observations": [
+      "####",
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "celebrations and struggles": [
+      "###"
+    ],
+    "worship and tradition": [
+      "###"
+    ],
+    "family worship": [
+      "#####"
+    ],
+    "family tradition": [
+      "#####"
+    ],
+    "value and education": [
+      "###"
+    ],
+    "family education": [
+      "#####"
+    ],
+    "discipline and mission": [
+      "###"
+    ],
+    "family discipline": [
+      "#####"
+    ],
+    "family mission and vision": [
+      "#####"
+    ],
+    "life spheres": [
+      "###"
+    ],
+    "focused questions": [
+      "#####"
+    ],
+    "general reflections": [
+      "###"
+    ],
+    "bearing witness": [
+      "#"
+    ],
+    "recounting god's work in word and deed": [
+      "##"
+    ],
+    "personal testimony": [
+      "###",
+      "####"
+    ],
+    "we confess together": [
+      "#"
+    ],
+    "stating my commitments to a responsible": [
+      "##"
+    ],
+    "lifebuilding a home devoted to god": [
+      "##"
+    ],
+    "responsibility commitment": [
+      "####"
+    ],
+    "prayer": [
+      "####"
+    ],
+    "in the assembly": [
+      "#"
+    ],
+    "celebrating a major life milestone": [
+      "##"
+    ],
+    "celebration ceremony": [
+      "###",
+      "####"
+    ],
+    "further resources": [
+      "#",
+      "####"
+    ],
+    "continuing the parenting journey": [
+      "##"
+    ],
+    "bibliography": [
+      "###",
+      "####"
+    ],
+    "proposed schedule": [
+      "###",
+      "####"
+    ],
+    "reflective excerpts": [
+      "###"
+    ],
+    "the children's hour": [
+      "####"
+    ],
+    "the familie": [
+      "####"
+    ],
+    "blest is the home where jesus is": [
+      "####"
+    ],
+    "my mother's prayer": [
+      "####"
+    ],
+    "tell them they live every moment on god": [
+      "####"
+    ],
+    "the stream not rise higher than the fountain": [
+      "####"
+    ],
+    "introduced to a world": [
+      "####",
+      "####"
+    ],
+    "consider what your children are capable of": [
+      "####",
+      "####"
+    ],
+    "big-souled, large-hearted men or women": [
+      "####"
+    ]
+  },
+  "heading_order": [
+    [
+      "Matthew R. Lynskey",
+      "#####"
+    ],
+    [
+      "Bryan D. Platania",
+      "#####"
+    ],
+    [
+      "Passage",
+      "#"
+    ],
+    [
+      "Crossing Thresholds in the Sojourn of Life",
+      "##"
+    ],
+    [
+      "Series’ Preface",
+      "####"
+    ],
+    [
+      "HomeStead",
+      "#"
+    ],
+    [
+      "Building Christian Hearth and Home",
+      "##"
+    ],
+    [
+      "Preface",
+      "####"
+    ],
+    [
+      "No Longer Two",
+      "#"
+    ],
+    [
+      "Receiving Children as Gifts from God",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Key Idea",
+      "####"
+    ],
+    [
+      "Community Study",
+      "#"
+    ],
+    [
+      "Tuning Our Hearts to the Lord",
+      "###"
+    ],
+    [
+      "Community Confession",
+      "####"
+    ],
+    [
+      "Corporate Song",
+      "####"
+    ],
+    [
+      "Be Thou My Vision",
+      "#####"
+    ],
+    [
+      "Scripture Reading",
+      "####"
+    ],
+    [
+      "Responsive Call",
+      "####"
+    ],
+    [
+      "Opening Prayer",
+      "####"
+    ],
+    [
+      "Seeking God’s Wisdom",
+      "###"
+    ],
+    [
+      "Introduction",
+      "####"
+    ],
+    [
+      "Key Idea",
+      "####"
+    ],
+    [
+      "Biblical Wisdom",
+      "####"
+    ],
+    [
+      "Core Principle",
+      "#####"
+    ],
+    [
+      "Group Discussion",
+      "#####"
+    ],
+    [
+      "Record Your Thoughts Below",
+      "#####"
+    ],
+    [
+      "Exploring the Biblical Text",
+      "###"
+    ],
+    [
+      "Scriptural Passage",
+      "####"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "Dedicating Hearth and Home to God",
+      "####"
+    ],
+    [
+      "Introduction",
+      "#####"
+    ],
+    [
+      "Consecrated to the Lord: Establishing a Family Devoted to God",
+      "#####"
+    ],
+    [
+      "Into the Temple Courts: Raising a Family Rooted in Faith Community",
+      "#####"
+    ],
+    [
+      "As You Have Promised: Fastening a Family Secure to God’s Word",
+      "#####"
+    ],
+    [
+      "And the Child Grew: Cultivating a Family as Context for Spiritual Growth",
+      "#####"
+    ],
+    [
+      "Conclusion",
+      "#####"
+    ],
+    [
+      "Session Summary",
+      "####"
+    ],
+    [
+      "Charting the Path Ahead",
+      "###"
+    ],
+    [
+      "Final Review",
+      "####"
+    ],
+    [
+      "Small Group Prayer",
+      "####"
+    ],
+    [
+      "Corporate Prayer",
+      "####"
+    ],
+    [
+      "Next Steps",
+      "####"
+    ],
+    [
+      "Orientation and",
+      "#"
+    ],
+    [
+      "Overview",
+      "#"
+    ],
+    [
+      "Orientation and Overview",
+      "###"
+    ],
+    [
+      "Structure and Overview",
+      "####"
+    ],
+    [
+      "Part One: Preparation",
+      "#####"
+    ],
+    [
+      "Part Two: Challenge",
+      "#####"
+    ],
+    [
+      "Part Three: Celebration",
+      "#####"
+    ],
+    [
+      "Part Four: Journal",
+      "#####"
+    ],
+    [
+      "Mentoring and Community Roles",
+      "####"
+    ],
+    [
+      "Under God’s Fatherly Care",
+      "#"
+    ],
+    [
+      "Building a Home Devoted to God",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Key Idea",
+      "####"
+    ],
+    [
+      "Community Study",
+      "#"
+    ],
+    [
+      "Tuning Our Hearts to the Lord",
+      "###"
+    ],
+    [
+      "Community Confession",
+      "####"
+    ],
+    [
+      "Corporate Song",
+      "####"
+    ],
+    [
+      "The Tender Love a Father Has",
+      "#####"
+    ],
+    [
+      "Scripture Reading",
+      "####"
+    ],
+    [
+      "Responsive Call",
+      "####"
+    ],
+    [
+      "Opening Prayer",
+      "####"
+    ],
+    [
+      "Seeking God’s Wisdom",
+      "###"
+    ],
+    [
+      "Introduction",
+      "####"
+    ],
+    [
+      "Biblical Wisdom",
+      "####"
+    ],
+    [
+      "Core Principle",
+      "#####"
+    ],
+    [
+      "Group Discussion",
+      "#####"
+    ],
+    [
+      "Record Your Thoughts Below",
+      "#####"
+    ],
+    [
+      "Exploring the Biblical Text",
+      "###"
+    ],
+    [
+      "Scriptural Passage",
+      "####"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "Nurturing Family Life in God’s Fatherly Love",
+      "####"
+    ],
+    [
+      "Introduction",
+      "#####"
+    ],
+    [
+      "All That Is Within Me: Being Captured by a Vision of God’s Glorious Rule",
+      "#####"
+    ],
+    [
+      "As a Father Has Compassion: Resting in the Fountain of God’s Fatherly Love",
+      "#####"
+    ],
+    [
+      "Crowned with Loving Devotion: Following the Pattern of God’s Tender Care",
+      "#####"
+    ],
+    [
+      "Those Who Keep His Covenant: Enjoying Relationship within God’s Faithful Promises",
+      "#####"
+    ],
+    [
+      "Conclusion",
+      "#####"
+    ],
+    [
+      "Session Summary",
+      "####"
+    ],
+    [
+      "Charting the Path Ahead",
+      "###"
+    ],
+    [
+      "Final Review",
+      "####"
+    ],
+    [
+      "Small Group Prayer",
+      "####"
+    ],
+    [
+      "Corporate Prayer",
+      "####"
+    ],
+    [
+      "Next Steps",
+      "####"
+    ],
+    [
+      "Weekly Disciplines",
+      "#"
+    ],
+    [
+      "Scripture Reading",
+      "###"
+    ],
+    [
+      "Prepare Your Heart",
+      "####"
+    ],
+    [
+      "Read the Passage",
+      "####"
+    ],
+    [
+      "Consider the Truth",
+      "####"
+    ],
+    [
+      "Pray the Text",
+      "####"
+    ],
+    [
+      "Rest in God’s Presence",
+      "####"
+    ],
+    [
+      "Topical Study",
+      "###"
+    ],
+    [
+      "Verse Collection",
+      "####"
+    ],
+    [
+      "Concluding Reflection",
+      "####"
+    ],
+    [
+      "Art Observation",
+      "###"
+    ],
+    [
+      "Scriptural Reading",
+      "####"
+    ],
+    [
+      "Painting Reflection",
+      "####"
+    ],
+    [
+      "Observations",
+      "####"
+    ],
+    [
+      "Spiritual Practice",
+      "###"
+    ],
+    [
+      "Getting Quiet Before God",
+      "####"
+    ],
+    [
+      "Acknowledging God as Father",
+      "####"
+    ],
+    [
+      "Meditating on God’s Tender Care",
+      "####"
+    ],
+    [
+      "Praising God for His Care",
+      "####"
+    ],
+    [
+      "Imaginging Life the Other Way",
+      "####"
+    ],
+    [
+      "Entrusting Yourself to the Lord",
+      "####"
+    ],
+    [
+      "Record Final Thoughts",
+      "####"
+    ],
+    [
+      "Journal Reflection",
+      "###"
+    ],
+    [
+      "Reflection Questions",
+      "####"
+    ],
+    [
+      "Reflective Projects",
+      "#"
+    ],
+    [
+      "Personal Project",
+      "###"
+    ],
+    [
+      "Project Explanation",
+      "####"
+    ],
+    [
+      "Example Prayer",
+      "####"
+    ],
+    [
+      "Parenting Project",
+      "###"
+    ],
+    [
+      "Discuss with Your Spouse",
+      "####"
+    ],
+    [
+      "Project Explanation",
+      "####"
+    ],
+    [
+      "Weekly Habits for Family Worship",
+      "#####"
+    ],
+    [
+      "Family Worship Liturgy",
+      "#####"
+    ],
+    [
+      "Weekly Habits for Family Worship",
+      "####"
+    ],
+    [
+      "Family Worship Liturgy",
+      "####"
+    ],
+    [
+      "Between the Ages",
+      "#"
+    ],
+    [
+      "Nurturing Faith in the Next Generation",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Key Idea",
+      "####"
+    ],
+    [
+      "Community Study",
+      "#"
+    ],
+    [
+      "Tuning Our Hearts to the Lord",
+      "###"
+    ],
+    [
+      "Tuning Our Hearts to the Lord",
+      "###"
+    ],
+    [
+      "Community Confession",
+      "####"
+    ],
+    [
+      "Corporate Song",
+      "####"
+    ],
+    [
+      "Let Children Hear the Mighty Deeds",
+      "#####"
+    ],
+    [
+      "Scripture Reading",
+      "####"
+    ],
+    [
+      "Responsive Call",
+      "####"
+    ],
+    [
+      "Opening Prayer",
+      "####"
+    ],
+    [
+      "Seeking God’s Wisdom",
+      "###"
+    ],
+    [
+      "Seeking God’s Wisdom",
+      "###"
+    ],
+    [
+      "Introduction",
+      "####"
+    ],
+    [
+      "Biblical Wisdom",
+      "####"
+    ],
+    [
+      "Core Principle",
+      "#####"
+    ],
+    [
+      "Group Discussion",
+      "#####"
+    ],
+    [
+      "Record Your Thoughts Below",
+      "#####"
+    ],
+    [
+      "Exploring the Biblical Text",
+      "###"
+    ],
+    [
+      "Scriptural Passage",
+      "####"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "Passing the Faith to the Next Generations",
+      "####"
+    ],
+    [
+      "Introduction",
+      "#####"
+    ],
+    [
+      "Our Fathers Have Relayed to Us: Parents as Stewards of Divine Truth",
+      "#####"
+    ],
+    [
+      "To the Next Generation: Being Intentional about Intergenerationality",
+      "#####"
+    ],
+    [
+      "He Established a Testimony:",
+      "#####"
+    ],
+    [
+      "Recentering the Role of the Faith Community",
+      "#####"
+    ],
+    [
+      "That They Should Put Their Confidence in God: Nurturing Devotion to the Lord",
+      "#####"
+    ],
+    [
+      "Again and Again: Retelling the Sacred Story to Our Sons and Daughters",
+      "#####"
+    ],
+    [
+      "Conclusion",
+      "#####"
+    ],
+    [
+      "Session Summary",
+      "####"
+    ],
+    [
+      "Charting the Path Ahead",
+      "###"
+    ],
+    [
+      "Final Review",
+      "####"
+    ],
+    [
+      "Small Group Prayer",
+      "####"
+    ],
+    [
+      "Corporate Prayer",
+      "####"
+    ],
+    [
+      "Next Steps",
+      "####"
+    ],
+    [
+      "Weekly Disciplines",
+      "#"
+    ],
+    [
+      "Scripture Reading",
+      "###"
+    ],
+    [
+      "Prepare Your Heart",
+      "####"
+    ],
+    [
+      "Read the Passage",
+      "####"
+    ],
+    [
+      "Consider the Truth",
+      "####"
+    ],
+    [
+      "Pray the Text",
+      "####"
+    ],
+    [
+      "Rest in God’s Presence",
+      "####"
+    ],
+    [
+      "Topical Study",
+      "###"
+    ],
+    [
+      "Verse Collection",
+      "####"
+    ],
+    [
+      "Concluding Reflection",
+      "####"
+    ],
+    [
+      "Art Observation",
+      "###"
+    ],
+    [
+      "Scriptural Reading",
+      "####"
+    ],
+    [
+      "Painting Reflection",
+      "####"
+    ],
+    [
+      "Observations",
+      "####"
+    ],
+    [
+      "Spiritual Practice",
+      "###"
+    ],
+    [
+      "Getting Quiet Before God",
+      "####"
+    ],
+    [
+      "Acknowledging God as Father",
+      "####"
+    ],
+    [
+      "Family Picture",
+      "####"
+    ],
+    [
+      "Humbling Yourself Before God",
+      "####"
+    ],
+    [
+      "Seeking God’s Help",
+      "####"
+    ],
+    [
+      "Record Final Thoughts",
+      "####"
+    ],
+    [
+      "Journal Reflection",
+      "###"
+    ],
+    [
+      "Reflection Questions",
+      "####"
+    ],
+    [
+      "Reflective Projects",
+      "#"
+    ],
+    [
+      "Personal Project",
+      "###"
+    ],
+    [
+      "Personal Project",
+      "###"
+    ],
+    [
+      "Project Instructions",
+      "####"
+    ],
+    [
+      "Example Letter",
+      "####"
+    ],
+    [
+      "Parenting Project",
+      "###"
+    ],
+    [
+      "Discuss with Your Spouse",
+      "####"
+    ],
+    [
+      "Project Explanation",
+      "####"
+    ],
+    [
+      "Monthly and Yearly Habits for Family Tradition",
+      "#####"
+    ],
+    [
+      "Monthly Planning Calendar",
+      "####"
+    ],
+    [
+      "Over the Flock",
+      "#"
+    ],
+    [
+      "Tending to Our Children Like Shepherds",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Key Idea",
+      "####"
+    ],
+    [
+      "Community Study",
+      "#"
+    ],
+    [
+      "Tuning Our Hearts to the Lord",
+      "###"
+    ],
+    [
+      "Community Confession",
+      "####"
+    ],
+    [
+      "Corporate Song",
+      "####"
+    ],
+    [
+      "Savior, Like a Shepherd Lead Us",
+      "#####"
+    ],
+    [
+      "Scripture Reading",
+      "####"
+    ],
+    [
+      "Responsive Call",
+      "####"
+    ],
+    [
+      "Opening Prayer",
+      "####"
+    ],
+    [
+      "Seeking God’s Wisdom",
+      "###"
+    ],
+    [
+      "Introduction",
+      "####"
+    ],
+    [
+      "Biblical Wisdom",
+      "####"
+    ],
+    [
+      "Core Principle",
+      "#####"
+    ],
+    [
+      "Group Discussion",
+      "#####"
+    ],
+    [
+      "Record Your Thoughts Below",
+      "#####"
+    ],
+    [
+      "Exploring the Biblical Text",
+      "###"
+    ],
+    [
+      "Scriptural Passage",
+      "####"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "Shepherding Work in the Family Flock",
+      "####"
+    ],
+    [
+      "Introduction",
+      "#####"
+    ],
+    [
+      "The Lord Is My Shepherd: Exploring God’s Shepherding Work",
+      "#####"
+    ],
+    [
+      "Green Pastures and Quiet Waters: Enjoying God’s Plentiful Provision and Guidance",
+      "#####"
+    ],
+    [
+      "Your Rod and Staff Comfort Me: Receiving God’s Caring Protection and Correction",
+      "#####"
+    ],
+    [
+      "You Are With Me: Experiencing God’s Peace-Giving Presence and Nearness",
+      "#####"
+    ],
+    [
+      "I Will Dwell in the House of the Lord Forever: Looking Ahead to God’s Future Promise",
+      "#####"
+    ],
+    [
+      "Conclusion",
+      "#####"
+    ],
+    [
+      "Session Summary",
+      "####"
+    ],
+    [
+      "Charting the Path Ahead",
+      "###"
+    ],
+    [
+      "Final Review",
+      "####"
+    ],
+    [
+      "Small Group Prayer",
+      "####"
+    ],
+    [
+      "Corporate Prayer",
+      "####"
+    ],
+    [
+      "Next Steps",
+      "####"
+    ],
+    [
+      "Weekly Disciplines",
+      "#"
+    ],
+    [
+      "Scripture Reading",
+      "###"
+    ],
+    [
+      "Prepare Your Heart",
+      "####"
+    ],
+    [
+      "Read the Passage",
+      "####"
+    ],
+    [
+      "Consider the Truth",
+      "####"
+    ],
+    [
+      "Pray the Text",
+      "####"
+    ],
+    [
+      "Rest in God’s Presence",
+      "####"
+    ],
+    [
+      "Topical Study",
+      "###"
+    ],
+    [
+      "Verse Collection",
+      "####"
+    ],
+    [
+      "Concluding Reflection",
+      "####"
+    ],
+    [
+      "Art Observation",
+      "###"
+    ],
+    [
+      "Scriptural Reading",
+      "####"
+    ],
+    [
+      "Painting Reflection",
+      "####"
+    ],
+    [
+      "Observations",
+      "####"
+    ],
+    [
+      "Spiritual Practice",
+      "###"
+    ],
+    [
+      "Getting Quiet Before God",
+      "####"
+    ],
+    [
+      "Acknowledging God as Shepherd",
+      "####"
+    ],
+    [
+      "Defining Home Values",
+      "####"
+    ],
+    [
+      "Praising God for His Care",
+      "####"
+    ],
+    [
+      "Imaginging the Investment",
+      "####"
+    ],
+    [
+      "Entrusting Yourself to the Lord",
+      "####"
+    ],
+    [
+      "Record Final Thoughts",
+      "####"
+    ],
+    [
+      "Journal Reflection",
+      "###"
+    ],
+    [
+      "Reflection Questions",
+      "####"
+    ],
+    [
+      "Reflective Projects",
+      "#"
+    ],
+    [
+      "Personal Project",
+      "###"
+    ],
+    [
+      "Project Instructions",
+      "####"
+    ],
+    [
+      "Shepherding Job Description",
+      "####"
+    ],
+    [
+      "Parenting Project",
+      "###"
+    ],
+    [
+      "Discuss with Your Spouse",
+      "####"
+    ],
+    [
+      "Project Explanation",
+      "####"
+    ],
+    [
+      "Family Values",
+      "####"
+    ],
+    [
+      "In the Fear of God",
+      "#"
+    ],
+    [
+      "Instructing Children in Godliness",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Key Idea",
+      "####"
+    ],
+    [
+      "Community Study",
+      "#"
+    ],
+    [
+      "Tuning Our Hearts to the Lord",
+      "###"
+    ],
+    [
+      "Community Confession",
+      "####"
+    ],
+    [
+      "Corporate Song",
+      "####"
+    ],
+    [
+      "Come, Children, Learn to Fear the Lord",
+      "#####"
+    ],
+    [
+      "Scripture Reading",
+      "####"
+    ],
+    [
+      "Responsive Call",
+      "####"
+    ],
+    [
+      "Opening Prayer",
+      "####"
+    ],
+    [
+      "Seeking God’s Wisdom",
+      "###"
+    ],
+    [
+      "Introduction",
+      "####"
+    ],
+    [
+      "Biblical Wisdom",
+      "####"
+    ],
+    [
+      "Core Principle",
+      "#####"
+    ],
+    [
+      "Group Discussion",
+      "#####"
+    ],
+    [
+      "Record Your Thoughts Below",
+      "#####"
+    ],
+    [
+      "Exploring the Biblical Text",
+      "###"
+    ],
+    [
+      "Scriptural Passage",
+      "####"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "Forming Faith in the Fear of the Lord",
+      "####"
+    ],
+    [
+      "Introduction",
+      "#####"
+    ],
+    [
+      "At All Times: Building Worship Habits to Live in God’s Presence",
+      "#####"
+    ],
+    [
+      "Come, Children, Listen to Me: Calling Our Children to the Fear of God",
+      "#####"
+    ],
+    [
+      "The Man Who Delights in Life: Aiming for Deep Transformation in Character Formation",
+      "#####"
+    ],
+    [
+      "The Afflictions of the Righteous: Raising Children Who Can Be Righteous Sufferers",
+      "#####"
+    ],
+    [
+      "Conclusion",
+      "#####"
+    ],
+    [
+      "Session Summary",
+      "####"
+    ],
+    [
+      "Charting the Path Ahead",
+      "###"
+    ],
+    [
+      "Final Review",
+      "####"
+    ],
+    [
+      "Small Group Prayer",
+      "####"
+    ],
+    [
+      "Corporate Prayer",
+      "####"
+    ],
+    [
+      "Next Steps",
+      "####"
+    ],
+    [
+      "Weekly Disciplines",
+      "#"
+    ],
+    [
+      "Scripture Reading",
+      "###"
+    ],
+    [
+      "Prepare Your Heart",
+      "####"
+    ],
+    [
+      "Read the Passage",
+      "####"
+    ],
+    [
+      "Consider the Truth",
+      "####"
+    ],
+    [
+      "Pray the Text",
+      "####"
+    ],
+    [
+      "Rest in God’s Presence",
+      "####"
+    ],
+    [
+      "Topical Study",
+      "###"
+    ],
+    [
+      "Verse Collection",
+      "####"
+    ],
+    [
+      "Concluding Reflection",
+      "####"
+    ],
+    [
+      "Art Observation",
+      "###"
+    ],
+    [
+      "Scriptural Reading",
+      "####"
+    ],
+    [
+      "Painting Reflection",
+      "####"
+    ],
+    [
+      "Observations",
+      "####"
+    ],
+    [
+      "Spiritual Practice",
+      "###"
+    ],
+    [
+      "Getting Quiet Before God",
+      "####"
+    ],
+    [
+      "Acknowledging God",
+      "####"
+    ],
+    [
+      "In the Dark",
+      "####"
+    ],
+    [
+      "Praising God for His Care",
+      "####"
+    ],
+    [
+      "Imaginging the Change",
+      "####"
+    ],
+    [
+      "Entrusting Yourself to the Lord",
+      "####"
+    ],
+    [
+      "Record Final Thoughts",
+      "####"
+    ],
+    [
+      "Journal Reflection",
+      "###"
+    ],
+    [
+      "Reflection Questions",
+      "####"
+    ],
+    [
+      "Reflective Projects",
+      "#"
+    ],
+    [
+      "Personal Project",
+      "###"
+    ],
+    [
+      "Project Instructions",
+      "####"
+    ],
+    [
+      "Example Prayer",
+      "####"
+    ],
+    [
+      "Parenting Project",
+      "###"
+    ],
+    [
+      "Discuss with Your Spouse",
+      "####"
+    ],
+    [
+      "Project Explanation",
+      "####"
+    ],
+    [
+      "Family Education Plan | Child’s Name:",
+      "####"
+    ],
+    [
+      "Family Education Plan | Child’s Name:",
+      "####"
+    ],
+    [
+      "Family Education Plan | Child’s Name:",
+      "####"
+    ],
+    [
+      "Under God’s Protection",
+      "#"
+    ],
+    [
+      "Godly Discipline and Divine Protection",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Key Idea",
+      "####"
+    ],
+    [
+      "Community Study",
+      "#"
+    ],
+    [
+      "Tuning Our Hearts to the Lord",
+      "###"
+    ],
+    [
+      "Community Confession",
+      "####"
+    ],
+    [
+      "Corporate Song",
+      "####"
+    ],
+    [
+      "A Might Fortress Is Our God",
+      "#####"
+    ],
+    [
+      "Scripture Reading",
+      "####"
+    ],
+    [
+      "Responsive Call",
+      "####"
+    ],
+    [
+      "Opening Prayer",
+      "####"
+    ],
+    [
+      "Seeking God’s Wisdom",
+      "###"
+    ],
+    [
+      "Introduction",
+      "####"
+    ],
+    [
+      "Biblical Wisdom",
+      "####"
+    ],
+    [
+      "Core Principle",
+      "#####"
+    ],
+    [
+      "Group Discussion",
+      "#####"
+    ],
+    [
+      "Exploring the Biblical Text",
+      "###"
+    ],
+    [
+      "Scriptural Passage",
+      "####"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "A Daring and Dangerous Venture",
+      "####"
+    ],
+    [
+      "Introduction",
+      "#####"
+    ],
+    [
+      "How Long Will the Wicked Exult: Raising Godly Families in a Godless World",
+      "#####"
+    ],
+    [
+      "Blessed Is the Man You Discipline, O Lord: Committing to Discipline and Instruction",
+      "#####"
+    ],
+    [
+      "The Lord Has Been My Stronghold: Seeking Divine Protection for Your Home",
+      "#####"
+    ],
+    [
+      "Conclusion",
+      "#####"
+    ],
+    [
+      "Session Summary",
+      "####"
+    ],
+    [
+      "Charting the Path Ahead",
+      "###"
+    ],
+    [
+      "Final Review",
+      "####"
+    ],
+    [
+      "Small Group Prayer",
+      "####"
+    ],
+    [
+      "Corporate Prayer",
+      "####"
+    ],
+    [
+      "Next Steps",
+      "####"
+    ],
+    [
+      "Weekly Disciplines",
+      "#"
+    ],
+    [
+      "Scripture Reading",
+      "###"
+    ],
+    [
+      "Prepare Your Heart",
+      "####"
+    ],
+    [
+      "Read the Passage",
+      "####"
+    ],
+    [
+      "Consider the Truth",
+      "####"
+    ],
+    [
+      "Pray the Text",
+      "####"
+    ],
+    [
+      "Rest in God’s Presence",
+      "####"
+    ],
+    [
+      "Topical Study",
+      "###"
+    ],
+    [
+      "Verse Collection",
+      "####"
+    ],
+    [
+      "Concluding Reflection",
+      "####"
+    ],
+    [
+      "Art Observation",
+      "###"
+    ],
+    [
+      "Scriptural Reading",
+      "####"
+    ],
+    [
+      "Painting Reflection",
+      "####"
+    ],
+    [
+      "Observations",
+      "####"
+    ],
+    [
+      "Spiritual Practice",
+      "###"
+    ],
+    [
+      "Getting Quiet Before God",
+      "####"
+    ],
+    [
+      "Acknowledging God as Father",
+      "####"
+    ],
+    [
+      "Meditating on God’s Tender Care",
+      "####"
+    ],
+    [
+      "Praising God for His Care",
+      "####"
+    ],
+    [
+      "Imaginging Life the Other Way",
+      "####"
+    ],
+    [
+      "Entrusting Yourself to the Lord",
+      "####"
+    ],
+    [
+      "Record Final Thoughts",
+      "####"
+    ],
+    [
+      "Journal Reflection",
+      "###"
+    ],
+    [
+      "Reflection Questions",
+      "####"
+    ],
+    [
+      "Reflective Projects",
+      "#"
+    ],
+    [
+      "Personal Project",
+      "###"
+    ],
+    [
+      "Project Instructions",
+      "####"
+    ],
+    [
+      "Example Prayer",
+      "####"
+    ],
+    [
+      "Parenting Project",
+      "###"
+    ],
+    [
+      "Discuss with Your Spouse",
+      "####"
+    ],
+    [
+      "Project Explanation",
+      "####"
+    ],
+    [
+      "Family Discipline Plan",
+      "####"
+    ],
+    [
+      "For the World",
+      "#"
+    ],
+    [
+      "Leaving a Legacy in Society",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Key Idea",
+      "####"
+    ],
+    [
+      "Community Study",
+      "#"
+    ],
+    [
+      "Tuning Our Hearts to the Lord",
+      "###"
+    ],
+    [
+      "Community Confession",
+      "####"
+    ],
+    [
+      "Corporate Song",
+      "####"
+    ],
+    [
+      "God Is Working This Purpose Out",
+      "#####"
+    ],
+    [
+      "Scripture Reading",
+      "####"
+    ],
+    [
+      "Responsive Call",
+      "####"
+    ],
+    [
+      "Opening Prayer",
+      "####"
+    ],
+    [
+      "Seeking God’s Wisdom",
+      "###"
+    ],
+    [
+      "Introduction",
+      "####"
+    ],
+    [
+      "Biblical Wisdom",
+      "####"
+    ],
+    [
+      "Core Principle",
+      "#####"
+    ],
+    [
+      "Group Discussion",
+      "#####"
+    ],
+    [
+      "Record Your Thoughts Below",
+      "#####"
+    ],
+    [
+      "Exploring the Biblical Text",
+      "###"
+    ],
+    [
+      "Scriptural Passage",
+      "####"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "Of Arrows, Quivers, and Olive Shoots",
+      "####"
+    ],
+    [
+      "Introduction",
+      "#####"
+    ],
+    [
+      "Building the House: Viewing Homebuilding as Meaningful Work",
+      "#####"
+    ],
+    [
+      "Unless the Lord: Establishing Deep Dependence upon the Lord",
+      "#####"
+    ],
+    [
+      "May the Lord Bless You: Enjoying Divine Favor, Full Peace, and True Prosperity",
+      "#####"
+    ],
+    [
+      "When He Confronts the Enemies: Treating Family Life as a Battlefront Combat",
+      "#####"
+    ],
+    [
+      "May See Your Children’s Children: Hoping for Generational Impact",
+      "#####"
+    ],
+    [
+      "Conclusion",
+      "#####"
+    ],
+    [
+      "Session Summary",
+      "####"
+    ],
+    [
+      "Charting the Path Ahead",
+      "###"
+    ],
+    [
+      "Final Review",
+      "####"
+    ],
+    [
+      "Small Group Prayer",
+      "####"
+    ],
+    [
+      "Corporate Prayer",
+      "####"
+    ],
+    [
+      "Next Steps",
+      "####"
+    ],
+    [
+      "Weekly Disciplines",
+      "#"
+    ],
+    [
+      "Scripture Reading",
+      "###"
+    ],
+    [
+      "Prepare Your Heart",
+      "####"
+    ],
+    [
+      "Read the Passage",
+      "####"
+    ],
+    [
+      "Consider the Truth",
+      "####"
+    ],
+    [
+      "Pray the Text",
+      "####"
+    ],
+    [
+      "Rest in God’s Presence",
+      "####"
+    ],
+    [
+      "Topical Study",
+      "###"
+    ],
+    [
+      "Verse Collection",
+      "####"
+    ],
+    [
+      "Concluding Reflection",
+      "####"
+    ],
+    [
+      "Art Observation",
+      "###"
+    ],
+    [
+      "Scriptural Reading",
+      "####"
+    ],
+    [
+      "Painting Reflection",
+      "####"
+    ],
+    [
+      "Observations",
+      "####"
+    ],
+    [
+      "Spiritual Practice",
+      "###"
+    ],
+    [
+      "Getting Quiet Before God",
+      "####"
+    ],
+    [
+      "Acknowledging God as Father",
+      "####"
+    ],
+    [
+      "Meditating on God’s Tender Care",
+      "####"
+    ],
+    [
+      "Praising God for His Care",
+      "####"
+    ],
+    [
+      "Imaginging Your Blessing",
+      "####"
+    ],
+    [
+      "Entrusting Yourself to the Lord",
+      "####"
+    ],
+    [
+      "Record Final Thoughts",
+      "####"
+    ],
+    [
+      "Journal Reflection",
+      "###"
+    ],
+    [
+      "Reflection Questions",
+      "####"
+    ],
+    [
+      "Reflective Projects",
+      "#"
+    ],
+    [
+      "Personal Project",
+      "###"
+    ],
+    [
+      "Project Instructions",
+      "####"
+    ],
+    [
+      "Family Beatitudes",
+      "####"
+    ],
+    [
+      "Parenting Project",
+      "###"
+    ],
+    [
+      "Discuss with Your Spouse",
+      "####"
+    ],
+    [
+      "Project Explanation",
+      "####"
+    ],
+    [
+      "Family Vision and Mission",
+      "####"
+    ],
+    [
+      "Under God’s Fatherly Care",
+      "#"
+    ],
+    [
+      "Building a Home Devoted to God",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Key Idea",
+      "####"
+    ],
+    [
+      "Review",
+      "#"
+    ],
+    [
+      "Tuning Our Hearts to the Lord",
+      "###"
+    ],
+    [
+      "Community Confession",
+      "####"
+    ],
+    [
+      "Corporate Song",
+      "####"
+    ],
+    [
+      "As for Me and My House",
+      "#####"
+    ],
+    [
+      "Scripture Reading",
+      "####"
+    ],
+    [
+      "Responsive Call",
+      "####"
+    ],
+    [
+      "Opening Prayer",
+      "####"
+    ],
+    [
+      "Session Review",
+      "###"
+    ],
+    [
+      "Session Review",
+      "####"
+    ],
+    [
+      "Planning and Logistics",
+      "#"
+    ],
+    [
+      "Planning and Logistics",
+      "###"
+    ],
+    [
+      "Planning",
+      "####"
+    ],
+    [
+      "Logistics",
+      "####"
+    ],
+    [
+      "Near to Those Who Call on Him",
+      "#"
+    ],
+    [
+      "Cultivating Intimacy with God",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Morning Reading",
+      "###"
+    ],
+    [
+      "Drawing Near to God",
+      "####"
+    ],
+    [
+      "Reading the Text",
+      "####"
+    ],
+    [
+      "Considering the Text",
+      "####"
+    ],
+    [
+      "Praying the Text",
+      "####"
+    ],
+    [
+      "Walking with God",
+      "####"
+    ],
+    [
+      "Recounting Key Impressions",
+      "####"
+    ],
+    [
+      "Midday Prayer",
+      "###"
+    ],
+    [
+      "Sitting in Silence",
+      "####"
+    ],
+    [
+      "Sing the Psalms",
+      "####"
+    ],
+    [
+      "Committing to Memory",
+      "####"
+    ],
+    [
+      "Praying for Wisdom",
+      "####"
+    ],
+    [
+      "Acknowledging One Another",
+      "####"
+    ],
+    [
+      "Declaring God’s Glory in the Church",
+      "####"
+    ],
+    [
+      "Recounting Key Impressions",
+      "####"
+    ],
+    [
+      "Evening Reflection",
+      "###"
+    ],
+    [
+      "Acknowledging God’s Presence in Faith",
+      "####"
+    ],
+    [
+      "Remembering the Day with Thanks",
+      "####"
+    ],
+    [
+      "Recalling Your Shortcomings in Humility",
+      "####"
+    ],
+    [
+      "Looking Ahead in Hope",
+      "####"
+    ],
+    [
+      "Resting in God with Peace",
+      "####"
+    ],
+    [
+      "Recounting Key Impressions",
+      "####"
+    ],
+    [
+      "Morning Reading",
+      "###"
+    ],
+    [
+      "Drawing Near to God",
+      "####"
+    ],
+    [
+      "Reading the Text",
+      "####"
+    ],
+    [
+      "Considering the Text",
+      "####"
+    ],
+    [
+      "Praying the Text",
+      "####"
+    ],
+    [
+      "Walking with God",
+      "####"
+    ],
+    [
+      "Recounting Key Impressions",
+      "####"
+    ],
+    [
+      "Midday Prayer",
+      "###"
+    ],
+    [
+      "Sitting in Silence",
+      "####"
+    ],
+    [
+      "Sing the Psalms",
+      "####"
+    ],
+    [
+      "Committing to Memory",
+      "####"
+    ],
+    [
+      "Praying for Wisdom",
+      "####"
+    ],
+    [
+      "Acknowledging One Another",
+      "####"
+    ],
+    [
+      "Declaring God’s Glory in the Church",
+      "####"
+    ],
+    [
+      "Recounting Key Impressions",
+      "####"
+    ],
+    [
+      "Evening Reflection",
+      "###"
+    ],
+    [
+      "Acknowledging God’s Presence in Faith",
+      "####"
+    ],
+    [
+      "Remembering the Day with Thanks",
+      "####"
+    ],
+    [
+      "Recalling Your Shortcomings in Humility",
+      "####"
+    ],
+    [
+      "Looking Ahead in Hope",
+      "####"
+    ],
+    [
+      "Resting in God with Peace",
+      "####"
+    ],
+    [
+      "Recounting Key Impressions",
+      "####"
+    ],
+    [
+      "HomeSteading",
+      "#"
+    ],
+    [
+      "Practicing Parental Duty in the Outdoors",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Homemaking",
+      "###"
+    ],
+    [
+      "Inspiration: Getting the Right Mindset",
+      "####"
+    ],
+    [
+      "Implementation: Fulfilling Our Family Duty",
+      "####"
+    ],
+    [
+      "Reflection: Evaluating an Important Work",
+      "####"
+    ],
+    [
+      "Consecration: Dedicating Our Home to God",
+      "####"
+    ],
+    [
+      "Hearth Building",
+      "###"
+    ],
+    [
+      "Inspiration: Getting the Right Mindset",
+      "####"
+    ],
+    [
+      "Implementation: Fulfilling Our Family Duty",
+      "####"
+    ],
+    [
+      "Reflection: Evaluating an Important Work",
+      "####"
+    ],
+    [
+      "Consecration: Dedicating Our Home to God",
+      "####"
+    ],
+    [
+      "Shepherd’s Carry",
+      "###"
+    ],
+    [
+      "Inspiration: Getting the Right Mindset",
+      "####"
+    ],
+    [
+      "Implementation: Fulfilling Our Family Duty",
+      "####"
+    ],
+    [
+      "Reflection: Evaluating an Important Work",
+      "####"
+    ],
+    [
+      "Consecration: Dedicating Our Home to God",
+      "####"
+    ],
+    [
+      "Table Setting",
+      "###"
+    ],
+    [
+      "Inspiration: Getting the Right Mindset",
+      "####"
+    ],
+    [
+      "Implementation: Fulfilling Our Family Duty",
+      "####"
+    ],
+    [
+      "Reflection: Evaluating an Important Work",
+      "####"
+    ],
+    [
+      "Consecration: Dedicating Our Home to God",
+      "####"
+    ],
+    [
+      "Night Vigil",
+      "###"
+    ],
+    [
+      "Inspiration: Getting the Right Mindset",
+      "####"
+    ],
+    [
+      "Implementation: Fulfilling Our Family Duty",
+      "####"
+    ],
+    [
+      "Reflection: Evaluating an Important Work",
+      "####"
+    ],
+    [
+      "Consecration: Dedicating Our Home to God",
+      "####"
+    ],
+    [
+      "Outdoor Experience",
+      "###"
+    ],
+    [
+      "Inspiration: Getting the Right Mindset",
+      "####"
+    ],
+    [
+      "Implementation: Fulfilling Our Family Duty",
+      "####"
+    ],
+    [
+      "Reflection: Evaluating an Important Work",
+      "####"
+    ],
+    [
+      "Consecration: Dedicating Our Home to God",
+      "####"
+    ],
+    [
+      "Outdoor Experience",
+      "###"
+    ],
+    [
+      "Inspiration: Getting the Right Mindset",
+      "####"
+    ],
+    [
+      "Implementation: Fulfilling Our Family Duty",
+      "####"
+    ],
+    [
+      "Reflection: Evaluating an Important Work",
+      "####"
+    ],
+    [
+      "Consecration: Dedicating Our Home to God",
+      "####"
+    ],
+    [
+      "Homes of Holy Testimony",
+      "#"
+    ],
+    [
+      "Locating Homebuilding in the Household of Faith",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Project Review",
+      "###"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "Reflections or Observations",
+      "####"
+    ],
+    [
+      "Celebrations and Struggles",
+      "###"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "Reflections or Observations",
+      "####"
+    ],
+    [
+      "Worship and Tradition",
+      "###"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "Family Worship",
+      "#####"
+    ],
+    [
+      "Family Tradition",
+      "#####"
+    ],
+    [
+      "Reflections or Observations",
+      "####"
+    ],
+    [
+      "Value and Education",
+      "###"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "Family Values",
+      "#####"
+    ],
+    [
+      "Family Education",
+      "#####"
+    ],
+    [
+      "Discipline and Mission",
+      "###"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "Family Discipline",
+      "#####"
+    ],
+    [
+      "Family Mission and Vision",
+      "#####"
+    ],
+    [
+      "Reflections or Observations",
+      "####"
+    ],
+    [
+      "Life Spheres",
+      "###"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "Focused Questions",
+      "#####"
+    ],
+    [
+      "Reflections or Observations",
+      "####"
+    ],
+    [
+      "General Reflections",
+      "###"
+    ],
+    [
+      "Bearing Witness",
+      "#"
+    ],
+    [
+      "Recounting God’s Work in Word and Deed",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Personal Testimony",
+      "###"
+    ],
+    [
+      "Personal Testimony",
+      "####"
+    ],
+    [
+      "We Confess Together",
+      "#"
+    ],
+    [
+      "Stating My Commitments to a Responsible",
+      "##"
+    ],
+    [
+      "LifeBuilding a Home Devoted to God",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Community Confession",
+      "###"
+    ],
+    [
+      "Community Confession",
+      "####"
+    ],
+    [
+      "Discussion Questions",
+      "####"
+    ],
+    [
+      "Responsibility Commitment",
+      "####"
+    ],
+    [
+      "Prayer",
+      "####"
+    ],
+    [
+      "In the Assembly",
+      "#"
+    ],
+    [
+      "Celebrating a Major Life Milestone",
+      "##"
+    ],
+    [
+      "Overview",
+      "####"
+    ],
+    [
+      "Celebration Ceremony",
+      "###"
+    ],
+    [
+      "Celebration Ceremony",
+      "####"
+    ],
+    [
+      "Further Resources",
+      "#"
+    ],
+    [
+      "Continuing the Parenting Journey",
+      "##"
+    ],
+    [
+      "Further Resources",
+      "####"
+    ],
+    [
+      "Bibliography",
+      "###"
+    ],
+    [
+      "Bibliography",
+      "####"
+    ],
+    [
+      "Proposed Schedule",
+      "###"
+    ],
+    [
+      "Proposed Schedule",
+      "####"
+    ],
+    [
+      "Reflective Excerpts",
+      "###"
+    ],
+    [
+      "The Children’s Hour",
+      "####"
+    ],
+    [
+      "The Familie",
+      "####"
+    ],
+    [
+      "Blest Is the Home Where Jesus Is",
+      "####"
+    ],
+    [
+      "My Mother’s Prayer",
+      "####"
+    ],
+    [
+      "Tell Them They Live Every Moment on God",
+      "####"
+    ],
+    [
+      "The Stream Not Rise Higher Than the Fountain",
+      "####"
+    ],
+    [
+      "Introduced to a World",
+      "####"
+    ],
+    [
+      "Introduced to a World",
+      "####"
+    ],
+    [
+      "Consider What Your Children Are Capable Of",
+      "####"
+    ],
+    [
+      "Big-Souled, Large-Hearted Men or Women",
+      "####"
+    ],
+    [
+      "Consider What Your Children Are Capable Of",
+      "####"
+    ]
+  ],
+  "skip_set": [
+    "10",
+    "100",
+    "101",
+    "102",
+    "103",
+    "104",
+    "105",
+    "106",
+    "107",
+    "108",
+    "109",
+    "11",
+    "110",
+    "111",
+    "112",
+    "115",
+    "116",
+    "117",
+    "118",
+    "119",
+    "12",
+    "120",
+    "123",
+    "124",
+    "125",
+    "126",
+    "129",
+    "13",
+    "130",
+    "131",
+    "132",
+    "133",
+    "134",
+    "136",
+    "139",
+    "14",
+    "140",
+    "141",
+    "142",
+    "143",
+    "144",
+    "145",
+    "146",
+    "147",
+    "148",
+    "149",
+    "15",
+    "150",
+    "151",
+    "152",
+    "153",
+    "154",
+    "155",
+    "156",
+    "157",
+    "158",
+    "16",
+    "161",
+    "162",
+    "163",
+    "164",
+    "165",
+    "166",
+    "169",
+    "17",
+    "170",
+    "171",
+    "172",
+    "175",
+    "176",
+    "177",
+    "178",
+    "179",
+    "18",
+    "180",
+    "182",
+    "185",
+    "186",
+    "187",
+    "188",
+    "189",
+    "19",
+    "191",
+    "192",
+    "193",
+    "194",
+    "195",
+    "196",
+    "197",
+    "198",
+    "199",
+    "20",
+    "200",
+    "201",
+    "202",
+    "203",
+    "204",
+    "207",
+    "208",
+    "209",
+    "21",
+    "210",
+    "211",
+    "212",
+    "215",
+    "216",
+    "217",
+    "218",
+    "22",
+    "221",
+    "222",
+    "223",
+    "224",
+    "225",
+    "226",
+    "227",
+    "228",
+    "229",
+    "23",
+    "230",
+    "232",
+    "235",
+    "236",
+    "237",
+    "238",
+    "239",
+    "24",
+    "241",
+    "242",
+    "243",
+    "244",
+    "245",
+    "246",
+    "247",
+    "248",
+    "249",
+    "25",
+    "250",
+    "251",
+    "252",
+    "253",
+    "254",
+    "257",
+    "258",
+    "259",
+    "26",
+    "260",
+    "261",
+    "262",
+    "265",
+    "266",
+    "267",
+    "268",
+    "27",
+    "271",
+    "272",
+    "273",
+    "274",
+    "275",
+    "276",
+    "278",
+    "28",
+    "281",
+    "282",
+    "283",
+    "284",
+    "285",
+    "287",
+    "288",
+    "289",
+    "290",
+    "291",
+    "292",
+    "293",
+    "294",
+    "295",
+    "296",
+    "297",
+    "298",
+    "299",
+    "300",
+    "301",
+    "302",
+    "305",
+    "306",
+    "307",
+    "308",
+    "309",
+    "31",
+    "310",
+    "313",
+    "314",
+    "315",
+    "316",
+    "319",
+    "32",
+    "320",
+    "321",
+    "322",
+    "323",
+    "324",
+    "326",
+    "329",
+    "33",
+    "330",
+    "331",
+    "332",
+    "335",
+    "336",
+    "34",
+    "342",
+    "343",
+    "344",
+    "345",
+    "346",
+    "347",
+    "348",
+    "349",
+    "350",
+    "351",
+    "352",
+    "353",
+    "354",
+    "356",
+    "357",
+    "358",
+    "359",
+    "360",
+    "361",
+    "362",
+    "363",
+    "364",
+    "365",
+    "366",
+    "367",
+    "368",
+    "369",
+    "370",
+    "372",
+    "373",
+    "374",
+    "375",
+    "376",
+    "377",
+    "378",
+    "379",
+    "38",
+    "380",
+    "381",
+    "382",
+    "383",
+    "384",
+    "385",
+    "386",
+    "387",
+    "388",
+    "389",
+    "390",
+    "396",
+    "397",
+    "398",
+    "4",
+    "400",
+    "401",
+    "402",
+    "404",
+    "405",
+    "406",
+    "407",
+    "408",
+    "41",
+    "413",
+    "414",
+    "415",
+    "416",
+    "417",
+    "418",
+    "419",
+    "42",
+    "420",
+    "421",
+    "422",
+    "423",
+    "424",
+    "425",
+    "426",
+    "427",
+    "428",
+    "429",
+    "43",
+    "430",
+    "431",
+    "432",
+    "436",
+    "437",
+    "438",
+    "439",
+    "44",
+    "440",
+    "441",
+    "442",
+    "443",
+    "444",
+    "445",
+    "446",
+    "447",
+    "448",
+    "449",
+    "45",
+    "450",
+    "451",
+    "452",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
+    "51",
+    "52",
+    "53",
+    "54",
+    "55",
+    "56",
+    "57",
+    "58",
+    "59",
+    "60",
+    "63",
+    "64",
+    "65",
+    "66",
+    "67",
+    "68",
+    "7",
+    "71",
+    "72",
+    "73",
+    "74",
+    "77",
+    "78",
+    "79",
+    "8",
+    "80",
+    "81",
+    "82",
+    "83",
+    "84",
+    "86",
+    "89",
+    "9",
+    "90",
+    "91",
+    "92",
+    "93",
+    "94",
+    "95",
+    "96",
+    "97",
+    "98",
+    "99",
+    "building",
+    "celebration",
+    "celebration ceremony",
+    "ceremony",
+    "challenge",
+    "community",
+    "community confession",
+    "community study",
+    "conclusion",
+    "conclusionplanning and logistics",
+    "confession",
+    "daily devotionals",
+    "day one",
+    "day two",
+    "evaluating our lives",
+    "experience five: night vigil",
+    "experience four: table setting",
+    "experience three: shepherd's carry",
+    "experience two: hearth building",
+    "further resources",
+    "general reflections",
+    "introduction",
+    "introduction: no longer two",
+    "introductioncommunity study",
+    "introductionsession one",
+    "journal",
+    "mentoring session five",
+    "mentoring session four",
+    "mentoring session one",
+    "mentoring session six",
+    "mentoring session three",
+    "mentoring session two",
+    "one",
+    "orientation and overview",
+    "outdoor experience",
+    "outdoor experience one",
+    "outdoor experiences",
+    "part",
+    "part four",
+    "partthree",
+    "personal testimony",
+    "planning and logistics",
+    "preface",
+    "preparation",
+    "reflective projects",
+    "searchingthe textseekingthe truthevaluating our lives",
+    "seekingthe truthsearchingthe text",
+    "series' preface",
+    "session 1community study",
+    "session 1reflective projects",
+    "session 1weekly disciplines",
+    "session 2community study",
+    "session 2reflective projects",
+    "session 2weekly disciplines",
+    "session 3community study",
+    "session 3reflective projects",
+    "session 3weekly disciplines",
+    "session 4community study",
+    "session 4reflective projects",
+    "session 4weekly disciplines",
+    "session 5community study",
+    "session 5reflective projects",
+    "session 5weekly disciplines",
+    "session 6community study",
+    "session 6reflective projects",
+    "session 6weekly disciplines",
+    "session five",
+    "session five: under god's discipline",
+    "session four",
+    "session four: inthe fearof god",
+    "session one",
+    "session one: under god's fatherly care",
+    "session six",
+    "session six: forthe world",
+    "session three",
+    "session three: overthe flock",
+    "session two",
+    "session two: betweenthe ages",
+    "table of contents",
+    "two",
+    "weekly disciplines"
+  ],
+  "blockquote_set": [
+    "\"i prayed for this boy, and since the lord has granted me wh",
+    "\"is not ephraim a precious son to me, a delightful child? th",
+    "1 chronicles 28:6-7and he said to me, 'solomon your son is t",
+    "1 corinthians 11:31-32now if we judged ourselves properly, w",
+    "1 john 3:1-2behold what manner of love the father has given ",
+    "1 kings 8:17-20now it was in the heart of my father david to",
+    "1 peter 5:1-4as a fellow elder, a witness of christ's suffer",
+    "2 corinthians 1:3-4blessed be the god and father of our lord",
+    "2 samuel 7:11-14the lord declares to you that he himself wil",
+    "2 samuel 7:11-15the lord declares to you that he himself wil",
+    "2 samuel 7:14-15i will be his father, and he will be my son.",
+    "2 samuel 7:25-29and now, o lord god, confirm forever the wor",
+    "2 timothy 3:14-17but as for you, continue in the things you ",
+    "act lovingly to your children. in all your counsels and comm",
+    "acts 20:28-29keep watch over yourselves and the entire flock",
+    "again, \"come near to me, lord, since i am a man, and being a",
+    "although i hope to come to you soon, i am writing you these ",
+    "and now, o israel, what does the lord your god ask of you bu",
+    "and when the days of feasting were over, job would send for ",
+    "and you became imitators of us and of the lord when you welc",
+    "at that time jesus declared, \"i praise you, father, lord of ",
+    "be much alone with god. do not put him off with a quarter of",
+    "blessed is the man who does not walk in the counsel of the w",
+    "but if it is unpleasing in your sight to serve the lord, the",
+    "christ's work, both in the church and in the hearts of chris",
+    "christian parents! see and accept your blessed calling; you ",
+    "colossians 3:20-21children, obey your parents in everything,",
+    "continue in brotherly love. do not neglect to show hospitali",
+    "deuteronomy 11:18-21fix these words of mine in your hearts a",
+    "deuteronomy 31:12-13assemble the people-men, women, children",
+    "deuteronomy 32:18you ignored the rock who brought you forth;",
+    "deuteronomy 32:45-47when moses had finished reciting all the",
+    "deuteronomy 32:7remember the days of old; consider the years",
+    "deuteronomy 4:9only be on your guard and diligently watch yo",
+    "deuteronomy 6:20-23in the future, when your son asks, \"what ",
+    "deuteronomy 6:6-9 these words i am commanding you today are ",
+    "deuteronomy 8:5-6so know in your heart that just as a man di",
+    "ecclesiastes 5:11the sleep of the worker is sweet, whether h",
+    "ephesians 6:1-4children, obey your parents in the lord, for ",
+    "every christian family ought to be as it were a little churc",
+    "every christian family ought to be, as it were, a little chu",
+    "every father of a family should consider himself as charged ",
+    "exodus 4:22-23then tell pharaoh that this is what the lord s",
+    "ezekiel 19:10-11your mother was like a vine in your vineyard",
+    "ezekiel 28:25-26this is what the lord god says: 'when i gath",
+    "ezekiel 34:11-16for this is what the lord god says: 'behold,",
+    "ezekiel 34:2-6woe to the shepherds of israel, who only feed ",
+    "families are nurseries of all societies ... well-ordered fam",
+    "first, then, if you would train your children rightly, train",
+    "for i am with you to save you, declares the lord. though i w",
+    "gather them from the countries, and bring them into their ow",
+    "genesis 18:18-19abraham will surely become a great and power",
+    "genesis 33:5when esau looked up and saw the women and childr",
+    "get wisdom, get understanding; do not forget my words or tur",
+    "he will stand and shepherd his flock in the strength of the ",
+    "hear this, o elders; and give ear, all who dwell in the land",
+    "hebrews 12:5-7and you have forgotten the exhortation that ad",
+    "hebrews 3:4and every house is built by someone, but god is t",
+    "i am the everlasting father, and i will be a father to you; ",
+    "i know, o lord, that a man's way is not his own; no one who ",
+    "i will be a father to you, and you will be my sons and daugh",
+    "i will raise up shepherds over them who will tend them, and ",
+    "if parents do this by rightly training them to god's service",
+    "in some points of view the community is made up of the indiv",
+    "in the house of the lord, they will flourish in the courts o",
+    "isaiah 38:19the living, only the living, can thank you, as i",
+    "isaiah 3:10tell the righteous it will be well with them, for",
+    "isaiah 40:10-11behold, the lord god comes with might, and hi",
+    "isaiah 43:15-16can a woman forget her nursing child, or lack",
+    "isaiah 54:13-14then all your sons will be taught by the lord",
+    "isaiah 64:8but now, o lord, you are our father; we are the c",
+    "isaiah 65:22-23no longer will they build houses for others t",
+    "isaiah 66:13as a mother comforts her son, so will i comfort ",
+    "it is a sweet compound of faith that knows god to be my fath",
+    "it is not too much to say that the perfecting of home is the",
+    "it is our duty and our privilege to exhaust our lives for je",
+    "james 1:16-18every good and perfect gift is from above, comi",
+    "jeremiah 23:1-4woe to the shepherds who destroy and scatter ",
+    "jeremiah 3:15\"return, o faithless children,\" declares the lo",
+    "job 5:17blessed indeed is the man whom god corrects; so do n",
+    "john 10:11-15i am the good shepherd. the good shepherd lays ",
+    "john 21:15-17when they had finished eating, jesus asked simo",
+    "judges 2:10-11after that whole generation had also been gath",
+    "know that the lord is god. it is he who made us, and we are ",
+    "let all the wondrous influence you possess in forming your c",
+    "let it be the principal part of your care and labour ... to ",
+    "listen, my son, and receive my words, and the years of your ",
+    "luke 11:11-12what father among you, if his son asks for a fi",
+    "malachi 3:17-18\"they will be mine,\" says the lord of hosts, ",
+    "matthew 6:7-8and when you pray, do not babble on like pagans",
+    "matthew 9:35-36jesus went through all the towns and villages",
+    "moses wrote their goings out-when they set out, god ordered ",
+    "no man more truly loves god than he that is most fearful to ",
+    "o house of israel, bless the lord; o house of aaron, bless t",
+    "observe here, children of the youth are arrows in the hand, ",
+    "ostade, adriaen van. the cottage dooryard. 1673. oil on canv",
+    "parents, consider the condition of your children; and the lo",
+    "precious, no doubt, are these little ones in your eyes; but ",
+    "proverbs 12:1whoever loves discipline loves knowledge, but h",
+    "proverbs 13:24he who spares the rod hates his son, but he wh",
+    "proverbs 14:26he who fears the lord is secure in confidence,",
+    "proverbs 17:10a rebuke cuts into a man of discernment deeper",
+    "proverbs 1:8-9listen, my son, to your father's instruction, ",
+    "proverbs 20:7the righteous man walks with integrity; blessed",
+    "proverbs 22:15foolishness is bound up in the heart of a chil",
+    "proverbs 23:13-14do not withhold discipline from a child; al",
+    "proverbs 23:22-2522 listen to your father who gave you life,",
+    "proverbs 28:7a discerning son keeps the law, but a companion",
+    "proverbs 2:1-5my son, if you accept my words and hide my com",
+    "proverbs 2:6-15for the lord gives wisdom; from his mouth com",
+    "proverbs 30:17as for the eye that mocks a father and scorns ",
+    "proverbs 3:1-4my son, do not forget my teaching, but let you",
+    "proverbs 3:11-12my son, do not reject the discipline of the ",
+    "proverbs 4:1-5listen, my sons, to a father's instruction; pa",
+    "proverbs 4:20-22my son, pay attention to my words; incline y",
+    "proverbs 6:20-2320 my son, keep your father's commandment, a",
+    "proverbs 7:1-3my son, keep my words and treasure my commandm",
+    "psalm 102:18-21let this be written for the generation to com",
+    "psalm 103:17-18but from everlasting to everlasting the lovin",
+    "psalm 118:15-18shouts of joy and salvation resound in the te",
+    "psalm 119:66-68teach me good judgment and knowledge, for i b",
+    "psalm 132:11the lord swore an oath to david, a promise he wi",
+    "psalm 145:3-5great is the lord and greatly to be praised; hi",
+    "psalm 22:27-31all the ends of the earth will remember and tu",
+    "psalm 28:8-9the lord is the strength of his people, a strong",
+    "psalm 33:16-19no king is saved by his vast army; no warrior ",
+    "psalm 44:1we have heard with our ears, o god; our fathers ha",
+    "psalm 48:12-14march around zion, encircle her, count her tow",
+    "psalm 52:8-9but i am like an olive tree flourishing in the h",
+    "psalm 68:5-6a father of the fatherless, and a defender of th",
+    "psalm 71:17-19o god, you have taught me from my youth, and t",
+    "psalm 78:70-72he chose david his servant and took him from t",
+    "psalm 92:12-15the righteous will flourish like a palm tree, ",
+    "revelation 3:19those i love, i rebuke and discipline. theref",
+    "romans 8:14-17for all who are led by the spirit of god are s",
+    "rĳn, rembrandt van. the return of the prodigal son. 1668. oi",
+    "save your people and bless your inheritance; shepherd them a",
+    "the bows of the mighty are broken, but the feeble are equipp",
+    "the business done in the home is nothing less than the shapi",
+    "the christian has joy as other men have in the common mercie",
+    "the christian home is a stewardship. the parents are steward",
+    "the fear of the lord leads to life, that one may rest conten",
+    "the lord is righteous in all his ways and kind in all his de",
+    "the power for good or evil that resides in a little child is",
+    "the scope of our art is to provide the soul with wings, to r",
+    "the very existence of christian people in the world is a sta",
+    "then our sons will be like plants nurtured in their youth, o",
+    "then the lookout a shouted: \"day after day, my lord, i stand",
+    "then the lord said to moses, \"consecrate to me every firstbo",
+    "then we your people, the sheep of your pasture, will thank y",
+    "there is much more mercy in what seems to be harshness, than",
+    "therefore everyone who hears these words of mine and acts on",
+    "therefore, since we are surrounded by such a great cloud of ",
+    "these are the journeys of the israelites when they came out ",
+    "this saying is trustworthy. and i want you to emphasize thes",
+    "thus says the lord your redeemer, the holy one of israel: \"i",
+    "we may take great comfort from considering that, god stands ",
+    "welcome poor men and strangers to your homely board, that wi",
+    "what children are to be at a more advanced age, depends on t",
+    "which of you, if his son asks for bread, will give him a sto",
+    "yet you are our father, though abraham does not know us and ",
+    "your sons will succeed your fathers; you will make them prin",
+    "youth is an ocean of dangers. within, without, on every side",
+    "• key idea: as overseers, we build christian hearth and home",
+    "• key idea: as priests, we will nurture our children in god'",
+    "• key idea: as protectors, we will entrust our family to the",
+    "• key idea: as shepherds, we will lead our children as god s",
+    "• key idea: as stewards, we will pass on the faith of our fa",
+    "• key idea: as teachers, we will instruct our household in t",
+    "• morning reading: learning the practice of spiritual readin",
+    "• project review• celebrations and struggles• worship and tr"
+  ],
+  "citation_set": [
+    "1 corinthians 14:40",
+    "1 samuel 1:27-28",
+    "1 samuel 2:4-5",
+    "1 thessalonians 1:6-8",
+    "1 timothy 3:14-16",
+    "10:30 amfamily activity 1",
+    "10:30 ampack up and departure",
+    "119 × 162 cm. the metropolitan museum of art.",
+    "12:00 pmfamily lunch",
+    "1884. oil on canvas, 67 × 126 cm. museo soumaya.",
+    "1:30 pmmidday family devotions",
+    "2 corinthians 6:18",
+    "2:00 pmmentoring session 2",
+    "3:00 pmarrival and setup",
+    "3:00 pmfamily activity 2",
+    "5:00 amfamily dinner",
+    "5:00 pmfamily dinner",
+    "6:30 pmcommunity fellowship and singing",
+    "7:00 amwakeup and breakfast preparation",
+    "8:00 amfamily breakfast",
+    "8:00 pmevening family devotions",
+    "9:00 ammorning family devotions",
+    "9:00 pmbedtime",
+    "9:30 ammentoring session 1",
+    "a friend loves at all times, and a brother is born for adver",
+    "alexander maclaren, expositions of holy scripture",
+    "andrew murray, the children for christ",
+    "august",
+    "between the ages: nurturing faith in the next generation",
+    "bruegel, pieter. peasant wedding. 1568. oil on oak",
+    "brueghel, pieter. the harvesters. 1565. oil on panel,",
+    "building",
+    "but everything must be done in a proper and orderly manner.",
+    "but you, o lord, sit enthroned forever; your renown endures ",
+    "c. h. spurgeon, \"a bundle of myrrh\"",
+    "canvas, 45.5 × 41 cm. rĳksmuseum.",
+    "canvas, 46 × 57.5 cm. private collection.",
+    "canvas, 82 × 70.5 cm. rĳksmuseum.",
+    "catechism",
+    "celebration",
+    "ceremony",
+    "charles bridges, proverbs",
+    "charles spurgeon, \"peter's prayer\"",
+    "charles spurgeon, \"the fatherhood of god\"",
+    "charles spurgeon, lectures to my students",
+    "community",
+    "concluding the rite of passage with a time of celebration an",
+    "conclusionfor the world: leaving a legacy in society",
+    "confession",
+    "cotton mather, a family well-ordered",
+    "da castelfranco, giorgione. the three ages. 1500.",
+    "daily devotionals",
+    "deuteronomy 10:12-13",
+    "discipline strategies",
+    "exodus 13:1-2",
+    "family code",
+    "family convictions",
+    "family creed",
+    "family mission reflection questions",
+    "family mission statement",
+    "family vision reflection questions",
+    "family vision statement",
+    "february",
+    "for the world: leaving a legacy in society",
+    "friday",
+    "g. k. chesterton, \"new witness\"",
+    "gardiner spring, hints to parents",
+    "george müller, a brief narrative",
+    "george müller, george müller of bristol",
+    "george swinnock, the christian man's calling",
+    "gogh, vincent van. first steps. 1890. oil on canvas, 72.4",
+    "gregory nazianzen, orations",
+    "h. c. g. moule, ephesian studies",
+    "hebrews 12:1",
+    "hebrews 13:1-2",
+    "homes of holy testimony: homebuilding in the household of fa",
+    "homestead: practicing parental duty in the outdoors",
+    "horatius bonar, follow the lamb",
+    "house rules",
+    "how people might describe our home now",
+    "in the fear of god: instructing children in godliness",
+    "in the presence of god: being fully devoted to the lord",
+    "intellectual objectives",
+    "introduction",
+    "isaiah 21:8",
+    "isaiah 48:17-18",
+    "isaiah 63:16",
+    "j. c. ryle, how should a child be trained?",
+    "j. c. ryle, the duties of parents",
+    "james w. alexander, thoughts on family worship",
+    "januaryapril",
+    "jeremiah 10:23-24",
+    "jeremiah 23:4",
+    "jeremiah 30:11",
+    "jeremiah 31:20",
+    "jerome, letters",
+    "job 1:5",
+    "joel 1:2-3",
+    "john hall, a christian home",
+    "john wesley, explanatory notes upon the old testament",
+    "jonathan edwards, farewell sermon",
+    "jonathan edwards, sermon",
+    "joseph alleine, the voice of god",
+    "joshua 24:15",
+    "julyoctober",
+    "june",
+    "learning plan",
+    "march",
+    "martin luther, treatise on good works",
+    "matthew 11:25-26",
+    "matthew 7:24-27",
+    "matthew 7:9-11",
+    "matthew henry, commentary",
+    "may",
+    "memorization",
+    "micah 5:4",
+    "millet, jean-françois. the angelus. 1859 1857. oil",
+    "monday",
+    "mutual encouragement",
+    "near to those who call on him: cultivating intimacy with god",
+    "no longer two: receiving children as gifts from god",
+    "notes",
+    "november",
+    "numbers 33:1-2",
+    "oil on canvas, 61 × 45.7 cm.",
+    "oil on panel, 62 × 77 cm. palazzo pitti.",
+    "on canvas, 55.5 cm × 66 cm. musée d'orsay.",
+    "outdoor experiences",
+    "over the flock: tending to our children like shepherds",
+    "panel, 113 × 164 cm. kunsthistorisches museum.",
+    "personal testimony",
+    "philip bennet power, the sick man's comfort book",
+    "physical objectives",
+    "prayers",
+    "proverbs 17:17",
+    "proverbs 19:23",
+    "proverbs 4:10-11",
+    "proverbs 4:5-6",
+    "psalm 100:3",
+    "psalm 102:12",
+    "psalm 135:19-21",
+    "psalm 144:12",
+    "psalm 145:17-19",
+    "psalm 1:1-3",
+    "psalm 28:9",
+    "psalm 45:16-17",
+    "psalm 79:13",
+    "relational objectives",
+    "reporting on god's work in your life.",
+    "richard baxter, the duties of parents",
+    "richard sibbes, the bruised reed",
+    "samuel phillips, the christian home",
+    "saturday",
+    "scripture reading",
+    "septemberdecember",
+    "session 1",
+    "session 2",
+    "session 3",
+    "session 4",
+    "session 5",
+    "session 6",
+    "sharing your commitment to take responsibility in life and f",
+    "songs",
+    "source: gogh, vincent van. shepherd with a flock of sheep.",
+    "spiritual objectives",
+    "steen, jan. grace before meat. 1660. oil on",
+    "steen, jan. the feast of st. nicholas. 1663. oil on",
+    "sunday",
+    "the characteristics we want to define our home",
+    "the child is father of the man.",
+    "the things we want to be most important to us",
+    "thomas adams, works",
+    "thomas watson, the ten commandments",
+    "thursday",
+    "titus 3:8",
+    "tuesday",
+    "under god's protection: godly discipline and divine protecti",
+    "vermeer, johannes. the milkmaid. 1660. oil on",
+    "wednesday",
+    "what we give most of our time and money to now",
+    "william wordsworth, \"my heart leaps up\"",
+    "wisdom principles",
+    "zampighi, eugenio. playing with baby. 1880.",
+    "× 91.2 cm. metropolitan museum of art.",
+    "• discipline and mission• life spheres• general reflections",
+    "• homemaking• hearth building• shepherd's carry",
+    "• key idea: as for me and my house, we will serve the lord.",
+    "• key idea: our home belongs to the lord. • biblical explora",
+    "• table setting• night vigil"
+  ],
+  "verse_map": {
+    "1": [
+      "Be thou my vision,",
+      "O Lord of my heart;",
+      "Naught be all else to me",
+      "Save that thou art.",
+      "Thou my best thought",
+      "By day and by night;",
+      "Waking or sleeping, thy presence",
+      "My light."
+    ],
+    "3": [
+      "Riches I heed not,",
+      "Nor vain, empty praise;",
+      "Thou mine inheritance,",
+      "Now and always.",
+      "Thou and thou only,",
+      "First in my heart,",
+      "High King of Heaven,",
+      "My treasure thou art."
+    ],
+    "2": [
+      "Be thou my wisdom,",
+      "And thou my true Word;",
+      "I ever with thee",
+      "And thou with me, Lord.",
+      "Thou my great Father,",
+      "I thy dear child;",
+      "Thou in me dwelling,",
+      "With thee reconciled."
+    ],
+    "4": [
+      "High King of Heaven,",
+      "My victory won,",
+      "May I reach Heaven’s joys,",
+      "O bright Heav’ns Sun!",
+      "Heart of my heart,",
+      "Whatever befall,",
+      "Still be my vision,",
+      "O Ruler of all"
+    ],
+    "5": [
+      "Those who his gracious cov’nant",
+      "keep",
+      "The Lord will ever bless;",
+      "Their children’s children shall rejoice",
+      "To see his righteousness."
+    ],
+    "6": [
+      "When desolation, like a flood,",
+      "O’er the proud sinner rolls,",
+      "Saints find a refuge in their God,",
+      "For He redeemed their souls."
+    ]
+  },
+  "callout_texts": [
+    "What a wonderful and demanding parental vocation: calling children Godward in faith and sending them into the world to suffer as right-eous followers of Jesus who take refuge in God.",
+    "In many ways, parenting amounts to preparing our children to live faithfully in a dangerous world—a world rife with dark valleys, deadly shadows, evil forces, and hostile enemies.",
+    "While parents need spiritual vigilance in order to rightly parent their children in a godless society, they also need childlike faith to entrust themselves to God’s safekeeping.",
+    "A godly home fosters a sense of justice in its collective consciousness such that it exerts the influence of its countercultural lifestyle on the surrounding world.",
+    "The fear of the Lord establishes a hearty and unfeigned faith in God that outfits our growing children to withstand unspeakable pain and difficulty.",
+    "Godly parents aim for children to experience God for themselves in all his glory, his goodness, his righteousness, and his gracious deliverance.",
+    "While parents raise their children in the midst of a godless society, they also do battle against he depraved and self-promoting human heart.",
+    "Building home is like planting and cultivating a garden where seeds of infants and sprout, grow, blossom, and bear fruit for righteousness.",
+    "The personal heritage and blessing that is a godly family is also a redemptive blessing and spiritual influence to our fallen world.",
+    "Through the family, society is shaped, the community is formed, the church is established, and the generations build God’s kingdom.",
+    "The Christian family is designed by God to incubate a countercultural lifestyle of biblical belief, godly living, and holy justice.",
+    "Genuine faith in God that is expressed in a holy fear of God results in deep, dynamic, and enduring change in life and character.",
+    "Building hearth and home is set within the larger endeavor of establishing God’s people and securing the best for larger society.",
+    "The aim of parenting is to release the next generation into the world, rooted in uncompromising godliness and fervent faith.",
+    "A well-ordered home aligned after God’s design is one of our greatest testimonies in and defenses against a godless society.",
+    "Building a godly household is one of the main ways we can have influence in God’s covenant people and in surrounding world.",
+    "Christian homes that are secure in God’s stronghold can in turn become a safe haven for the needy and helpless around them.",
+    "God nurtures and uplifts, feeds and encourages, and nourishes and rejuvenates. He sustains body and fortifies soul.",
+    "Homebuilding in piety—encouraging genuine faith in and earnest obedience to God—can have a generational impact.",
+    "A child dedicated in each Christian home must ultimately be devoted to the Christ child dedicated in Jerusalem.",
+    "But God is more than just our parenting pattern. He is the safety and security to which all godly families run.",
+    "For all believers, to be devoted to God is to be dedicated to God’s people. One cannot exist without the other.",
+    "Childrearing is not ultimately a matter of deference to parental authority, but of fostering devotion to God.",
+    "Done according to God’s design, few vocations like Christian homebuilding make a greater impact in the world.",
+    "In order to build Christian hearth and home in a godly way, we must be grounded in godly purpose and mission",
+    "The personal faith of the individual members of a household make up the real collective character of a home.",
+    "In his revolt against the Lord, the prince of darkness marks the household as one of his most hated targets.",
+    "Parents serve their family by cultivating habits of worship early on in the lives of their children.",
+    "Godly parenting in the fear of the Lord teaches children to relish the Lord as much as revere him.",
+    "Our faithful presence with our children can be one of our greatest ministry modes to our children.",
+    "Faith formation in the home and in the faith community aims to nurture people in devotion to God.",
+    "We often indirectly “pick up” as much from our family culture as we do from direct instruction.",
+    "The redemptive story faithfully recorded in the Bible is the faith heritage of every believer.",
+    "The Christian family is the glad beneficiary of the faith from saints in prior generations.",
+    "Christian homebuilding is a matter of establishing our homes on the foundation of Christ.",
+    "A faithful shepherd, God leads his people securely from this life into the world to come.",
+    "Parenting work done in a shepherding mode emulates God himself—the Shepherd of shepherds",
+    "Parents are best caretakers of their children by being faithful custodians of the truth.",
+    "Holiness and intimacy enjoyed between husband and wife irrigate the garden of the home.",
+    "Our very first acts as Christian parents should not be child-centric but God-focused.",
+    "God’s compassion for his people is the great pattern and power of all parental love.",
+    "Christian hearth-building must be set within the context of the faith community.",
+    "It is in the home where children first learn what healthy relationships entail.",
+    "At its core, parenting is a work of faith development and moral formation.",
+    "Comfort is found in God’s safeguarding rod and his corrective staff.",
+    "Parenting work is buoyed by a life of vibrant worship to the Lord.",
+    "God’s care for us is our model and means to care for our children.",
+    "Relationship with God best outfits us for our parenting vocation.",
+    "When God forms a family, he invites us to cultivate a home.",
+    "Parents are frontline workers in faith formation."
+  ],
+  "inline_bold": [
+    [
+      "will lead our children as God shepherds us.",
+      "will lead our children as God shepherds us. As teachers, we will"
+    ],
+    [
+      "for the sake of the world! Amen and amen!",
+      "for the sake of the world! Amen and amen!"
+    ],
+    [
+      "our household in the fear of the Lord.",
+      "our household in the fear of the Lord. As protectors, we will entrust"
+    ],
+    [
+      "As protectors, we will entrust our",
+      "household in the fear of the Lord. As protectors, we will entrust our"
+    ],
+    [
+      "family to the God’s safekeeping.",
+      "family to the God’s safekeeping. As overseers, we will build"
+    ],
+    [
+      "experienced God’s tender care",
+      "• These are ways I have experienced God’s tender care..."
+    ],
+    [
+      "As teachers, we will instruct",
+      "lead our children as God shepherds us. As teachers, we will instruct"
+    ],
+    [
+      "Listening to God’s Discipline",
+      "4. Listening to God’s Discipline: What areas of your life do you need"
+    ],
+    [
+      "As overseers, we will build",
+      "family to the God’s safekeeping. As overseers, we will build"
+    ],
+    [
+      "Thanking God for Progress",
+      "2. Thanking God for Progress: What godly characteristics of God's"
+    ],
+    [
+      "• Reflecting on Your Past",
+      "• Reflecting on Your Past: Did you worship God together as a"
+    ],
+    [
+      "• Reflecting on Your Past",
+      "• Reflecting on Your Past: Did you family of upbringing have a clear"
+    ],
+    [
+      "• Reflecting on Your Past",
+      "• Reflecting on Your Past: How would you describe your"
+    ],
+    [
+      "• Reflecting on Your Past",
+      "• Reflecting on Your Past: What was discipline like in your"
+    ],
+    [
+      "• Reflecting on Your Past",
+      "• Reflecting on Your Past: What traditions did you have growing?"
+    ],
+    [
+      "• Reflecting on Your Past",
+      "• Reflecting on Your Past: How would you describe the culture of"
+    ],
+    [
+      "• Anticipating the Future",
+      "• Anticipating the Future: What are some of your greatest concerns"
+    ],
+    [
+      "• Intellectual Objectives",
+      "• Intellectual Objectives: Goals for knowledge, understanding, and"
+    ],
+    [
+      "Wrong Views of Discipline",
+      "2. Wrong Views of Discipline: What are wrong views of discipline"
+    ],
+    [
+      "• Discussing Core Values",
+      "• Discussing Core Values: What values do you want to define your"
+    ],
+    [
+      "• Discussing Core Values",
+      "• Discussing Core Values: What core principles do you want to guide"
+    ],
+    [
+      "• Discussing Core Values",
+      "• Discussing Core Values: How will you tradition your children in"
+    ],
+    [
+      "• Discussing Core Values",
+      "• Discussing Core Values: What key practices do you want to be in"
+    ],
+    [
+      "• Discussing Core Values",
+      "• Discussing Core Values: What is most important to you as you"
+    ],
+    [
+      "noteworthy observations",
+      "1. What key takeaways, noteworthy observations, or biblical truths"
+    ],
+    [
+      "• Relational Objectives",
+      "• Relational Objectives: Goals for relationships, friendships, and"
+    ],
+    [
+      "Surrounding Godlessness",
+      "1. Surrounding Godlessness: What evil and wickedness oppose God"
+    ],
+    [
+      "Surrounding Godlessness",
+      "1. Surrounding Godlessness: How does this psalm describe the evil"
+    ],
+    [
+      "Surrounding Godlessness",
+      "1. Surrounding Godlessness: What evil in the surrounding world most"
+    ],
+    [
+      "• Discipline Strategies",
+      "• Discipline Strategies: The means by which you will restoratively"
+    ],
+    [
+      "Praising God as Father",
+      "1. Praising God as Father: What characteristics of God’s fatherly care"
+    ],
+    [
+      "God’s Shepherding Care",
+      "1. God’s Shepherding Care: How have you experienced God’s"
+    ],
+    [
+      "• Spiritual Objectives",
+      "• Spiritual Objectives: Goals for faith, character, and godly"
+    ],
+    [
+      "Relationship with Kids",
+      "5. Relationship with Kids: How well are you connected and bonded to"
+    ],
+    [
+      "personal applications",
+      "3. What personal applications most challenged you? How do you"
+    ],
+    [
+      "Covenant Relationship",
+      "4. Covenant Relationship: How is our own relationship with God"
+    ],
+    [
+      "Covenant Relationship",
+      "4. Covenant Relationship: What is a covenant? Why is it important"
+    ],
+    [
+      "Covenant Relationship",
+      "4. Covenant Relationship: How will you cultivate your walk with"
+    ],
+    [
+      "Seeking Growing Faith",
+      "4. Seeking Growing Faith: How can you adjust your parenting to"
+    ],
+    [
+      "• Physical Objectives",
+      "• Physical Objectives: Goals for body, health, skills, and"
+    ],
+    [
+      "complement each other",
+      "your spouse complement each other?"
+    ],
+    [
+      "Previous Generations",
+      "1. Previous Generations: How have you been impacted by previous"
+    ],
+    [
+      "• Family Convictions",
+      "• Family Convictions: The timeless, biblical truths that guide our"
+    ],
+    [
+      "lingering questions",
+      "2. What lingering questions do you have about this session’s topic?"
+    ],
+    [
+      "Shepherds and Sheep",
+      "1. Shepherds and Sheep: How does this passage describe God’s"
+    ],
+    [
+      "Character Formation",
+      "3. Character Formation: What does it look like to instruct children in"
+    ],
+    [
+      "Character Formation",
+      "3. Character Formation: How does this psalm describe the person"
+    ],
+    [
+      "Character Formation",
+      "3. Character Formation: How well are your children growing in"
+    ],
+    [
+      "Righteous Suffering",
+      "4. Righteous Suffering: How should the righteous suffer? How picture"
+    ],
+    [
+      "Righteous Suffering",
+      "4. Righteous Suffering: How well do you endure suffering? What"
+    ],
+    [
+      "Righteous Suffering",
+      "4. Righteous Suffering: Are your children being prepared to face"
+    ],
+    [
+      "Righteous Suffering",
+      "4. Righteous Suffering: What does it look like to parent preparing"
+    ],
+    [
+      "• Wisdom Principles",
+      "• Wisdom Principles: The wisdom teachings that inform our"
+    ],
+    [
+      "Personal Assessment",
+      "4. Personal Assessment: What priorities and values are misaligned in"
+    ],
+    [
+      "Personal Assessment",
+      "4. Personal Assessment: How is your personal relationship with the"
+    ],
+    [
+      "Personal Assessment",
+      "4. Personal Assessment: Are you focused on serving God’s mission in"
+    ],
+    [
+      "Personal Assessment",
+      "4. Personal Assessment: What gaps do you have in your own fear of"
+    ],
+    [
+      "Personal Assessment",
+      "4. Personal Assessment: What is God revealing in your own life that"
+    ],
+    [
+      "Personal Assessment",
+      "4. Personal Assessment: How is your marriage? Are you on same"
+    ],
+    [
+      "Surrounding Culture",
+      "4. Surrounding Culture: What cultural pressures are exerting"
+    ],
+    [
+      "Parallel Passages:",
+      "Parallel Passages: 1 Kings 5:1–6:38; 7:1–12; 8:22–66; 1 Chronicles"
+    ],
+    [
+      "Parallel Passages:",
+      "Parallel Passages: Psalm 136:1–26; Matthew 5:43–48; 6:25–34; John"
+    ],
+    [
+      "Parallel Passages:",
+      "Parallel Passages: Exodus 13:1–16; Deuteronomy 6:20–25; Joshua 24:1–"
+    ],
+    [
+      "Shepherd and Sheep",
+      "1. Shepherd and Sheep: How is parenting work like the work of a"
+    ],
+    [
+      "Shepherd and Sheep",
+      "1. Shepherd and Sheep: Which aspects of shepherds and sheep most"
+    ],
+    [
+      "Models of Maturity",
+      "2. Models of Maturity: How happy would you be if your character"
+    ],
+    [
+      "Personal Appetites",
+      "3. Personal Appetites: How are you tasting God’s goodness? What"
+    ],
+    [
+      "God-Given Heritage",
+      "2. God-Given Heritage: How are your children a heritage from the"
+    ],
+    [
+      "• Overarching Idea",
+      "• Overarching Idea: Transformative impact and outcomes"
+    ],
+    [
+      "• Overarching Idea",
+      "• Overarching Idea: Underlying purpose and drive"
+    ],
+    [
+      "• Time Orientation",
+      "• Time Orientation: Focuses on your family’s underlying"
+    ],
+    [
+      "• Time Orientation",
+      "• Time Orientation: Focuses on the hopes and prospects for"
+    ],
+    [
+      "Current Evaluation",
+      "2. Current Evaluation: What influences are shaping your family and"
+    ],
+    [
+      "Current Evaluation",
+      "2. Current Evaluation: Would you describe your home as a place of"
+    ],
+    [
+      "Current Evaluation",
+      "2. Current Evaluation: What discipline challenges are you facing in"
+    ],
+    [
+      "Current Evaluation",
+      "2. Current Evaluation: How would you describe the current culture of"
+    ],
+    [
+      "Current Evaluation",
+      "2. Current Evaluation: What do you want to be the mission of your"
+    ],
+    [
+      "Current Evaluation",
+      "2. Current Evaluation: What are some of our current goals for your"
+    ],
+    [
+      "current struggles",
+      "• These verses comforted me with my current struggles…"
+    ],
+    [
+      "Stewards of Truth",
+      "1. Stewards of Truth: How was the faith passed on to you (or not) from"
+    ],
+    [
+      "Stewards of Truth",
+      "1. Stewards of Truth: Why is it important for Christian parents to view"
+    ],
+    [
+      "Stewards of Truth",
+      "1. Stewards of Truth: How does this psalm describe the truth? What is"
+    ],
+    [
+      "Passing the Faith",
+      "2. Passing the Faith: How committed are you to pass the faith and"
+    ],
+    [
+      "Parallel Passages",
+      "Parallel Passages: Psalm 91:1–16; Proverbs 29:15, 17; Ecclesiastes"
+    ],
+    [
+      "Parallel Passages",
+      "Parallel Passages: Psalm 15:1–5; 2 Corinthians 6:14–7:1; 2 Timothy"
+    ],
+    [
+      "Parallel Passages",
+      "Parallel Passages: 1 Chronicles 11:1–3; Jeremiah 23:1–4; Ezekiel"
+    ],
+    [
+      "Danger and Threat",
+      "1. Danger and Threat: What do you most fear? What dangers and"
+    ],
+    [
+      "Spiritual Growth",
+      "4. Spiritual Growth: What responsibility do parents have to foster"
+    ],
+    [
+      "Spiritual Growth",
+      "4. Spiritual Growth: How would you evaluate the spiritual growth of"
+    ],
+    [
+      "Spiritual Growth",
+      "4. Spiritual Growth: How did Jesus grow and mature over the course"
+    ],
+    [
+      "grow in my faith",
+      "• These verses challenged me to grow in my faith…"
+    ],
+    [
+      "As shepherds, we",
+      "stewards, we will pass on the faith of our fathers. As shepherds, we"
+    ],
+    [
+      "Shepherding Care",
+      "3. Shepherding Care: Which aspects of parenting as a shepherd do"
+    ],
+    [
+      "Shepherding Care",
+      "3. Shepherding Care: How does this passage describe shepherding"
+    ],
+    [
+      "Shepherding Care",
+      "3. Shepherding Care: How does a shepherd’s work inform and inspire"
+    ],
+    [
+      "Godly Discipline",
+      "2. Godly Discipline: What role should discipline have in raising our"
+    ],
+    [
+      "Godly Discipline",
+      "2. Godly Discipline: What is your approach to godly discipline? How"
+    ],
+    [
+      "Godly Discipline",
+      "2. Godly Discipline: How does God discipline his people? What is the"
+    ],
+    [
+      "Godly Protection",
+      "3. Godly Protection: How is God a protection for his people? What"
+    ],
+    [
+      "Godly Protection",
+      "3. Godly Protection: How should parents function as protectors of"
+    ],
+    [
+      "Godly Protection",
+      "3. Godly Protection: How have you aimed to make God your ultimate"
+    ],
+    [
+      "God’s Discipline",
+      "3. God’s Discipline: How have you experienced the Lord’s discipline"
+    ],
+    [
+      "As for me and my",
+      "hearth and home as a heritage from the Lord. As for me and my"
+    ],
+    [
+      "Family Devotion",
+      "1. Family Devotion: How dedicated were Jesus’ parents to God? What"
+    ],
+    [
+      "Family Devotion",
+      "1. Family Devotion: How does the health and godliness of a marriage"
+    ],
+    [
+      "Family Devotion",
+      "1. Family Devotion: During your upbringing, how devoted was your"
+    ],
+    [
+      "Faith Community",
+      "2. Faith Community: Why is it important for families to be devoted to"
+    ],
+    [
+      "Faith Community",
+      "2. Faith Community: What do we learn about the the covenant"
+    ],
+    [
+      "Faith Community",
+      "2. Faith Community: How committed is your family to the church"
+    ],
+    [
+      "biblical truths",
+      "1. What key takeaways, noteworthy observations, or biblical truths"
+    ],
+    [
+      "Prayer for Help",
+      "3. Prayer for Help: What godly characteristics of God's fatherly care"
+    ],
+    [
+      "Devotion to God",
+      "3. Devotion to God: Are you growing in confidence of God? How"
+    ],
+    [
+      "Devotion to God",
+      "4. Devotion to God: How does this biblical passage describe what devo-"
+    ],
+    [
+      "Devotion to God",
+      "4. Devotion to God: How can we tell when the faith has been passed on"
+    ],
+    [
+      "Devotion to God",
+      "2. Devotion to God: Do you have an “unless the Lord” mentality?"
+    ],
+    [
+      "Devotion to God",
+      "2. Devotion to God: How do these passages describe devotion to God?"
+    ],
+    [
+      "Devotion to God",
+      "2. Devotion to God: How can parents display their devotion to God in"
+    ],
+    [
+      "Devotion to God",
+      "4. Devotion to God: How will your parenting nurture devotion to God?"
+    ],
+    [
+      "Divine Shepherd",
+      "4. Divine Shepherd: How does God shepherd his people? How does"
+    ],
+    [
+      "Divine Shepherd",
+      "4. Divine Shepherd: How has God been a shepherd to you? How do"
+    ],
+    [
+      "Divine Shepherd",
+      "4. Divine Shepherd: How are parents like sheep more than they are"
+    ],
+    [
+      "• Learning Plan",
+      "• Learning Plan: A concrete and measurable plan to achieve scripted"
+    ],
+    [
+      "Personal Change",
+      "3. Personal Change: What needs to change in your own life so you"
+    ],
+    [
+      "Past Reflection",
+      "1. Past Reflection: How much did you family worship God together?"
+    ],
+    [
+      "Past Reflection",
+      "1. Past Reflection: How were you disciplined when you grew up? Do"
+    ],
+    [
+      "Past Reflection",
+      "1. Past Reflection: What role did you parents have in your formation"
+    ],
+    [
+      "Past Reflection",
+      "1. Past Reflection: What traditions shaped your family life? What do"
+    ],
+    [
+      "Past Reflection",
+      "1. Past Reflection: What was your home like when you were growing"
+    ],
+    [
+      "Past Reflection",
+      "1. Past Reflection: In your upbringing, did you have a compelling"
+    ],
+    [
+      "God’s Promises",
+      "3. God’s Promises: How does this narrative highlight the importance"
+    ],
+    [
+      "God’s Promises",
+      "3. God’s Promises: How often do you speak about Christ and the"
+    ],
+    [
+      "God’s Promises",
+      "3. God’s Promises: How important are God’s promises for building"
+    ],
+    [
+      "Family Worship",
+      "1. Family Worship: Did you grow up in a family that worshiped God"
+    ],
+    [
+      "Family Worship",
+      "1. Family Worship: Why is worship so central to family life and"
+    ],
+    [
+      "Family Worship",
+      "1. Family Worship: How does this psalm worship God? What reasons"
+    ],
+    [
+      "• Family Creed",
+      "• Family Creed: Summary of Biblical Values to Define Our Family"
+    ],
+    [
+      "Raising Adults",
+      "4. Raising Adults: How does your role as a parent change as you think"
+    ],
+    [
+      "• Key Question",
+      "• Key Question: Where are you going?"
+    ],
+    [
+      "• Key Question",
+      "• Key Question: Why do you exist?"
+    ],
+    [
+      "responsibility",
+      "2. What did it teach you about your responsibility to order your home?"
+    ],
+    [
+      "Family Culture",
+      "6. Family Culture : How are the relationships within your family?"
+    ],
+    [
+      "other members",
+      "How can I pray for other members of my community?"
+    ],
+    [
+      "Fatherly Love",
+      "2. Fatherly Love: How does this psalm describe God as a loving"
+    ],
+    [
+      "Fatherly Love",
+      "2. Fatherly Love: What wrong perspectives of God as Father need to"
+    ],
+    [
+      "Fatherly Love",
+      "2. Fatherly Love: How is God’s love for his people an example for us"
+    ],
+    [
+      "Fatherly Care",
+      "3. Fatherly Care: How would you want to grow in your care for your"
+    ],
+    [
+      "Fatherly Care",
+      "3. Fatherly Care: How does this psalm describe God’s care for his"
+    ],
+    [
+      "Fatherly Care",
+      "3. Fatherly Care: How can we care for our children like God cares for"
+    ],
+    [
+      "Parental Care",
+      "2. Parental Care: How much of your upbringing was under the care of"
+    ],
+    [
+      "Looking Ahead",
+      "3. Looking Ahead: Which aspects of parenting as a shepherd most"
+    ],
+    [
+      "• House Rules",
+      "• House Rules: The basic guidelines for conduct and family life that"
+    ],
+    [
+      "• Family Code",
+      "• Family Code: The rule of life or code of ethic that defines and"
+    ],
+    [
+      "Thriving Home",
+      "1. Thriving Home: What is your vision of a thriving and flourishing"
+    ],
+    [
+      "Future Vision",
+      "3. Future Vision: What would you like to see three or four generations"
+    ],
+    [
+      "Future Vision",
+      "3. Future Vision: What do you hope your children are like by the time"
+    ],
+    [
+      "Future Vision",
+      "3. Future Vision: What are some of your greatest fears about the"
+    ],
+    [
+      "Future Vision",
+      "3. Future Vision: What would be your vision for becoming a family"
+    ],
+    [
+      "Future Vision",
+      "3. Future Vision: What do you want your children to say about your"
+    ],
+    [
+      "Future Vision",
+      "3. Future Vision: What characteristics would you like to define your"
+    ],
+    [
+      "shortcomings",
+      "• These verses convicted me of my shortcomings…"
+    ],
+    [
+      "Homebuilding",
+      "1. Homebuilding: What do these psalms have to say about"
+    ],
+    [
+      "Homebuilding",
+      "1. Homebuilding: Do you view Christian homebuilding as meaningful"
+    ],
+    [
+      "Homebuilding",
+      "1. Homebuilding: What is homebuilding? What is it meaningful work?"
+    ],
+    [
+      "successfully",
+      "1. How successfully did you complete this activity? What challenges did you"
+    ],
+    [
+      "Key Passage",
+      "Key Passage: Psalm 78:1–72"
+    ],
+    [
+      "Key Passage",
+      "Key Passage: Psalm 23:1–6"
+    ],
+    [
+      "Key Passage",
+      "Key Passage: Psalm 127:1–5; 128:1–6"
+    ],
+    [
+      "Key Passage",
+      "Key Passage: Psalm 103:1–22"
+    ],
+    [
+      "Key Passage",
+      "Key Passage: Psalm 34:1–22"
+    ],
+    [
+      "Key Passage",
+      "Key Passage: Psalm 94:1–23"
+    ],
+    [
+      "Generations",
+      "2. Generations: How should we think about previous and future gener-"
+    ],
+    [
+      "Generations",
+      "2. Generations: As you think about the previous generations (and your"
+    ],
+    [
+      "Generations",
+      "2. Generations: How did God’s ancient people think about previous and"
+    ],
+    [
+      "appreciated",
+      "This is what I appreciated about my upbringing…"
+    ],
+    [
+      "Sheep Needs",
+      "2. Sheep Needs: What needs do sheep have? What dangers,"
+    ],
+    [
+      "Sheep Needs",
+      "2. Sheep Needs: What dangers, difficulties, or basic necessities do"
+    ],
+    [
+      "Sheep Needs",
+      "2. Sheep Needs: What are the specific needs of your children? How"
+    ],
+    [
+      "Fear of God",
+      "1. Fear of God: How well are you embracing the fear of God in your"
+    ],
+    [
+      "Fear of God",
+      "2. Fear of God: What is the fear of God? Why should teaching"
+    ],
+    [
+      "Fear of God",
+      "2. Fear of God: What is most of your parental instruction about? Is"
+    ],
+    [
+      "Fear of God",
+      "2. Fear of God: How does this psalm describe fear? How does the fear"
+    ],
+    [
+      "• Elements",
+      "• Elements: Includes sphere of influence, strategic efforts, and"
+    ],
+    [
+      "• Elements",
+      "• Elements: Includes unique contribution, driving cause, and"
+    ],
+    [
+      "challenges",
+      "1. How successfully did you complete this activity? What challenges did you"
+    ],
+    [
+      "Part Three",
+      "In Part Three of this rite of passage, you will share your learning with"
+    ],
+    [
+      "the Lord.",
+      "the Lord. As priests, we will nurture our children in God’s fatherly"
+    ],
+    [
+      "takeaways",
+      "1. What key takeaways, noteworthy observations, or biblical truths"
+    ],
+    [
+      "Community",
+      "3. Community: In ancient Israel, what role did the faith community"
+    ],
+    [
+      "Community",
+      "3. Community: How will you make your parenting intergenerational"
+    ],
+    [
+      "Community",
+      "3. Community: What is the role of the community in faith formation?"
+    ],
+    [
+      "did wrong",
+      "This is what I did wrong in my upbringing…"
+    ],
+    [
+      "Blessings",
+      "3. Blessings: What blessings do Christian parents hope for? How are"
+    ],
+    [
+      "Blessings",
+      "3. Blessings: How have you experienced God’s blessing and favor in"
+    ],
+    [
+      "Blessings",
+      "3. Blessings: What blessings to godly families enjoy?"
+    ],
+    [
+      "Part Four",
+      "In Part Four of this rite of passage, you are given blank space for your"
+    ],
+    [
+      "Part One",
+      "In Part One of this rite of passage, you will study selected psalms that"
+    ],
+    [
+      "Part Two",
+      "In Part Two of this rite of passage, you and your community of parents"
+    ],
+    [
+      "Marriage",
+      "3. Marriage: How is your marriage? How can you tend to your"
+    ],
+    [
+      "fragile",
+      "• These are ways that I am fragile and weak..."
+    ],
+    [
+      "changed",
+      "This is what I would have changed about my upbringing…"
+    ],
+    [
+      "Mentors",
+      "4. Mentors: How can you make your own faith development more"
+    ],
+    [
+      "Worship",
+      "1. Worship: What actions can foster your home in the worship of God?"
+    ],
+    [
+      "Worship",
+      "1. Worship: Why is worship so important to the life of faith and to"
+    ],
+    [
+      "Worship",
+      "1. Worship: How does this psalm describe worship of God?"
+    ],
+    [
+      "unified",
+      "3. How unified were you and your spouse in this task? How well did you and"
+    ],
+    [
+      "Reader",
+      "Reader: “The One who scattered Israel will gather them and keep"
+    ],
+    [
+      "Reader",
+      "Reader:  “They will come and shout for joy on the heights of Zion;"
+    ],
+    [
+      "Reader",
+      "Reader: How can a young man keep his way pure? By guarding it"
+    ],
+    [
+      "Reader",
+      "Reader: The Lord your God carried you, as a man carries his son, all"
+    ],
+    [
+      "Reader",
+      "Reader: Let the saints exult in glory; let them shout for joy upon their"
+    ],
+    [
+      "Reader",
+      "Reader: Now, therefore, fear the Lord and serve Him in sincerity and"
+    ],
+    [
+      "Reader",
+      "Reader:  I have hidden Your word in my heart that I might not sin"
+    ],
+    [
+      "Reader",
+      "Reader: Hallelujah! Sing to the Lord a new song—His praise in the"
+    ],
+    [
+      "Reader",
+      "Reader: Lord, You have been our dwelling place through all"
+    ],
+    [
+      "Reader",
+      "Reader: The words of the Lord are flawless, like silver refined in a"
+    ],
+    [
+      "Reader",
+      "Reader: To fear the Lord is to hate evil; I hate arrogant pride, evil"
+    ],
+    [
+      "Reader",
+      "Reader:  Lift up your hands to the sanctuary and bless the Lord."
+    ],
+    [
+      "Reader",
+      "Reader: The Lord your God, who goes before you, will fight for you,"
+    ],
+    [
+      "Reader",
+      "Reader: Let all the earth fear the Lord; let all the people of the world"
+    ],
+    [
+      "Reader",
+      "Reader: The Lord our God brought us and our fathers out of the land"
+    ],
+    [
+      "Reader",
+      "Reader: Let them praise His name with dancing, and make music to"
+    ],
+    [
+      "Impact",
+      "4. Impact: How do these psalms describe the role of the family in"
+    ],
+    [
+      "Impact",
+      "4. Impact: How can families leave an impact in larger society and"
+    ],
+    [
+      "Impact",
+      "4. Impact: As you think about raising your kids to release them into"
+    ],
+    [
+      "Church",
+      "7. Church: How much of a priority is the church in your family? How"
+    ],
+    [
+      "care.",
+      "care. As stewards, we will pass on the faith of our fathers. As"
+    ],
+    [
+      "World",
+      "8. World: How are you being a witness to surrounding society? Does"
+    ]
+  ],
+  "rotated_subdivisions": [
+    [
+      "Day One",
+      "morning reading",
+      367
+    ],
+    [
+      "Day Two",
+      "morning reading",
+      373
+    ],
+    [
+      "Outdoor Experience One",
+      "homemaking",
+      381
+    ],
+    [
+      "Experience Two: Hearth Building",
+      "hearth building",
+      383
+    ],
+    [
+      "Experience Three: Shepherd’s Carry",
+      "shepherd's carry",
+      385
+    ],
+    [
+      "Experience Four: Table Setting",
+      "table setting",
+      387
+    ],
+    [
+      "Experience Five: Night Vigil",
+      "night vigil",
+      389
+    ],
+    [
+      "Outdoor Experience",
+      "outdoor experience",
+      391
+    ],
+    [
+      "Mentoring Session One",
+      "project review",
+      397
+    ],
+    [
+      "Mentoring Session Two",
+      "celebrations and struggles",
+      399
+    ],
+    [
+      "Mentoring Session Three",
+      "worship and tradition",
+      401
+    ],
+    [
+      "Mentoring Session Four",
+      "value and education",
+      403
+    ],
+    [
+      "Mentoring Session Five",
+      "discipline and mission",
+      405
+    ],
+    [
+      "Mentoring Session Six",
+      "life spheres",
+      407
+    ],
+    [
+      "General Reflections",
+      "general reflections",
+      409
+    ],
+    [
+      "Personal Testimony",
+      "personal testimony",
+      421
+    ],
+    [
+      "Community Confession",
+      "community confession",
+      425
+    ],
+    [
+      "Celebration Ceremony",
+      "celebration ceremony",
+      429
+    ]
+  ],
+  "right_aligned_map": {
+    "daily devotionals 333 outdoor experiences 333 community buil": [
+      "Daily Devotionals",
+      "333",
+      "Outdoor Experiences",
+      "333",
+      "Community Building",
+      "333"
+    ],
+    "july 2024 york, pennsylvania": [
+      "July 2024",
+      "York, Pennsylvania"
+    ],
+    "march 2026 york, pennsylvania": [
+      "March 2026",
+      "York, Pennsylvania"
+    ],
+    "matthew 21:15-16": [
+      "Matthew 21:15–16"
+    ],
+    "psalm 149:1-5": [
+      "Psalm 149:1–5"
+    ],
+    "proverbs 20:7": [
+      "Proverbs 20:7"
+    ],
+    "luke 2:21-40": [
+      "Luke 2:21–40"
+    ],
+    "isaiah 63:16": [
+      "Isaiah 63:16"
+    ],
+    "deuteronomy 1:31": [
+      "Deuteronomy 1:31"
+    ],
+    "proverbs 3:5-6": [
+      "Proverbs 3:5–6"
+    ],
+    "psalm 103:1-22": [
+      "Psalm 103:1–22"
+    ],
+    "psalm 139:23-24": [
+      "Psalm 139:23–24"
+    ],
+    "psalm 25:4-5": [
+      "Psalm 25:4–5"
+    ],
+    "isaiah 64:8": [
+      "Isaiah 64:8"
+    ],
+    "psalm 146:1-10": [
+      "Psalm 146:1–10"
+    ],
+    "psalm 147:1-3": [
+      "Psalm 147:1–3"
+    ],
+    "psalm 24:4-6": [
+      "Psalm 24:4–6"
+    ],
+    "proverbs 17:6": [
+      "Proverbs 17:6"
+    ],
+    "psalm 78:1-72": [
+      "Psalm 78:1–72"
+    ],
+    "psalm 32:1-5": [
+      "Psalm 32:1–5"
+    ],
+    "psalm 63:6-8": [
+      "Psalm 63:6–8"
+    ],
+    "pslam 80:1-3": [
+      "Pslam 80:1–3"
+    ],
+    "jeremiah 31:10-12": [
+      "Jeremiah 31:10–12"
+    ],
+    "proverbs 27:23": [
+      "Proverbs 27:23"
+    ],
+    "psalm 23:1-6": [
+      "Psalm 23:1–6"
+    ],
+    "jeremiah 31:20": [
+      "Jeremiah 31:20"
+    ],
+    "micah 2:12-13": [
+      "Micah 2:12–13"
+    ],
+    "psalm 147:1-11": [
+      "Psalm 147:1–11"
+    ],
+    "hebrews 13:20-21": [
+      "Hebrews 13:20–21"
+    ],
+    "psalm 86:11-12": [
+      "Psalm 86:11–12"
+    ],
+    "proverbs 22:6": [
+      "Proverbs 22:6"
+    ],
+    "psalm 34:1-22": [
+      "Psalm 34:1–22"
+    ],
+    "psalm 118:4-6": [
+      "Psalm 118:4–6"
+    ],
+    "psalm 115:9-13": [
+      "Psalm 115:9–13"
+    ],
+    "ecclesiastes 12:13-14": [
+      "Ecclesiastes 12:13–14"
+    ],
+    "psalm 91:1-2": [
+      "Psalm 91:1–2"
+    ],
+    "psalm 119:9-12": [
+      "Psalm 119:9–12"
+    ],
+    "proverbs 19:18": [
+      "Proverbs 19:18"
+    ],
+    "psalm 94:1-23": [
+      "Psalm 94:1–23"
+    ],
+    "2 timothy 3:16": [
+      "2 Timothy 3:16"
+    ],
+    "isaiah 26:16": [
+      "Isaiah 26:16"
+    ],
+    "psalm 121:1-8": [
+      "Psalm 121:1–8"
+    ],
+    "psalm 32:6-7": [
+      "Psalm 32:6–7"
+    ],
+    "hebrews 3:5-6": [
+      "Hebrews 3:5–6"
+    ],
+    "psalm 134:1-3": [
+      "Psalm 134:1–3"
+    ],
+    "proverbs 24:3-4": [
+      "Proverbs 24:3–4"
+    ],
+    "psalm 127:1-5": [
+      "Psalm 127:1–5"
+    ],
+    "psalm 128:1-6": [
+      "Psalm 128:1–6"
+    ],
+    "matthew 19:13-14": [
+      "Matthew 19:13–14"
+    ],
+    "psalm 148:1-4": [
+      "Psalm 148:1–4"
+    ],
+    "psalm 8:1-2": [
+      "Psalm 8:1–2"
+    ],
+    "joshua 23:6": [
+      "Joshua 23:6"
+    ],
+    "joshua 24:14-17": [
+      "Joshua 24:14–17"
+    ],
+    "psalm 25:5": [
+      "Psalm 25:5"
+    ],
+    "ephesians 6:1-4": [
+      "Ephesians 6:1–4"
+    ],
+    "joshua 1:9": [
+      "Joshua 1:9"
+    ],
+    "psalm 46:10-11": [
+      "Psalm 46:10–11"
+    ],
+    "psalm 62:1": [
+      "Psalm 62:1"
+    ],
+    "psalm 26:11": [
+      "Psalm 26:11"
+    ],
+    "job 23:10": [
+      "Job 23:10"
+    ],
+    "psalm 9:1": [
+      "Psalm 9:1"
+    ],
+    "luke 18:13": [
+      "Luke 18:13"
+    ],
+    "psalm 16:7": [
+      "Psalm 16:7"
+    ],
+    "psalm 4:8": [
+      "Psalm 4:8"
+    ],
+    "psalm 76:28": [
+      "Psalm 76:28"
+    ],
+    "proverbs 3:1-8": [
+      "Proverbs 3:1–8"
+    ],
+    "1 chronicles 22:13": [
+      "1 Chronicles 22:13"
+    ],
+    "psalm 33:20-22": [
+      "Psalm 33:20–22"
+    ],
+    "psalm 84:1-2": [
+      "Psalm 84:1–2"
+    ],
+    "psalm 86:11": [
+      "Psalm 86:11"
+    ],
+    "proverbs 5:21": [
+      "Proverbs 5:21"
+    ],
+    "psalm 69:30": [
+      "Psalm 69:30"
+    ],
+    "psalm 32:5": [
+      "Psalm 32:5"
+    ],
+    "psalm 62:5": [
+      "Psalm 62:5"
+    ],
+    "henry wadsworth longfellow": [
+      "Henry Wadsworth Longfellow"
+    ],
+    "george herbert": [
+      "George Herbert"
+    ],
+    "joseph a. seiss": [
+      "Joseph A. Seiss"
+    ],
+    "judson w. van de venter": [
+      "Judson W. Van De Venter"
+    ],
+    "john chrysostom, homilies": [
+      "John Chrysostom, Homilies"
+    ]
+  },
+  "verse_superscripts": [
+    "10",
+    "103:1",
+    "11",
+    "12",
+    "127:1",
+    "128:1",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "2",
+    "20",
+    "21",
+    "22",
+    "23",
+    "23:1",
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "2:21",
+    "3",
+    "30",
+    "31",
+    "32",
+    "33",
+    "34",
+    "34:1",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39",
+    "4",
+    "40",
+    "41",
+    "42",
+    "43",
+    "44",
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "5",
+    "50",
+    "51",
+    "52",
+    "53",
+    "54",
+    "55",
+    "56",
+    "57",
+    "58",
+    "59",
+    "6",
+    "60",
+    "61",
+    "62",
+    "63",
+    "64",
+    "65",
+    "66",
+    "67",
+    "68",
+    "69",
+    "7",
+    "70",
+    "71",
+    "72",
+    "78:1",
+    "8",
+    "9",
+    "94:1"
+  ]
+}

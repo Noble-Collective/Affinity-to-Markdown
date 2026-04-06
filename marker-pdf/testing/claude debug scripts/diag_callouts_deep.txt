@@ -1,0 +1,118 @@
+
+======================================================================
+UNMATCHED: While parents raise their children in the midst of a godless society, they also ...
+  Full (141 chars): While parents raise their children in the midst of a godless society, they also do battle against he depraved and self-promoting human heart.
+  Regex: While\ parents\ raise\ their\ children\ in\ the\ midst\ of\ a\ godless\ society,\ they\ also\ do\ ba
+
+  OUTPUT CONTEXT (first match at line 2617):
+    2615: The psalm opens by calling out to God as the "God of vengeance" (94:1) and the "Judge of the earth" (94:2). This despera
+    2616: 
+    2617: play his justice, act on behalf of his creation, and pay retribution to God's enemies. It is a confession that God's peo
+    2618: 
+    2619: ###### Blessed Is the Man You Discipline, O Lord: Committing to Discipline and Instruction
+    2620: 
+    2621: The second portion of this psalm addresses humanity. It calls people to "take notice" (94:8) and "be wise" (94:8). It is
+
+  SIMULATED GROUP (2 lines, 4368 chars):
+    The psalm opens by calling out to God as the "God of vengeance" (94:1) and the "Judge of the earth" (94:2). This desperate plea to God is a petition for God to act: to "shine forth" (94:1), to "rise u...
+
+  REGEX MATCH ON JOINED: False
+  REGEX MATCHES FIRST 20 OF 23 WORDS
+  FAILS AT WORD: 'self-promoting'
+  JOINED TEXT AT FAILURE: ...While parents raise their children in the midst of a godless society, they also do battle against he depraved and selfpromoting human heart. th...
+  EXPECTED NEXT: ' self-promoting huma'
+  ACTUAL NEXT:   ' selfpromoting human'
+
+======================================================================
+UNMATCHED: calling children Godward in faith and sending them into the world to suffer as r...
+  Full (132 chars): calling children Godward in faith and sending them into the world to suffer as right-eous followers of Jesus who take refuge in God.
+  Regex: calling\ children\ Godward\ in\ faith\ and\ sending\ them\ into\ the\ world\ to\ suffer\ as\ right\-
+
+  OUTPUT CONTEXT (first match at line 2168):
+    2166: ###### The Afflictions of the Righteous: Raising Children Who Can Be Righteous Sufferers
+    2167: 
+    2168: Christian parents are called to train their children to maintain faith in God in a godless and hostile world. While the 
+    2169: 
+    2170: ###### Conclusion
+    2171: 
+    2172: In this psalm, we learn about an important goal of parenting: character development in the fear of God. The logic of the
+
+  SIMULATED GROUP (1 lines, 2556 chars):
+    Christian parents are called to train their children to maintain faith in God in a godless and hostile world. While the wicked face judgment, receive punishment, and experience just condemnation (34:2...
+
+  REGEX MATCH ON JOINED: False
+  REGEX MATCHES FIRST 14 OF 23 WORDS
+  FAILS AT WORD: 'right-eous'
+  JOINED TEXT AT FAILURE: ...calling children Godward in faith and sending them into the world to suffer as What a wonderful and demandin...
+  EXPECTED NEXT: ' right-eous follower'
+  ACTUAL NEXT:   ' What a wonderful an'
+
+======================================================================
+UNMATCHED: The aim of parenting is to release the next generation into the world, rooted in...
+  Full (124 chars): The aim of parenting is to release the next generation into the world, rooted in uncompromising godliness and fervent faith.
+  Regex: The\ aim\ of\ parenting\ is\ to\ release\ the\ next\ generation\ into\ the\ world,\ rooted\ in\ unco
+
+  OUTPUT CONTEXT (first match at line 1167):
+    1165: Christian parents are temporary caretakers of their children. God has lent
+    1166: 
+    1167: children to us for a short time in order to raise them in the faith. While we will always enjoy a parental relationship 
+    1168: 
+    1169: Like church leaders, parents are spiritual leaders in their home. One of the most fundamental jobs of a "parent as pasto
+    1170: 
+    1171: which all other truth claims are measured. The character of God should be the defining standard of what is good, right, 
+
+  SIMULATED GROUP (9 lines, 4250 chars):
+    God has appointed parents as stewards of the truth. Godly leadership in the home must involve depositing the content of the faith to their children. Psalm 78 draws attention to this crucial calling in...
+
+  REGEX MATCH ON JOINED: False
+  REGEX MATCHES FIRST 6 OF 20 WORDS
+  FAILS AT WORD: 'release'
+  JOINED TEXT AT FAILURE: ...The aim of parenting is to eventually release the next g...
+  EXPECTED NEXT: ' release the next ge'
+  ACTUAL NEXT:   ' eventually release '
+
+======================================================================
+UNMATCHED: For all believers, to be devoted to God is to be dedicated to God’s people. One ...
+  Full (111 chars): For all believers, to be devoted to God is to be dedicated to God’s people. One cannot exist without the other.
+  Regex: For\ all\ believers,\ to\ be\ devoted\ to\ God\ is\ to\ be\ dedicated\ to\ God['’]s\ people\.\ One\ 
+
+  OUTPUT CONTEXT (first match at line 351):
+     349: No parent was meant to raise children alone. Not only is parenting the teamwork of husband and wife, but it is also the 
+     350: 
+     351: For all believers, to be devoted to God is to be dedicated to God's people.
+     352: 
+     353: One cannot exist without the other. There is a mutual interdependence that exists between families and churches. As a fa
+     354: 
+     355: family life, the exhaustion of daily (and nightly) parenting duties, the difficulty of troubleshooting household dilemma
+
+  SIMULATED GROUP (5 lines, 2953 chars):
+    Even though Jesus was born when Mary was a virgin, both Mary and Joseph raised Jesus as his parents (2:33). The collaborative nature of parenting, between husband and wife, is reinforced by the loving...
+
+  REGEX MATCH ON JOINED: True
+
+======================================================================
+UNMATCHED: We often indirectly “pick up” as much from our family culture as we do from dire...
+  Full (95 chars): We often indirectly “pick up” as much from our family culture as we do from direct instruction.
+  Regex: We\ often\ indirectly\ “pick\ up”\ as\ much\ from\ our\ family\ culture\ as\ we\ do\ from\ direct\ i
+
+  TEXT NOT FOUND IN OUTPUT AT ALL
+  Also NOT in raw markdown
+
+======================================================================
+UNMATCHED: Parents are best caretakers of their children by being faithful custodians of th...
+  Full (88 chars): Parents are best caretakers of their children by being faithful custodians of the truth.
+  Regex: Parents\ are\ best\ caretakers\ of\ their\ children\ by\ being\ faithful\ custodians\ of\ the\ truth
+
+  OUTPUT CONTEXT (first match at line 1157):
+    1155: ###### Our Fathers Have Relayed to Us: Parents as Stewards of Divine Truth
+    1156: 
+    1157: God has appointed parents as stewards of the truth. Godly leadership in the home must involve depositing the content of 
+    1158: 
+    1159: their children by being faithful custodians of the truth.
+    1160: 
+    1161: Parents must not be mere defenders of the truth. They must faithfully deliver the truth to their children. It is importa
+
+  SIMULATED GROUP (9 lines, 4250 chars):
+    God has appointed parents as stewards of the truth. Godly leadership in the home must involve depositing the content of the faith to their children. Psalm 78 draws attention to this crucial calling in...
+
+  REGEX MATCH ON JOINED: True
