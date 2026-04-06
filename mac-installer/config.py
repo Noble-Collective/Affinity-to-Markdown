@@ -10,7 +10,9 @@ from pathlib import Path
 FROZEN = getattr(sys, "frozen", False)
 
 if FROZEN:
-    APP_DIR = Path(sys.executable).parent
+    # PyInstaller 6+ puts data files in _internal/ subfolder.
+    # sys._MEIPASS points to that directory.
+    APP_DIR = Path(sys._MEIPASS)
     _BUNDLED_MARKER_PDF = APP_DIR / "marker-pdf"
 else:
     APP_DIR = Path(__file__).resolve().parent
