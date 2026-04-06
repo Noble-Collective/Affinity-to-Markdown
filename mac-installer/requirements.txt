@@ -6,9 +6,6 @@
 marker-pdf==1.10.2
 pymupdf
 pyyaml
-
-# torch CPU-only (saves ~1.5GB vs CUDA build)
---extra-index-url https://download.pytorch.org/whl/cpu
 torch
 
 # Packaging
