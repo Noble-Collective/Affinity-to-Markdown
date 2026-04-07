@@ -18,6 +18,9 @@ venv*/
 # Inno Setup output
 Output/
 
+# Build-time secrets (injected by CI, never committed)
+_build_secrets.py
+
 # IDE
 .idea/
 .vscode/
@@ -36,3 +39,10 @@ Desktop.ini
 
 # Model cache (downloaded at runtime)
 .cache/
+
+# Certificate files (signing)
+*.pem
+*.cer
+*.p12
+cert_base64.txt
+*.certSigningRequest

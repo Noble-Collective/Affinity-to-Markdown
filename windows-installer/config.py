@@ -3,6 +3,7 @@ config.py — App paths, platform detection, settings.
 Supports OTA updates: checks ~/.affinity-converter/updates/ first.
 """
 
+import os
 import sys
 import platform
 from pathlib import Path
@@ -10,8 +11,6 @@ from pathlib import Path
 FROZEN = getattr(sys, "frozen", False)
 
 if FROZEN:
-    # PyInstaller 6+ puts data files in _internal/ subfolder.
-    # sys._MEIPASS points to that directory.
     APP_DIR = Path(sys._MEIPASS)
     _BUNDLED_MARKER_PDF = APP_DIR / "marker-pdf"
 else:
@@ -36,6 +35,17 @@ IS_MACOS = platform.system() == "Darwin"
 
 APP_NAME = "Affinity-PDF-Markdown Converter"
 APP_VERSION = "0.1.0"
+
+
+def get_google_api_key() -> str:
+    """Return Google API key: build-time embedded secret first, env var fallback."""
+    try:
+        from _build_secrets import GOOGLE_API_KEY
+        if GOOGLE_API_KEY:
+            return GOOGLE_API_KEY
+    except ImportError:
+        pass
+    return os.environ.get("GOOGLE_API_KEY", "")
 
 
 def get_available_templates() -> list[str]:
