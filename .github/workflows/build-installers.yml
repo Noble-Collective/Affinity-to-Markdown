@@ -29,6 +29,8 @@ jobs:
           pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
           pip install marker-pdf==1.10.2 pymupdf pyyaml google-auth
           pip install "pyinstaller>=6.0"
+      - name: Pre-download Marker fonts
+        run: python -c "from marker.util import download_font; download_font()"
       - name: Inject API keys
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
@@ -77,6 +79,9 @@ jobs:
           pip install torch
           pip install marker-pdf==1.10.2 pymupdf pyyaml google-auth
           pip install "pyinstaller>=6.0"
+
+      - name: Pre-download Marker fonts
+        run: python -c "from marker.util import download_font; download_font()"
 
       - name: Inject API keys
         env:
