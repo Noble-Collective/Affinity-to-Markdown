@@ -102,6 +102,7 @@ class PipelineRunner:
             self._step(0.32,"Starting Marker PDF extraction...")
             self._log("Marker ML extraction \u2014 per-page progress below...")
             from marker.converters.pdf import PdfConverter
+            from config import patch_marker_font_path; patch_marker_font_path()
             mcfg={"lowres_image_dpi":96,"block_relabel_str":"SectionHeader:Text:0.6,Figure:Text:1.0,Picture:Text:1.0",
                 "level_count":4,"default_level":3,"common_element_threshold":0.15,"text_match_threshold":85,
                 "BlockquoteProcessor_min_x_indent":0.01,"BlockquoteProcessor_x_start_tolerance":0.05,

@@ -246,6 +246,7 @@ class CalibrateRunner:
 
             self._log("  Starting Marker on full PDF...")
             from marker.converters.pdf import PdfConverter
+            from config import patch_marker_font_path; patch_marker_font_path()
             mcfg = {
                 "lowres_image_dpi": 96,
                 "block_relabel_str": "SectionHeader:Text:0.6,Figure:Text:1.0,Picture:Text:1.0",
