@@ -1,15 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
 affinity_converter_win.spec — PyInstaller build spec for Windows.
-
-Uses collect_submodules/collect_data_files to grab ALL dependencies
-from marker, surya, and pdftext rather than hand-picking imports.
-This makes the installer ~50MB larger but eliminates runtime
-ModuleNotFoundError and missing data file errors.
 """
 
 import os
-import importlib.util
 from pathlib import Path
 from PyInstaller.utils.hooks import collect_submodules, collect_data_files
 
@@ -18,11 +12,13 @@ REPO_ROOT = SPEC_DIR.parent
 MARKER_PDF = REPO_ROOT / "marker-pdf"
 
 # Find installed marker package for font location
-_ms = importlib.util.find_spec("marker")
-MARKER_PKG = os.path.dirname(_ms.origin) if _ms else ""
+try:
+    import marker
+    MARKER_PKG = os.path.dirname(marker.__file__)
+except (ImportError, AttributeError, TypeError):
+    MARKER_PKG = ""
 MARKER_PARENT = os.path.dirname(MARKER_PKG) if MARKER_PKG else ""
 
-# ── Collect ALL submodules (catches dynamic/registry imports) ────────
 _hidden = (
     collect_submodules("marker") +
     collect_submodules("surya") +
@@ -39,7 +35,6 @@ _hidden = (
     ]
 )
 
-# ── Collect ALL data files (fonts, configs, language data) ───────────
 _datas = (
     collect_data_files("marker") +
     collect_data_files("surya") +
@@ -54,9 +49,8 @@ _datas = (
         (str(MARKER_PDF / "templates"), "marker-pdf/templates"),
     ]
 )
-# Pre-downloaded Marker fonts (created by workflow step)
-_static = os.path.join(MARKER_PARENT, "static")
-if os.path.isdir(_static):
+_static = os.path.join(MARKER_PARENT, "static") if MARKER_PARENT else ""
+if _static and os.path.isdir(_static):
     _datas.append((_static, "static"))
 
 a = Analysis(

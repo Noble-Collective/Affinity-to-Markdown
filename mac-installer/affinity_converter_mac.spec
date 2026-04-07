@@ -1,13 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
 affinity_converter_mac.spec — PyInstaller build spec for macOS.
-
-Uses collect_submodules/collect_data_files to grab ALL dependencies
-from marker, surya, and pdftext rather than hand-picking imports.
 """
 
 import os
-import importlib.util
 from pathlib import Path
 from PyInstaller.utils.hooks import collect_submodules, collect_data_files
 
@@ -15,8 +11,11 @@ SPEC_DIR = Path(os.path.abspath(SPECPATH))
 REPO_ROOT = SPEC_DIR.parent
 MARKER_PDF = REPO_ROOT / "marker-pdf"
 
-_ms = importlib.util.find_spec("marker")
-MARKER_PKG = os.path.dirname(_ms.origin) if _ms else ""
+try:
+    import marker
+    MARKER_PKG = os.path.dirname(marker.__file__)
+except (ImportError, AttributeError, TypeError):
+    MARKER_PKG = ""
 MARKER_PARENT = os.path.dirname(MARKER_PKG) if MARKER_PKG else ""
 
 _hidden = (
@@ -50,8 +49,8 @@ _datas = (
         (str(MARKER_PDF / "templates"), "marker-pdf/templates"),
     ]
 )
-_static = os.path.join(MARKER_PARENT, "static")
-if os.path.isdir(_static):
+_static = os.path.join(MARKER_PARENT, "static") if MARKER_PARENT else ""
+if _static and os.path.isdir(_static):
     _datas.append((_static, "static"))
 
 a = Analysis(
