@@ -5,7 +5,7 @@ Captures stdout + stderr (Marker tqdm). Supports OTA updates.
 
 import io, re, sys, threading, traceback, time
 from pathlib import Path
-from config import MARKER_PDF_DIR, get_template_dir, UPDATES_DIR
+from config import MARKER_PDF_DIR, get_template_dir, UPDATES_DIR, get_google_api_key
 
 def _ensure_import_path():
     updated = str(UPDATES_DIR / "marker-pdf")
@@ -101,18 +101,18 @@ class PipelineRunner:
             if self._check_cancel(): return
             self._step(0.32,"Starting Marker PDF extraction...")
             self._log("Marker ML extraction \u2014 per-page progress below...")
-            import os; from marker.converters.pdf import PdfConverter
+            from marker.converters.pdf import PdfConverter
             mcfg={"lowres_image_dpi":96,"block_relabel_str":"SectionHeader:Text:0.6,Figure:Text:1.0,Picture:Text:1.0",
                 "level_count":4,"default_level":3,"common_element_threshold":0.15,"text_match_threshold":85,
                 "BlockquoteProcessor_min_x_indent":0.01,"BlockquoteProcessor_x_start_tolerance":0.05,
                 "BlockquoteProcessor_x_end_tolerance":0.05,"TextProcessor_column_gap_ratio":0.06,
                 "disable_links":True,"disable_ocr":True,"pdftext_workers":1,
                 "disable_image_extraction":True,"extract_images":False}
-            gak=os.environ.get("GOOGLE_API_KEY",""); llm=None
+            gak=get_google_api_key(); llm=None
             if gak:
                 mn=run.get_available_gemini_model(gak); mcfg["gemini_api_key"]=gak; mcfg["gemini_model_name"]=mn
                 llm="marker.services.gemini.GoogleGeminiService"; self._log(f"LLM enabled: {mn}")
-            else: self._log("LLM disabled: no GOOGLE_API_KEY")
+            else: self._log("LLM disabled: no API key")
             if pr: mcfg["page_range"]=pr
             self._step(0.35,"Running Marker..."); t0=time.time()
             conv=PdfConverter(artifact_dict=models,processor_list=None,config=mcfg,llm_service=llm)
