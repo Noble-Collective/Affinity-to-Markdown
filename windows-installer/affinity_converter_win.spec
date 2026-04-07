@@ -14,6 +14,8 @@ MARKER_PDF = REPO_ROOT / "marker-pdf"
 # Find installed marker package to include its static fonts
 _ms = importlib.util.find_spec("marker")
 MARKER_PKG = os.path.dirname(_ms.origin) if _ms else ""
+# Marker creates static/ one level ABOVE the marker package dir
+MARKER_PARENT = os.path.dirname(MARKER_PKG) if MARKER_PKG else ""
 
 _datas = [
     (str(MARKER_PDF / "run.py"), "marker-pdf"),
@@ -22,9 +24,10 @@ _datas = [
     (str(MARKER_PDF / "download_models.py"), "marker-pdf"),
     (str(MARKER_PDF / "templates"), "marker-pdf/templates"),
 ]
-# Include pre-downloaded Marker fonts so it never writes to install dir
-if MARKER_PKG and os.path.isdir(os.path.join(MARKER_PKG, "static")):
-    _datas.append((os.path.join(MARKER_PKG, "static"), "marker/static"))
+# Include pre-downloaded Marker fonts at bundle root (where Marker looks for them)
+_static = os.path.join(MARKER_PARENT, "static")
+if os.path.isdir(_static):
+    _datas.append((_static, "static"))
 
 a = Analysis(
     ["main.py"],
