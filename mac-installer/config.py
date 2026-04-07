@@ -48,6 +48,41 @@ def get_google_api_key() -> str:
     return os.environ.get("GOOGLE_API_KEY", "")
 
 
+def patch_marker_font_path():
+    """Monkey-patch Marker's download_font for read-only install dirs.
+
+    In frozen apps (Program Files on Windows, .app bundle on Mac),
+    Marker tries to create a 'static/' directory next to its package
+    to download a font. This fails with PermissionError/OSError.
+
+    This patch catches that error and redirects the download to
+    ~/.affinity-converter/marker-static/ which is always writable.
+    """
+    if not FROZEN:
+        return
+    try:
+        import marker.util
+        _orig = marker.util.download_font
+        if getattr(_orig, '_patched', False):
+            return
+        def _safe_download_font(*a, **kw):
+            try:
+                return _orig(*a, **kw)
+            except (PermissionError, OSError):
+                writable = os.path.join(os.path.expanduser("~"), ".affinity-converter")
+                os.makedirs(os.path.join(writable, "marker"), exist_ok=True)
+                old_file = marker.util.__file__
+                marker.util.__file__ = os.path.join(writable, "marker", "util.py")
+                try:
+                    return _orig(*a, **kw)
+                finally:
+                    marker.util.__file__ = old_file
+        _safe_download_font._patched = True
+        marker.util.download_font = _safe_download_font
+    except Exception:
+        pass
+
+
 def get_available_templates() -> list[str]:
     templates = set()
     for base in [UPDATES_DIR / "marker-pdf" / "templates", _BUNDLED_MARKER_PDF / "templates"]:
