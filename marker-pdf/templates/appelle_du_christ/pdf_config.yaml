@@ -1,0 +1,224 @@
+# Appelle du Christ (L'Appel du Christ) PDF conversion config
+# French-language catechism — 120 pages, 3 sessions + opening/closing
+# All size thresholds are expressed as RATIOS relative to body text size.
+#
+# FONT SIGNATURES DISCOVERED:
+#   Body:  CIDFont+F1 @ 13.2pt regular (pp.1-61)
+#          CIDFont+F6 @ 13.2pt regular (pp.62-120) — same role, different embedded font
+#   Bold:  CIDFont+F2 @ 13.2pt bold (pp.1-61)
+#          CIDFont+F7 @ 13.2pt bold (pp.62-120) — same role
+#   B+I:   CIDFont+F3 @ 13.2pt bold-italic (pp.16-50) — framework section headers
+#   Ital:  CIDFont+F4 @ 13.2pt italic (pp.25-45) — instructional text
+#   H2:    CIDFont+F2/F7 @ 15.0pt bold (1.14x) — "Introduction", "COMMENTAIRE"
+#   H1:    CIDFont+F1 @ 26.2pt regular (1.98x) — "SESSION 2 : L'EAU", "LE RAPPEL"
+#   H1:    CIDFont+F1 @ 33.8pt regular (2.56x) — "Session3 : LE CHEMIN"
+#   H1:    CIDFont+F2 @ 18.8pt bold (1.42x) — "L'APPEL DU CHRIST" (title page)
+#   H1:    CIDFont+F2 @ 26.2pt bold (1.98x) — "ORIENTATION"
+
+body_font: auto
+
+# ── Heading detection by font size ratio ─────────────────────────────────────
+# Marker only assigns H1 to 26pt+ text. Everything else lands at H3.
+# The pipeline uses these ratios to reassign heading levels from PyMuPDF data.
+
+headings:
+  # H1: Session titles — 26.2pt regular (1.98x), 33.8pt regular (2.56x)
+  - weight: regular
+    min_ratio: 1.85
+    max_ratio: 2.70
+    level: 1
+
+  # H1: Major sections — 26.2pt bold (1.98x) "ORIENTATION"
+  - weight: bold
+    min_ratio: 1.85
+    max_ratio: 2.15
+    level: 1
+
+  # H1: Book title — 18.8pt bold (1.42x) "L'APPEL DU CHRIST"
+  - weight: bold
+    min_ratio: 1.35
+    max_ratio: 1.50
+    level: 1
+
+  # H2: Sub-section headings — 15.0pt bold (1.14x)
+  # "Introduction", "COMMENTAIRE", "Conclusion", "Plan d'apprentissage"
+  # Also "L'EVANGILE" (Session 1 title uses 15pt, unlike Sessions 2-3 at 26pt)
+  - weight: bold
+    min_ratio: 1.08
+    max_ratio: 1.20
+    level: 2
+
+# Skip text larger than this ratio (no decorative oversized text in this book)
+skip_large_ratio: 3.0
+
+# ── Running headers / footers ────────────────────────────────────────────────
+# No running headers detected in font analysis.
+running_header_signature: []
+
+# ── Blockquotes and citations ────────────────────────────────────────────────
+# This book has no distinct quote font. Blockquotes come from Marker's
+# indent detection (very few — only 5 in raw output).
+# Citations are bold at body size with author names (mixed case).
+quote_max_ratio: 0.0
+citation_max_chars: 120
+
+# Citation attribution patterns (French: "Actes 2v37-41", "Jean 10v27-28")
+# Also: "Author Name, Book Title" style attributions
+citation_patterns:
+  - '^[A-ZÀÂÉÈÊËÏÎÔÙÛÇ][a-zA-Zàâäéèêëïîôùûüÿçœæ]+\s+\d+[v:]\d+[\d\-\u2013\u2014,;:v\s]*$'
+  - '^Romain\d+[Vv]\d+'
+  - '^\d\s*[A-ZÀÂÉÈÊ][a-zA-Zàâäéèêëïîôùûüÿçœæ]+\s+\d+[v:]\d+'
+
+# ── Bold-italic at body size = framework section headers (H4) ────────────────
+# "APERÇU DU LIVRE", "FONDEMENT DE LA FOI", "INTERPRÉTATION BIBLIQUE",
+# "Récit biblique (Actes 2:1-21).", "Principes bibliques"
+# These appear only on pp.16-50. Always at x=93 (left margin).
+bold_italic_heading_level: 4
+
+# ── Bold at body size: ALL CAPS = section headings (H4) ─────────────────────
+# "CONTENU CENTRAL", "IDÉE CLÉ", "QUESTIONS DE DISCUSSION",
+# "INTERPRÉTATION BIBLIQUE", "DIALOGUE THÉOLOGIQUE", "RÉFLEXION PERSONNELLE"
+# Distinguished from citations/labels by being ALL CAPS.
+bold_body_allcaps_heading_level: 4
+
+# ── Italic at body size = instructional paragraphs ───────────────────────────
+# "Explorer le terrain", "Chacun de nous a une histoire..."
+# Rendered as *paragraph italic* (p_italic)
+italic_body_role: p_italic
+
+# ── Verse labels / superscripts ──────────────────────────────────────────────
+# None detected in this book.
+verse_label_signature: []
+
+# ── Callout / pull-quote signature ───────────────────────────────────────────
+# None detected in this book.
+callout_signature: []
+
+# ── Skip patterns ────────────────────────────────────────────────────────────
+# Lines to remove from output (Marker artifacts, navigation labels, etc.)
+skip_line_patterns:
+  - '^\*$'
+  - '^\\\\?\*$'
+
+# Tables that Marker renders as markdown tables but should be lists or skipped
+skip_table_markers:
+  - 'Détails des rencontres'
+
+table_to_list: []
+
+# ── Front matter corrections ────────────────────────────────────────────────
+# Pages 1-4: epigraph quotes, series list, title page, TOC
+front_matter_corrections:
+  ends_before: "ORIENTATION"
+  remove_lines:
+    - 'SÉRIE DE VOYAGE NARRATIF'
+  text_replacements:
+    # Title page formatting
+    - match: "L'APPEL DU CHRIST"
+      replace: "# L'APPEL DU CHRIST"
+    - match: "Ecrit par Mathiew R. LYNSKEY"
+      replace: "*Ecrit par Mathiew R. Lynskey*"
+
+# ── Heading hierarchy restructuring ─────────────────────────────────────────
+# Maps font-based levels to semantic levels. Runs as final pass.
+heading_hierarchy:
+  front_matter_label: "Front Matter"
+
+  # No part labels in this book (simpler structure than HomeStead)
+  parts: []
+
+  # Maps each H1 heading (in document order) to its session name.
+  # The pipeline uses this to insert H2 session headings.
+  # Note: "L'EVANGILE" is 15pt bold (detected as H2 by ratio), but should
+  # be promoted to session-level. Use session_promotions for this.
+  session_map:
+    - "Série Orientation"      # H1: ORIENTATION
+    - "L'Ouverture"            # H1: L'OUVERTURE (bold body-size, needs promotion)
+    - "Session 1"              # H1: L'EVANGILE (15pt bold, needs promotion)
+    - "Session 2"              # H1: SESSION 2 : L'EAU
+    - "Session 3"              # H1: Session3 : LE CHEMIN
+    - "Le Rappel"              # H1: LE RAPPEL
+
+  # Headings that Marker/ratio detection misses as H1 because they use
+  # smaller fonts. These are manually promoted to H1 session titles.
+  session_promotions:
+    - match: "L'OUVERTURE"
+      level: 1
+    - match: "L'EVANGILE"
+      level: 1
+
+  # Five-movement framework labels (these appear as bold-italic or bold ALL CAPS).
+  # Within each main session, the five movements provide the H3 structure:
+  # 1. Interprétation biblique / Écouter la Parole
+  # 2. Dialogue théologique / Discussion de l'intrigue
+  # 3. Réflexion personnelle / Entrer dans l'histoire
+  # 4. Pratique du ministère / Répéter le passage
+  # 5. Action missionnaire / Publier la vérité
+  subdivision_labels:
+    - "Interprétation biblique"
+    - "Dialogue théologique"
+    - "Réflexion personnelle"
+    - "Pratique du ministère"
+    - "Pratique ministérielle"
+    - "Action missionnaire"
+    - "Pratique spirituelle"
+    - "Pratique de la foi"
+
+  # Framework description labels (bold-italic, pp.16-20)
+  # These are the movement explanations in the ORIENTATION section.
+  framework_labels:
+    - "APERÇU DU LIVRE"
+    - "FONDEMENT DE LA FOI"
+    - "PROJET PRINCIPAL"
+    - "PRATIQUE DE LA FOI"
+    - "INTERPRÉTATION BIBLIQUE"
+    - "DIALOGUE THÉOLOGIQUE"
+    - "RÉFLEXION PERSONNELLE"
+    - "PRATIQUE DU MINISTÈRE"
+    - "ACTION MISSIONNAIRE"
+
+  rotated_subdivision_labels: []
+  subdivision_overrides: []
+
+  heading_text_fixes:
+    # Session 3 title split across two lines by Marker
+    - match: "Session3 :"
+      replace: "Session 3 :"
+    # Colon spacing inconsistencies
+    - match: "SESSION 2 : L'EAU"
+      replace: "Session 2 : L'Eau"
+
+  remove_artifact_headings: []
+
+  # The trailing section (resources/bibliography)
+  trailing_section:
+    session_name: "Les Ressources"
+    subtitle_contains: "PROCHAINES ÉTAPES"
+
+# ── Bold body-size attribution patterns ──────────────────────────────────────
+# Bold mixed-case text at body size that matches these patterns should be
+# rendered as citation attributions (<< prefix) rather than headings.
+# These are author/source attributions like "Horatius Bonar, Lumière et Vérité"
+attribution_patterns:
+  - '^[A-ZÀÂÉÈÊËÏÎÔ][a-zA-Zàâäéèêëïîôùûüÿçœæ. ]+,\s+.+'
+  - '^[A-ZÀÂÉÈÊËÏÎÔ][a-zA-Zàâäéèêëïîôùûüÿçœæ. ]+\s+\d+[v:]\d+'
+  - '^Éphésiens\s'
+  - '^Romain'
+  - '^Jean\s'
+  - '^Luc\s*\d'
+  - '^Romains\s'
+  - '^Blaise Pascal'
+  - '^Actes\s*\d'
+
+# ── Dual body font handling ──────────────────────────────────────────────────
+# This book uses two different embedded fonts for body text:
+#   CIDFont+F1 (pages 1-61) and CIDFont+F6 (pages 62-120)
+# Similarly for bold: CIDFont+F2 (pp.1-61) and CIDFont+F7 (pp.62-120)
+# The pipeline must treat both font families identically.
+font_family_aliases:
+  - primary: "CIDFont+F1"
+    alias: "CIDFont+F6"
+    note: "Second-half body font (pp.62-120)"
+  - primary: "CIDFont+F2"
+    alias: "CIDFont+F7"
+    note: "Second-half bold font (pp.62-120)"
