@@ -51,12 +51,13 @@ def get_google_api_key() -> str:
 def patch_marker_font_path():
     """Monkey-patch Marker's download_font for read-only install dirs.
 
-    In frozen apps (Program Files on Windows, .app bundle on Mac),
-    Marker tries to create a 'static/' directory next to its package
-    to download a font. This fails with PermissionError/OSError.
+    Problem: Marker's download_font() creates a 'static/' dir relative
+    to its __file__ to store a font. In frozen apps this is read-only.
 
-    This patch catches that error and redirects the download to
-    ~/.affinity-converter/marker-static/ which is always writable.
+    Fix: Replace download_font in ALL modules that imported it (not just
+    marker.util) with a version that redirects to ~/.affinity-converter/.
+    Must scan sys.modules because 'from marker.util import download_font'
+    creates local references that a simple module-level patch won't reach.
     """
     if not FROZEN:
         return
@@ -65,20 +66,46 @@ def patch_marker_font_path():
         _orig = marker.util.download_font
         if getattr(_orig, '_patched', False):
             return
+
+        _WRITABLE_STATIC = os.path.join(
+            os.path.expanduser("~"), ".affinity-converter", "static"
+        )
+
         def _safe_download_font(*a, **kw):
+            # Always redirect __file__ to writable location BEFORE calling
+            os.makedirs(_WRITABLE_STATIC, exist_ok=True)
+            old_file = marker.util.__file__
+            writable_base = os.path.join(
+                os.path.expanduser("~"), ".affinity-converter"
+            )
+            marker.util.__file__ = os.path.join(
+                writable_base, "marker", "util.py"
+            )
             try:
                 return _orig(*a, **kw)
             except (PermissionError, OSError):
-                writable = os.path.join(os.path.expanduser("~"), ".affinity-converter")
-                os.makedirs(os.path.join(writable, "marker"), exist_ok=True)
-                old_file = marker.util.__file__
-                marker.util.__file__ = os.path.join(writable, "marker", "util.py")
-                try:
-                    return _orig(*a, **kw)
-                finally:
-                    marker.util.__file__ = old_file
+                # If __file__ redirect didn't help (precomputed path),
+                # create font dir ourselves and retry
+                os.makedirs(_WRITABLE_STATIC, exist_ok=True)
+                return _orig(*a, **kw)
+            finally:
+                marker.util.__file__ = old_file
+
         _safe_download_font._patched = True
+
+        # Replace in marker.util
         marker.util.download_font = _safe_download_font
+
+        # Replace in ALL loaded modules that imported download_font
+        # (catches 'from marker.util import download_font' local refs)
+        for name, mod in list(sys.modules.items()):
+            if mod is None:
+                continue
+            try:
+                if hasattr(mod, 'download_font') and getattr(mod, 'download_font') is _orig:
+                    setattr(mod, 'download_font', _safe_download_font)
+            except Exception:
+                continue
     except Exception:
         pass
 
