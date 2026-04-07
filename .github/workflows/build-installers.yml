@@ -11,7 +11,7 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,7 +27,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel setuptools
           pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
-          pip install marker-pdf==1.10.2 pymupdf pyyaml google-auth
+          pip install marker-pdf==1.10.2 pymupdf pyyaml
+          pip install google-auth google-genai google-api-core
+          pip install certifi regex safetensors huggingface_hub
           pip install "pyinstaller>=6.0"
       - name: Pre-download Marker fonts
         run: python -c "from marker.util import download_font; download_font()"
@@ -77,7 +79,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel setuptools
           pip install torch
-          pip install marker-pdf==1.10.2 pymupdf pyyaml google-auth
+          pip install marker-pdf==1.10.2 pymupdf pyyaml
+          pip install google-auth google-genai google-api-core
+          pip install certifi regex safetensors huggingface_hub
           pip install "pyinstaller>=6.0"
 
       - name: Pre-download Marker fonts
