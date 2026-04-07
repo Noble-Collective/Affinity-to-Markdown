@@ -47,12 +47,7 @@ def get_google_api_key() -> str:
 
 
 def patch_marker_font_path():
-    """Override settings.STATIC_DIR to a writable location.
-
-    Marker reads settings.STATIC_DIR (computed at import time from __file__)
-    to decide where to store/find fonts. In frozen apps this points to
-    read-only Program Files or .app bundle. Just override the setting.
-    """
+    """Override settings.STATIC_DIR to a writable location."""
     if not FROZEN:
         return
     writable = os.path.join(os.path.expanduser("~"), ".affinity-converter", "static")
