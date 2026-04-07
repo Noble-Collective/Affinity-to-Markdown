@@ -31,19 +31,19 @@ jobs:
           pip install google-auth google-genai google-api-core
           pip install certifi regex safetensors huggingface_hub
           pip install "pyinstaller>=6.0"
-      - name: Pre-download Marker fonts and verify
+      - name: Pre-download Marker font
         shell: bash
         run: |
           python -c "
-          import os
-          from marker.util import download_font
-          from marker.settings import settings
-          print(f'settings.STATIC_DIR = {settings.STATIC_DIR}')
-          font = download_font()
-          print(f'Font downloaded to: {font}')
-          print(f'Font exists: {os.path.exists(font)}')
-          print(f'Static dir exists: {os.path.isdir(settings.STATIC_DIR)}')
-          print(f'Static contents: {os.listdir(settings.STATIC_DIR)}')
+          import inspect, os, marker.util
+          print('=== download_font source ===')
+          print(inspect.getsource(marker.util.download_font))
+          print('=== calling download_font ===')
+          path = marker.util.download_font()
+          print(f'Font path: {path}')
+          print(f'Exists: {os.path.exists(path)}')
+          print(f'Dir: {os.path.dirname(path)}')
+          print(f'Dir contents: {os.listdir(os.path.dirname(path))}')
           "
       - name: Inject API keys
         env:
@@ -54,17 +54,18 @@ jobs:
       - name: Run PyInstaller
         working-directory: windows-installer
         run: pyinstaller affinity_converter_win.spec --noconfirm
-      - name: Verify static dir in bundle
+      - name: Copy font into PyInstaller bundle
         working-directory: windows-installer
         shell: bash
         run: |
-          echo "Checking for static dir in bundle..."
-          if [ -d "dist/Affinity-PDF-Markdown Converter/_internal/static" ]; then
-            echo "FOUND: _internal/static/"
-            ls -la "dist/Affinity-PDF-Markdown Converter/_internal/static/"
-          else
-            echo "NOT FOUND: _internal/static/ - font will download on first run"
-          fi
+          FONT=$(python -c "from marker.util import download_font; print(download_font())")
+          BUNDLE="dist/Affinity-PDF-Markdown Converter/_internal/static"
+          echo "Font source: $FONT"
+          echo "Bundle target: $BUNDLE"
+          mkdir -p "$BUNDLE"
+          cp "$FONT" "$BUNDLE/"
+          echo "Bundle static contents:"
+          ls -la "$BUNDLE"
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress
       - name: Build installer
@@ -107,18 +108,16 @@ jobs:
           pip install certifi regex safetensors huggingface_hub
           pip install "pyinstaller>=6.0"
 
-      - name: Pre-download Marker fonts and verify
+      - name: Pre-download Marker font
         run: |
           python -c "
-          import os
-          from marker.util import download_font
-          from marker.settings import settings
-          print(f'settings.STATIC_DIR = {settings.STATIC_DIR}')
-          font = download_font()
-          print(f'Font downloaded to: {font}')
-          print(f'Font exists: {os.path.exists(font)}')
-          print(f'Static dir exists: {os.path.isdir(settings.STATIC_DIR)}')
-          print(f'Static contents: {os.listdir(settings.STATIC_DIR)}')
+          import inspect, os, marker.util
+          print('=== download_font source ===')
+          print(inspect.getsource(marker.util.download_font))
+          print('=== calling download_font ===')
+          path = marker.util.download_font()
+          print(f'Font path: {path}')
+          print(f'Exists: {os.path.exists(path)}')
           "
 
       - name: Inject API keys
@@ -133,34 +132,23 @@ jobs:
           CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
         run: |
           echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
-
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
           KEYCHAIN_PASSWORD="$(openssl rand -hex 16)"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-
           security import certificate.p12 -P "$CERTIFICATE_PASSWORD" \
             -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-
           security set-key-partition-list -S apple-tool:,apple: \
             -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-
           security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
-
           rm certificate.p12
-
-          echo "Available signing identities:"
-          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
-
           IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
-
           if [ -z "$IDENTITY" ]; then
-            echo "ERROR: No Developer ID Application identity found in keychain"
+            echo "ERROR: No signing identity found"
             security find-identity -v "$KEYCHAIN_PATH"
             exit 1
           fi
-
           echo "Found identity: $IDENTITY"
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
           echo "SIGNING_IDENTITY=$IDENTITY" >> $GITHUB_ENV
@@ -168,6 +156,17 @@ jobs:
       - name: Run PyInstaller
         working-directory: mac-installer
         run: pyinstaller affinity_converter_mac.spec --noconfirm
+
+      - name: Copy font into PyInstaller bundle
+        working-directory: mac-installer
+        run: |
+          FONT=$(python -c "from marker.util import download_font; print(download_font())")
+          BUNDLE="dist/Affinity-PDF-Markdown Converter.app/Contents/Frameworks/static"
+          echo "Font source: $FONT"
+          echo "Bundle target: $BUNDLE"
+          mkdir -p "$BUNDLE"
+          cp "$FONT" "$BUNDLE/"
+          ls -la "$BUNDLE"
 
       - name: Sign the app bundle
         run: |
