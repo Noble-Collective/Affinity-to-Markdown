@@ -32,19 +32,25 @@ jobs:
           pip install certifi regex safetensors huggingface_hub
           pip install "pyinstaller>=6.0"
       - name: Pre-download Marker font
+        id: font_win
         shell: bash
         run: |
-          python -c "
-          import inspect, os, marker.util
-          print('=== download_font source ===')
-          print(inspect.getsource(marker.util.download_font))
-          print('=== calling download_font ===')
-          path = marker.util.download_font()
-          print(f'Font path: {path}')
-          print(f'Exists: {os.path.exists(path)}')
-          print(f'Dir: {os.path.dirname(path)}')
-          print(f'Dir contents: {os.listdir(os.path.dirname(path))}')
-          "
+          python << 'PYEOF'
+          import os, marker.util
+          from marker.settings import settings
+          # Debug: print font-related settings
+          for a in sorted(dir(settings)):
+              if any(k in a.lower() for k in ['font','static','artifact']):
+                  print(f'  settings.{a} = {getattr(settings, a, "?")}')
+          # Set FONT_PATH if None
+          if not getattr(settings, 'FONT_PATH', None):
+              fn = getattr(settings, 'FONT_NAME', 'GoNotoCurrent.ttf') or 'GoNotoCurrent.ttf'
+              base = os.path.dirname(os.path.dirname(os.path.abspath(marker.util.__file__)))
+              settings.FONT_PATH = os.path.join(base, 'static', fn)
+              print(f'Set FONT_PATH = {settings.FONT_PATH}')
+          marker.util.download_font()
+          print(f'Font exists at {settings.FONT_PATH}: {os.path.exists(settings.FONT_PATH)}')
+          PYEOF
       - name: Inject API keys
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
@@ -54,17 +60,24 @@ jobs:
       - name: Run PyInstaller
         working-directory: windows-installer
         run: pyinstaller affinity_converter_win.spec --noconfirm
-      - name: Copy font into PyInstaller bundle
+      - name: Copy font into bundle
         working-directory: windows-installer
         shell: bash
         run: |
-          FONT=$(python -c "from marker.util import download_font; print(download_font())")
+          FONT=$(python << 'PYEOF'
+          import os, marker.util
+          from marker.settings import settings
+          if not getattr(settings, 'FONT_PATH', None):
+              fn = getattr(settings, 'FONT_NAME', 'GoNotoCurrent.ttf') or 'GoNotoCurrent.ttf'
+              base = os.path.dirname(os.path.dirname(os.path.abspath(marker.util.__file__)))
+              settings.FONT_PATH = os.path.join(base, 'static', fn)
+          print(settings.FONT_PATH)
+          PYEOF
+          )
           BUNDLE="dist/Affinity-PDF-Markdown Converter/_internal/static"
-          echo "Font source: $FONT"
-          echo "Bundle target: $BUNDLE"
+          echo "Copying $FONT -> $BUNDLE"
           mkdir -p "$BUNDLE"
           cp "$FONT" "$BUNDLE/"
-          echo "Bundle static contents:"
           ls -la "$BUNDLE"
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress
@@ -97,7 +110,6 @@ jobs:
           path: ~/Library/Caches/pip
           key: mac-pip-${{ hashFiles('mac-installer/requirements.txt') }}
           restore-keys: mac-pip-
-
       - name: Install dependencies
         working-directory: mac-installer
         run: |
@@ -107,25 +119,27 @@ jobs:
           pip install google-auth google-genai google-api-core
           pip install certifi regex safetensors huggingface_hub
           pip install "pyinstaller>=6.0"
-
       - name: Pre-download Marker font
         run: |
-          python -c "
-          import inspect, os, marker.util
-          print('=== download_font source ===')
-          print(inspect.getsource(marker.util.download_font))
-          print('=== calling download_font ===')
-          path = marker.util.download_font()
-          print(f'Font path: {path}')
-          print(f'Exists: {os.path.exists(path)}')
-          "
-
+          python << 'PYEOF'
+          import os, marker.util
+          from marker.settings import settings
+          for a in sorted(dir(settings)):
+              if any(k in a.lower() for k in ['font','static','artifact']):
+                  print(f'  settings.{a} = {getattr(settings, a, "?")}')
+          if not getattr(settings, 'FONT_PATH', None):
+              fn = getattr(settings, 'FONT_NAME', 'GoNotoCurrent.ttf') or 'GoNotoCurrent.ttf'
+              base = os.path.dirname(os.path.dirname(os.path.abspath(marker.util.__file__)))
+              settings.FONT_PATH = os.path.join(base, 'static', fn)
+              print(f'Set FONT_PATH = {settings.FONT_PATH}')
+          marker.util.download_font()
+          print(f'Font exists at {settings.FONT_PATH}: {os.path.exists(settings.FONT_PATH)}')
+          PYEOF
       - name: Inject API keys
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         working-directory: mac-installer
         run: echo "GOOGLE_API_KEY = \"$GOOGLE_API_KEY\"" > _build_secrets.py
-
       - name: Import code signing certificate
         env:
           CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
@@ -152,30 +166,33 @@ jobs:
           echo "Found identity: $IDENTITY"
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
           echo "SIGNING_IDENTITY=$IDENTITY" >> $GITHUB_ENV
-
       - name: Run PyInstaller
         working-directory: mac-installer
         run: pyinstaller affinity_converter_mac.spec --noconfirm
-
-      - name: Copy font into PyInstaller bundle
+      - name: Copy font into bundle
         working-directory: mac-installer
         run: |
-          FONT=$(python -c "from marker.util import download_font; print(download_font())")
+          FONT=$(python << 'PYEOF'
+          import os, marker.util
+          from marker.settings import settings
+          if not getattr(settings, 'FONT_PATH', None):
+              fn = getattr(settings, 'FONT_NAME', 'GoNotoCurrent.ttf') or 'GoNotoCurrent.ttf'
+              base = os.path.dirname(os.path.dirname(os.path.abspath(marker.util.__file__)))
+              settings.FONT_PATH = os.path.join(base, 'static', fn)
+          print(settings.FONT_PATH)
+          PYEOF
+          )
           BUNDLE="dist/Affinity-PDF-Markdown Converter.app/Contents/Frameworks/static"
-          echo "Font source: $FONT"
-          echo "Bundle target: $BUNDLE"
+          echo "Copying $FONT -> $BUNDLE"
           mkdir -p "$BUNDLE"
           cp "$FONT" "$BUNDLE/"
           ls -la "$BUNDLE"
-
       - name: Sign the app bundle
         run: |
           APP_PATH="mac-installer/dist/Affinity-PDF-Markdown Converter.app"
           codesign --deep --force --options runtime \
             --sign "$SIGNING_IDENTITY" --timestamp "$APP_PATH"
           codesign --verify --deep --strict "$APP_PATH"
-          echo "Code signing verified successfully"
-
       - name: Create DMG
         working-directory: mac-installer
         run: |
@@ -189,7 +206,6 @@ jobs:
           hdiutil create -volname "$APP_NAME" -srcfolder "$DMG_DIR" -ov -format UDZO "$DMG_PATH"
           rm -rf "$DMG_DIR"
           codesign --force --sign "$SIGNING_IDENTITY" --timestamp "$DMG_PATH"
-
       - name: Notarize DMG
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -203,14 +219,9 @@ jobs:
             --apple-id "$APPLE_ID" --team-id "$TEAM_ID" \
             --password "$APPLE_ID_PASSWORD" --wait
           xcrun stapler staple "$DMG_PATH"
-
       - name: Clean up keychain
         if: always()
-        run: |
-          if [ -n "$KEYCHAIN_PATH" ]; then
-            security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
-          fi
-
+        run: security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         with:
           name: macOS-Installer
