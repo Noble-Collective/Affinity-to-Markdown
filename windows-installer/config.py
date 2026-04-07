@@ -47,44 +47,19 @@ def get_google_api_key() -> str:
 
 
 def patch_marker_font_path():
-    """Replace download_font in ALL modules with a version that uses a writable dir.
+    """Override settings.STATIC_DIR to a writable location.
 
-    Must scan sys.modules because 'from marker.util import download_font'
-    creates local references that a simple marker.util.download_font = X misses.
+    Marker reads settings.STATIC_DIR (computed at import time from __file__)
+    to decide where to store/find fonts. In frozen apps this points to
+    read-only Program Files or .app bundle. Just override the setting.
     """
     if not FROZEN:
         return
+    writable = os.path.join(os.path.expanduser("~"), ".affinity-converter", "static")
+    os.makedirs(writable, exist_ok=True)
     try:
-        import marker.util
-        _orig = marker.util.download_font
-        if getattr(_orig, '_patched', False):
-            return
-
-        _WRITABLE = os.path.join(os.path.expanduser("~"), ".affinity-converter")
-
-        def _safe_download_font(*a, **kw):
-            os.makedirs(os.path.join(_WRITABLE, "static"), exist_ok=True)
-            old_file = marker.util.__file__
-            marker.util.__file__ = os.path.join(_WRITABLE, "marker", "util.py")
-            os.makedirs(os.path.join(_WRITABLE, "marker"), exist_ok=True)
-            try:
-                return _orig(*a, **kw)
-            except (PermissionError, OSError):
-                return _orig(*a, **kw)
-            finally:
-                marker.util.__file__ = old_file
-
-        _safe_download_font._patched = True
-        marker.util.download_font = _safe_download_font
-
-        for name, mod in list(sys.modules.items()):
-            if mod is None:
-                continue
-            try:
-                if hasattr(mod, 'download_font') and getattr(mod, 'download_font') is _orig:
-                    setattr(mod, 'download_font', _safe_download_font)
-            except Exception:
-                continue
+        from marker.settings import settings
+        settings.STATIC_DIR = writable
     except Exception:
         pass
 

@@ -1,7 +1,4 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""
-affinity_converter_mac.spec — PyInstaller build spec for macOS.
-"""
 
 import os
 from pathlib import Path
@@ -11,12 +8,13 @@ SPEC_DIR = Path(os.path.abspath(SPECPATH))
 REPO_ROOT = SPEC_DIR.parent
 MARKER_PDF = REPO_ROOT / "marker-pdf"
 
+_static = ""
 try:
-    import marker
-    MARKER_PKG = os.path.dirname(marker.__file__)
-except (ImportError, AttributeError, TypeError):
-    MARKER_PKG = ""
-MARKER_PARENT = os.path.dirname(MARKER_PKG) if MARKER_PKG else ""
+    from marker.settings import settings
+    _static = settings.STATIC_DIR
+    print(f"[SPEC] STATIC_DIR = {_static}, exists = {os.path.isdir(_static)}")
+except Exception as e:
+    print(f"[SPEC] Could not read marker.settings: {e}")
 
 _hidden = (
     collect_submodules("marker") +
@@ -25,14 +23,10 @@ _hidden = (
     collect_submodules("google.genai") +
     collect_submodules("google.auth") +
     collect_submodules("google.api_core") +
-    [
-        "yaml", "fitz", "torch",
-        "PIL", "PIL.Image",
-        "regex", "certifi", "charset_normalizer",
-        "huggingface_hub", "safetensors",
-        "pypdfium2", "pypdfium2._helpers",
-        "_tkinter", "tkinter", "tkinter.ttk",
-    ]
+    ["yaml", "fitz", "torch", "PIL", "PIL.Image", "regex", "certifi",
+     "charset_normalizer", "huggingface_hub", "safetensors",
+     "pypdfium2", "pypdfium2._helpers",
+     "_tkinter", "tkinter", "tkinter.ttk"]
 )
 
 _datas = (
@@ -49,40 +43,27 @@ _datas = (
         (str(MARKER_PDF / "templates"), "marker-pdf/templates"),
     ]
 )
-_static = os.path.join(MARKER_PARENT, "static") if MARKER_PARENT else ""
 if _static and os.path.isdir(_static):
     _datas.append((_static, "static"))
 
 a = Analysis(
     ["main.py"],
     pathex=[str(SPEC_DIR), str(MARKER_PDF)],
-    binaries=[],
-    datas=_datas,
-    hiddenimports=_hidden,
+    binaries=[], datas=_datas, hiddenimports=_hidden,
     hookspath=[], hooksconfig={}, runtime_hooks=[],
     excludes=["fastapi", "uvicorn", "google.cloud.storage"],
     noarchive=False,
 )
-
 pyz = PYZ(a.pure)
-
-exe = EXE(
-    pyz, a.scripts, [],
-    exclude_binaries=True,
+exe = EXE(pyz, a.scripts, [], exclude_binaries=True,
     name="Affinity-PDF-Markdown Converter",
     debug=False, bootloader_ignore_signals=False,
     strip=False, upx=False, console=False,
-    disable_windowed_traceback=False,
-)
-
-coll = COLLECT(
-    exe, a.binaries, a.datas,
+    disable_windowed_traceback=False)
+coll = COLLECT(exe, a.binaries, a.datas,
     strip=False, upx=False,
-    name="Affinity-PDF-Markdown Converter",
-)
-
-app = BUNDLE(
-    coll,
+    name="Affinity-PDF-Markdown Converter")
+app = BUNDLE(coll,
     name="Affinity-PDF-Markdown Converter.app",
     bundle_identifier="com.noblecollective.affinity-converter",
     info_plist={
@@ -92,5 +73,4 @@ app = BUNDLE(
         "CFBundleShortVersionString": "0.1.0",
         "NSHighResolutionCapable": True,
         "LSMinimumSystemVersion": "10.15",
-    },
-)
+    })
