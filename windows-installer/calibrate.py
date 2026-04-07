@@ -53,22 +53,22 @@ class CalibrateRunner:
             out_dir.mkdir(exist_ok=True)
 
             self._step(0.01, "Step 1/3: Font analysis \u2014 scanning all pages...")
-            self._extract_font_summary(pp, out_dir)
+            self._extract_font_summary(pp, out_dir, book_name)
             if self._check_cancel(): return
 
             self._step(0.10, "Step 2/3: Marker extraction \u2014 loading models...")
-            self._run_marker(pp, out_dir)
+            self._run_marker(pp, out_dir, book_name)
             if self._check_cancel(): return
 
             self._step(0.85, "Step 3/3: PyMuPDF span extraction...")
-            self._extract_span_data(pp, out_dir)
+            self._extract_span_data(pp, out_dir, book_name)
             if self._check_cancel(): return
 
             self._step(1.0, "Calibration complete!")
             self._log(f"Output folder: {out_dir}")
-            self._log(f"  font_summary.txt \u2014 font signatures with stats and samples")
-            self._log(f"  raw.md \u2014 Marker's unprocessed output")
-            self._log(f"  pdf_data.json \u2014 every text span with font, size, position")
+            self._log(f"  {book_name}_font_summary.txt \u2014 font signatures with stats and samples")
+            self._log(f"  {book_name}_raw.md \u2014 Marker's unprocessed output")
+            self._log(f"  {book_name}_pdf_data.json \u2014 every text span with font, size, position")
             self._log("")
             self._log("Upload all 3 files to Claude to build a pdf_config.yaml template.")
             self._done(True, str(out_dir), None)
@@ -77,7 +77,7 @@ class CalibrateRunner:
             self._log(traceback.format_exc())
             self._done(False, None, str(e))
 
-    def _extract_font_summary(self, pdf_path, out_dir):
+    def _extract_font_summary(self, pdf_path, out_dir, book_name):
         import fitz
         doc = fitz.open(str(pdf_path))
         total_pages = len(doc)
@@ -175,11 +175,11 @@ class CalibrateRunner:
                 lines.append(f'    p.{pg}: "{txt}"')
             lines.append("")
 
-        out_path = out_dir / "font_summary.txt"
+        out_path = out_dir / f"{book_name}_font_summary.txt"
         out_path.write_text("\n".join(lines), encoding="utf-8")
         self._log(f"  Saved: {out_path.name} ({len(font_data)} signatures)")
 
-    def _run_marker(self, pdf_path, out_dir):
+    def _run_marker(self, pdf_path, out_dir, book_name):
         _ensure_import_path()
         old_out, old_err = sys.stdout, sys.stderr
         _TQDM_RE = re.compile(r'(.+?):\s+(\d+)%\|.*?\|\s*(\d+)/(\d+)\s*\[([^<]+)<([^,]+)')
@@ -264,14 +264,14 @@ class CalibrateRunner:
             rendered = conv(str(pdf_path))
             self._log(f"  Marker complete ({time.time()-t0:.0f}s)")
 
-            out_path = out_dir / "raw.md"
+            out_path = out_dir / f"{book_name}_raw.md"
             out_path.write_text(rendered.markdown, encoding="utf-8")
             self._log(f"  Saved: {out_path.name} ({len(rendered.markdown.splitlines())} lines)")
         finally:
             sys.stdout = old_out
             sys.stderr = old_err
 
-    def _extract_span_data(self, pdf_path, out_dir):
+    def _extract_span_data(self, pdf_path, out_dir, book_name):
         import fitz
         doc = fitz.open(str(pdf_path))
         total = len(doc)
@@ -306,7 +306,7 @@ class CalibrateRunner:
             pages.append(pdata)
 
         doc.close()
-        out_path = out_dir / "pdf_data.json"
+        out_path = out_dir / f"{book_name}_pdf_data.json"
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump({"pages": pages}, f, ensure_ascii=False)
         mb = out_path.stat().st_size / (1024*1024)
