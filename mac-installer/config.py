@@ -5,6 +5,7 @@ config.py — App paths, platform detection, settings.
 import os
 import sys
 import platform
+import shutil
 from pathlib import Path
 
 FROZEN = getattr(sys, "frozen", False)
@@ -47,14 +48,22 @@ def get_google_api_key() -> str:
 
 
 def patch_marker_font_path():
-    """Override settings.STATIC_DIR to a writable location."""
+    """Override settings.FONT_PATH to a writable location."""
     if not FROZEN:
         return
-    writable = os.path.join(os.path.expanduser("~"), ".affinity-converter", "static")
-    os.makedirs(writable, exist_ok=True)
     try:
         from marker.settings import settings
-        settings.STATIC_DIR = writable
+        writable = os.path.join(os.path.expanduser("~"), ".affinity-converter", "static")
+        os.makedirs(writable, exist_ok=True)
+        font_name = getattr(settings, 'FONT_NAME', None) or 'GoNotoCurrent.ttf'
+        writable_font = os.path.join(writable, font_name)
+
+        if not os.path.exists(writable_font):
+            bundled = os.path.join(sys._MEIPASS, 'static', font_name)
+            if os.path.exists(bundled):
+                shutil.copy2(bundled, writable_font)
+
+        settings.FONT_PATH = writable_font
     except Exception:
         pass
 
