@@ -27,8 +27,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel setuptools
           pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
-          pip install marker-pdf==1.10.2 pymupdf pyyaml
+          pip install marker-pdf==1.10.2 pymupdf pyyaml google-auth
           pip install "pyinstaller>=6.0"
+      - name: Inject API keys
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        working-directory: windows-installer
+        shell: bash
+        run: echo "GOOGLE_API_KEY = \"$GOOGLE_API_KEY\"" > _build_secrets.py
       - name: Run PyInstaller
         working-directory: windows-installer
         run: pyinstaller affinity_converter_win.spec --noconfirm
@@ -69,40 +75,38 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel setuptools
           pip install torch
-          pip install marker-pdf==1.10.2 pymupdf pyyaml
+          pip install marker-pdf==1.10.2 pymupdf pyyaml google-auth
           pip install "pyinstaller>=6.0"
 
-      # ── Import Apple signing certificate ──────────────────────────
+      - name: Inject API keys
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        working-directory: mac-installer
+        run: echo "GOOGLE_API_KEY = \"$GOOGLE_API_KEY\"" > _build_secrets.py
+
       - name: Import code signing certificate
         env:
           CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
         run: |
-          # Decode the certificate
           echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
 
-          # Create a temporary keychain
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
           KEYCHAIN_PASSWORD="$(openssl rand -hex 16)"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
-          # Import certificate into keychain
           security import certificate.p12 -P "$CERTIFICATE_PASSWORD" \
             -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
 
-          # Allow codesign to access the keychain
           security set-key-partition-list -S apple-tool:,apple: \
             -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
-          # Add to keychain search list
           security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
 
-          # Clean up cert file
           rm certificate.p12
 
-          # Find the signing identity automatically
           echo "Available signing identities:"
           security find-identity -v -p codesigning "$KEYCHAIN_PATH"
 
@@ -110,7 +114,6 @@ jobs:
 
           if [ -z "$IDENTITY" ]; then
             echo "ERROR: No Developer ID Application identity found in keychain"
-            echo "All identities:"
             security find-identity -v "$KEYCHAIN_PATH"
             exit 1
           fi
@@ -123,7 +126,6 @@ jobs:
         working-directory: mac-installer
         run: pyinstaller affinity_converter_mac.spec --noconfirm
 
-      # ── Code sign the .app ────────────────────────────────────────
       - name: Sign the app bundle
         run: |
           APP_PATH="mac-installer/dist/Affinity-PDF-Markdown Converter.app"
@@ -138,7 +140,6 @@ jobs:
           codesign --verify --deep --strict "$APP_PATH"
           echo "Code signing verified successfully"
 
-      # ── Create DMG ────────────────────────────────────────────────
       - name: Create DMG
         working-directory: mac-installer
         run: |
@@ -160,7 +161,6 @@ jobs:
 
           codesign --force --sign "$SIGNING_IDENTITY" --timestamp "$DMG_PATH"
 
-      # ── Notarize with Apple ───────────────────────────────────────
       - name: Notarize DMG
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -183,7 +183,6 @@ jobs:
 
           echo "Notarization complete"
 
-      # ── Clean up keychain ─────────────────────────────────────────
       - name: Clean up keychain
         if: always()
         run: |
