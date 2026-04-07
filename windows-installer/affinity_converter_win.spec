@@ -31,9 +31,10 @@ a = Analysis(
         "yaml", "fitz", "torch", "marker", "marker.models",
         "marker.converters.pdf", "marker.processors.block_relabel",
         "marker.schema.registry",
+        "google.auth", "google.auth.transport.requests", "google.genai",
     ],
     hookspath=[], hooksconfig={}, runtime_hooks=[],
-    excludes=["fastapi", "uvicorn", "google.cloud.storage", "google.auth"],
+    excludes=["fastapi", "uvicorn", "google.cloud.storage"],
     noarchive=False,
 )
 

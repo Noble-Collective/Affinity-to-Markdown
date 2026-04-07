@@ -32,9 +32,10 @@ a = Analysis(
         "marker.converters.pdf", "marker.processors.block_relabel",
         "marker.schema.registry",
         "_tkinter", "tkinter", "tkinter.ttk",
+        "google.auth", "google.auth.transport.requests", "google.genai",
     ],
     hookspath=[], hooksconfig={}, runtime_hooks=[],
-    excludes=["fastapi", "uvicorn", "google.cloud.storage", "google.auth"],
+    excludes=["fastapi", "uvicorn", "google.cloud.storage"],
     noarchive=False,
 )
 
