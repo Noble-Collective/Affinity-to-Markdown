@@ -84,19 +84,36 @@ This pipeline takes a designed book PDF (created in Affinity Publisher) and prod
 
 2. **All fixes are rule-based, not text-based.** Post-processing rules operate on font weight, size ratios, and structural patterns. If you changed every word in the book, the pipeline would still work because it keys on font properties.
 
-3. **Template config, not hardcoded strings.** The code (`run.py`) is generic. All book-specific data (font ratios, heading labels, skip patterns) lives in `templates/<book>/pdf_config.yaml`.
+3. **Template config, not hardcoded strings.** The code (`run.py`) is generic. All book-specific data (font ratios, heading labels, skip patterns) lives in template configs under `templates/`. Series books split config between `series_config.yaml` (shared) and `book_config.yaml` (overrides); flat templates use a single `pdf_config.yaml`.
 
 4. **Question tagging is structural.** Questions are matched by heading context + type + ordinal position — never by text content. The `text` field in `questions_final.yaml` is for human review only; the code never reads it.
 
 5. **Diagnose before fixing.** When output looks wrong: check raw Marker output → check PyMuPDF font data → trace through pipeline passes → identify root cause → design a rule-level fix.
 
-### Three-file system
+### Template system
+
+Templates are organized in two layouts:
+
+**Series/book** (preferred for books in a series):
+```
+templates/<series>/series_config.yaml          ← shared font rules for the series
+templates/<series>/<book>/book_config.yaml     ← book-specific overrides
+templates/<series>/<book>/questions_final.yaml  ← question tagging config
+```
+
+**Flat** (standalone books with unique styling):
+```
+templates/<template>/pdf_config.yaml           ← all config in one file
+```
+
+The pipeline merges `series_config.yaml` + `book_config.yaml` at runtime, with book-level keys overriding series-level keys.
 
 | File | Role | Content-specific? |
 |------|------|-------------------|
 | `run.py` | All pipeline logic | **No** — generic across books |
-| `templates/homestead/pdf_config.yaml` | Font ratios, heading rules, hierarchy | **Yes** — per-book config |
-| `templates/homestead/questions_final.yaml` | Question IDs, types, ordinals | **Yes** — per-book question map |
+| `templates/passage/series_config.yaml` | Shared Times New Roman font config | **Yes** — per-series |
+| `templates/passage/homestead/book_config.yaml` | Homestead heading rules, hierarchy | **Yes** — per-book config |
+| `templates/passage/homestead/questions_final.yaml` | Question IDs, types, ordinals | **Yes** — per-book question map |
 
 ---
 
@@ -106,11 +123,14 @@ This pipeline takes a designed book PDF (created in Affinity Publisher) and prod
 cd marker-pdf
 source venv311/Scripts/activate   # Windows Git Bash (Python 3.11 venv)
 
-# Full conversion (Marker + post-processing, ~10-15 min per session on CPU)
-python run.py "path/to/book.pdf" --save-raw --template homestead
+# Full conversion — series/book template (Marker + post-processing, ~10-15 min on CPU)
+python run.py "path/to/book.pdf" --save-raw --template passage --book homestead
+
+# Full conversion — flat template
+python run.py "path/to/book.pdf" --save-raw --template appelle_du_christ
 
 # Fast iteration: re-run post-processing only (seconds, not minutes)
-python run.py raw.md book.pdf --postprocess
+python run.py raw.md book.pdf --postprocess --template passage --book homestead
 
 # Font calibration for a new book
 python run.py "path/to/book.pdf" --dump-fonts
@@ -118,6 +138,8 @@ python run.py "path/to/book.pdf" --dump-fonts
 # Page range (useful for testing a single session)
 python run.py "path/to/book.pdf" --save-raw --page-range 37-84
 ```
+
+The default template is `passage`. When using a series template, `--book` selects the book within that series. Flat templates (e.g., `--template appelle_du_christ`) do not need `--book`.
 
 **Requirements:** Python 3.11, `pip install pyyaml pymupdf marker-pdf` in venv311.
 
@@ -216,8 +238,13 @@ The abbreviation function (`_q_abbrev`) takes the first 3 characters of each sig
 | File | Purpose |
 |------|---------|
 | `run.py` | Generic local runner — all conversion, post-processing, and question tagging logic |
-| `templates/homestead/pdf_config.yaml` | Homestead book config (font ratios, headings, hierarchy, etc.) |
-| `templates/homestead/questions_final.yaml` | Question tagging config — 377 entries with structural IDs |
+| `templates/passage/series_config.yaml` | Passage series shared config (Times New Roman font rules) |
+| `templates/passage/homestead/book_config.yaml` | Homestead book config (heading hierarchy, skip patterns, etc.) |
+| `templates/passage/homestead/questions_final.yaml` | Homestead question tagging config — 377 entries with structural IDs |
+| `templates/classics/series_config.yaml` | Classics series shared config (EB Garamond font rules) |
+| `templates/classics/oration/book_config.yaml` | Oration book config |
+| `templates/classics/oration/questions_final.yaml` | Oration question tagging config |
+| `templates/appelle_du_christ/pdf_config.yaml` | Flat template (standalone, different styling) |
 | `testing/claude debug scripts/extract_pdf_data.py` | Extracts PyMuPDF font data to JSON for offline pipeline testing |
 | `app.py` | Cloud Run FastAPI server (separate from local runner) |
 | `Dockerfile` | Cloud Run image (uses pre-built base) |
@@ -228,21 +255,43 @@ The abbreviation function (`_q_abbrev`) takes the first 3 characters of each sig
 
 ## Template System
 
-All book-specific configuration lives in `templates/<n>/pdf_config.yaml`. The runner is fully generic — no font names, absolute sizes, or text content are hardcoded in `run.py`.
+The runner is fully generic — no font names, absolute sizes, or text content are hardcoded in `run.py`. All book-specific configuration lives in template files:
 
-### Adding a new book
+- **Series/book:** `templates/<series>/series_config.yaml` (shared font rules) + `templates/<series>/<book>/book_config.yaml` (book-specific overrides). Merged at runtime with book-level keys taking priority.
+- **Flat:** `templates/<template>/pdf_config.yaml` (all config in one file).
+
+Current templates:
+
+| Template | CLI flags | Font | Books |
+|----------|-----------|------|-------|
+| `passage` | `--template passage --book homestead` | Times New Roman | Homestead |
+| `classics` | `--template classics --book oration` | EB Garamond | Oration |
+| `appelle_du_christ` | `--template appelle_du_christ` | (flat, standalone) | Appelle du Christ |
+
+### Adding a new book to an existing series
 
 ```bash
 # 1. Dump font analysis
 python run.py newbook.pdf --dump-fonts
 
-# 2. Create templates/newbook/pdf_config.yaml
-# 3. Set heading ratios to match the font table
-# 4. Run with --template newbook
-python run.py newbook.pdf --template newbook --save-raw
+# 2. Create templates/<series>/newbook/book_config.yaml
+#    with book-specific overrides (shared font rules come from series_config.yaml)
+# 3. Run with --template <series> --book newbook
+python run.py newbook.pdf --template passage --book newbook --save-raw
 ```
 
-### pdf_config.yaml keys
+### Adding a new series
+
+1. Create `templates/newseries/series_config.yaml` with shared font rules (body_font, headings, quote ratios, etc.)
+2. Create `templates/newseries/firstbook/book_config.yaml` with book-specific config (heading hierarchy, skip patterns, etc.)
+3. Run with `--template newseries --book firstbook`
+
+### Adding a flat (standalone) template
+
+1. Create `templates/newtemplate/pdf_config.yaml` with all config in one file
+2. Run with `--template newtemplate` (no `--book` flag)
+
+### Config keys (series_config.yaml / book_config.yaml / pdf_config.yaml)
 
 ```yaml
 body_font: auto          # "auto" = most frequent font
@@ -313,6 +362,22 @@ heading_hierarchy:       # Semantic heading restructuring
   subdivision_overrides: [{ session: "...", before_heading: "...", label: "..." }]
   heading_text_fixes: [{ match: "...", replace: "..." }]
   remove_artifact_headings: ["..."]
+
+content_heading_patterns:    # Regex-based heading detection for books where sections
+                             # are at body font size (not detectable by font ratio)
+  - pattern: '^CHAPTER [IVXLC]+'
+    level: 2
+    strip_trailing_number: true   # Remove trailing page numbers
+
+chapter_subtitle_pattern: '...'   # Regex to detect chapter subtitle lines
+chapter_subtitle_level: 3         # Heading level for matched subtitles
+
+insert_front_matter_heading: "Front Matter"  # Auto-insert an H1 at document start
+front_matter_ends_before: "^# "              # Regex: heading before which front matter ends
+
+strip_between:               # Remove content between configurable markers
+  - start_after: 'TABLE OF CONTENTS'
+    end_before: '^# '        # Regex: first heading after the TOC
 ```
 
 ---
@@ -326,9 +391,12 @@ Applied in order inside `post_process()`. Each pass uses font data from PyMuPDF 
 | Pass | What it does |
 |------|-------------|
 | Image/rule strip | Remove Marker image tags and horizontal rules |
+| `fix_section_tables` | Extract body content from 2-column tables where Marker rendered section content as table rows |
 | `fix_pullquote_fragments` | Remove indented margin pull-quotes |
 | `fix_split_bold_headings` | Join consecutive bold lines split by Marker (e.g. `**At All Times:**` + `**Building Worship...**` → single bold line) |
 | `fix_headings` | Remap heading levels using font-derived heading_map |
+| `fix_content_headings` | Configurable pattern-based heading normalization for books where section headings are at body font size (uses `content_heading_patterns` config) |
+| `fix_strip_between` | Strip content between configurable markers (e.g., removing expanded TOC). Uses `strip_between` config |
 
 ### Verse & blockquote correction
 
@@ -404,7 +472,7 @@ Applied in order inside `post_process()`. Each pass uses font data from PyMuPDF 
 | Bold verse spacing | Remove extra blank after `**Verse N**` lines |
 | Table bullet fix | `<br>•<br>` → `<br>• ` |
 | Triple-blank collapse | `\n{3,}` → `\n\n` |
-| `fix_questions` | Structural question tagging — walks heading stack, classifies lines by type, matches against `questions_final.yaml` by context+type+ordinal, wraps with `<Question>` tags |
+| `fix_questions` | Structural question tagging — walks heading stack, classifies lines by type, matches against `questions_final.yaml` by context+type+ordinal, wraps with `<Question>` tags. The question ID prefix is derived from the question config (not hardcoded) |
 
 ---
 
@@ -538,7 +606,7 @@ Marker loses inline bold in certain contexts. The pipeline restores it using fon
 
 ---
 
-## Homestead Book Font Map
+## Font Map: Homestead (Passage Series)
 
 Body text: `TimesNewRomanPSMT @ 10pt`
 
