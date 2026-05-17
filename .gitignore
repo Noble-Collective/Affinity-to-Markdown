@@ -37,6 +37,9 @@ Desktop.ini
 *.raw.md
 *.pdf
 
+# Temp working folder
+temp/
+
 # Model cache (downloaded at runtime)
 .cache/
 

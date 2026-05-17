@@ -1,0 +1,91 @@
+# Oration II — book-specific config
+# Merged on top of ../series_config.yaml at load time.
+
+# Pattern-based heading normalization for body-size headings that
+# font ratio detection can't catch (section headings are at body-bold).
+content_heading_patterns:
+  - pattern: '^Section \d+:.*'
+    level: 2
+    strip_trailing_number: true
+  - pattern: '^Chapter (One|Two|Three|Four|Five|Six)\b.*'
+    level: 1
+    strip_trailing_number: true
+  - pattern: '^Reflection Questions\b.*'
+    level: 2
+    strip_trailing_number: true
+  - pattern: '^Bibliography\b.*'
+    level: 1
+    strip_trailing_number: true
+  - pattern: '^Preface\b.*'
+    level: 2
+    strip_trailing_number: true
+  - pattern: '^Introduction\s*$'
+    level: 3
+  - pattern: '^Citation Note\s*$'
+    level: 3
+  - pattern: '^Editions\s*$'
+    level: 3
+  - pattern: '^Translations\s*$'
+    level: 3
+  - pattern: '^Secondary Literature\s*$'
+    level: 3
+
+# Insert Front Matter heading at the top of the document
+insert_front_matter_heading: "Front Matter"
+front_matter_ends_before: "Chapter One"
+
+# Chapter subtitle themes — quoted lines like '"Title": Description'
+# appear after chapter headings and should become H2
+chapter_subtitle_pattern: '^"[^"]+":\s+\w.*'
+chapter_subtitle_level: 3
+
+skip_line_patterns:
+  # Standalone page numbers (roman or arabic)
+  - '^\d{1,3}$'
+  - '^[ivxlc]+$'
+  # Duplicate italic chapter theme quotes at end of chapters
+  - '^\*"[^"]+"\*$'
+  # Expanded TOC heading and related artifacts
+  - '^#{0,6}\s*\*{0,2}Expanded Table of Contents\*{0,2}'
+  - '^\*{0,2}Expanded Table of Contents\*{0,2}'
+  - '^\*{0,2}Preface\s+[ivxlc]+\*{0,2}$'
+
+skip_table_markers:
+  - 'Table of Contents'
+  - 'Expanded Table of Contents'
+  - 'Chapter One'
+  - 'Chapter Two'
+  - 'Chapter Three'
+  - 'Chapter Four'
+  - 'Chapter Five'
+  - 'Chapter Six'
+  - 'Reflection Questions'
+
+table_to_list: []
+
+front_matter_corrections:
+  ends_before: "# Chapter One"
+  remove_lines:
+    # Duplicate italic title
+    - '^\*Oration II'
+    # Duplicate H1 title just before Chapter One
+    - '^Oration II: In Defense'
+  text_replacements:
+    - match: "> York, Pennsylvania Noble Imprint 2026"
+      replace: "York, Pennsylvania\nNoble Imprint\n2026"
+    # Fix merged copyright line
+    - match: "Series: A Library of Classics for Christian Ministry: A Pastoral Shelf © 2026"
+      replace: "Series: A Library of Classics for Christian Ministry: A Pastoral Shelf\n\n© 2026"
+    # Fix merged publication lines
+    - match: "Originally published by Christian Literature Company, 1894 This book"
+      replace: "Originally published by Christian Literature Company, 1894\n\nThis book"
+
+# Strip the expanded TOC section — everything between the end of the
+# copyright/front matter and the Preface heading is expanded TOC content
+# that duplicates the body text.
+strip_between:
+  - start_after: "1 Corinthians 4"
+    end_before: "# **Preface**"
+
+# No heading hierarchy pass needed — handled by content_heading_patterns
+# heading_hierarchy is intentionally omitted

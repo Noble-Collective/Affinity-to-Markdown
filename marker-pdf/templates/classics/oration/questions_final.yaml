@@ -1,0 +1,146 @@
+# questions_final.yaml - User input areas for Oration II
+#
+# IDs: deterministic from heading hierarchy + ordinal number.
+# Post-processor matches by: heading context + type + ordinal.
+# Text is for human review only.
+#
+# Types: numbered
+#
+# Structure: # Chapter N > ## Reflection Questions > numbered items
+# (The H3 subtitle gets cleared from stack when H2 sections appear)
+
+book: Oration II
+prefix: Ora
+
+questions:
+  # Chapter One — 4 questions
+  - id: Ora-ChaOne-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. Why did Gregory initially run away from his ministry call?"
+    path: "Chapter One > Reflection Questions"
+  - id: Ora-ChaOne-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. Have you ever tried to run away from ministry?"
+    path: "Chapter One > Reflection Questions"
+  - id: Ora-ChaOne-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. Have you ever found yourself desiring ministry out of wrong motivations?"
+    path: "Chapter One > Reflection Questions"
+  - id: Ora-ChaOne-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. How would you evaluate the call to ministry today?"
+    path: "Chapter One > Reflection Questions"
+
+  # Chapter Two — 4 questions
+  - id: Ora-ChaTwo-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. What importance does Gregory put on Christian virtue as a qualification for ministry?"
+    path: "Chapter Two > Reflection Questions"
+  - id: Ora-ChaTwo-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. Why is Christian virtue and godly character important for ministry work?"
+    path: "Chapter Two > Reflection Questions"
+  - id: Ora-ChaTwo-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. What character flaws do you recognize in your life?"
+    path: "Chapter Two > Reflection Questions"
+  - id: Ora-ChaTwo-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. How can we reconcile Gregory's call to Christlike moral character...?"
+    path: "Chapter Two > Reflection Questions"
+
+  # Chapter Three — 3 questions
+  - id: Ora-ChaThr-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. How is the work of ministry like that of a physician?"
+    path: "Chapter Three > Reflection Questions"
+  - id: Ora-ChaThr-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. What would change in your life, ministry, and church if you viewed yourself as a physician of souls?"
+    path: "Chapter Three > Reflection Questions"
+  - id: Ora-ChaThr-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. What examples do you have of people who have approached the work of ministry as a doctoring of the soul?"
+    path: "Chapter Three > Reflection Questions"
+
+  # Chapter Four — 5 questions
+  - id: Ora-ChaFou-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. What importance does Gregory put on the teaching of the Scripture in pastoral ministry?"
+    path: "Chapter Four > Reflection Questions"
+  - id: Ora-ChaFou-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. What are the challenges of biblical teaching?"
+    path: "Chapter Four > Reflection Questions"
+  - id: Ora-ChaFou-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. In an effort to promote faithful teaching, what biblical examples are given?"
+    path: "Chapter Four > Reflection Questions"
+  - id: Ora-ChaFou-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. According to Gregory, what is the relationship between character, knowing God, and teaching the truth?"
+    path: "Chapter Four > Reflection Questions"
+  - id: Ora-ChaFou-RefQue-5
+    type: numbered
+    ordinal: 5
+    text: "5. What challenges do you face in your teaching work?"
+    path: "Chapter Four > Reflection Questions"
+
+  # Chapter Five — 4 questions
+  - id: Ora-ChaFiv-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. How does Gregory describe the weight and responsibility of pastoral duty?"
+    path: "Chapter Five > Reflection Questions"
+  - id: Ora-ChaFiv-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. What attitudes and mindsets should people have when they enter into pastoral work?"
+    path: "Chapter Five > Reflection Questions"
+  - id: Ora-ChaFiv-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. How does Gregory describe the battles in pastoral work?"
+    path: "Chapter Five > Reflection Questions"
+  - id: Ora-ChaFiv-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. How does Gregory describe the condition of ministers in his day?"
+    path: "Chapter Five > Reflection Questions"
+
+  # Chapter Six — 4 questions
+  - id: Ora-ChaSix-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. What two fears did Gregory stand between that caused him to accept his pastoral post?"
+    path: "Chapter Six > Reflection Questions"
+  - id: Ora-ChaSix-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. How did Gregory use Jonah as an example of his own flight and acceptance?"
+    path: "Chapter Six > Reflection Questions"
+  - id: Ora-ChaSix-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. Ultimately, how does Gregory speak about why he accepted his priestly post?"
+    path: "Chapter Six > Reflection Questions"
+  - id: Ora-ChaSix-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. How would you evaluate your own approach to pastoral work?"
+    path: "Chapter Six > Reflection Questions"

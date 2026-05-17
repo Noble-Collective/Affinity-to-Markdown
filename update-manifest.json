@@ -1,10 +1,14 @@
 {
-  "version": 1,
-  "updated": "2026-04-06",
-  "notes": "Initial release — HomeStead pipeline v68",
+  "version": 2,
+  "updated": "2026-05-16",
+  "notes": "Template restructure, classics series, new pipeline passes",
   "files": [
     "marker-pdf/run.py",
-    "marker-pdf/templates/homestead/pdf_config.yaml",
-    "marker-pdf/templates/homestead/questions_final.yaml"
+    "marker-pdf/templates/passage/series_config.yaml",
+    "marker-pdf/templates/passage/homestead/book_config.yaml",
+    "marker-pdf/templates/passage/homestead/questions_final.yaml",
+    "marker-pdf/templates/classics/series_config.yaml",
+    "marker-pdf/templates/classics/oration/book_config.yaml",
+    "marker-pdf/templates/classics/oration/questions_final.yaml"
   ]
 }

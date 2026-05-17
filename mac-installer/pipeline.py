@@ -5,7 +5,7 @@ Captures stdout + stderr (Marker tqdm). Supports OTA updates.
 
 import io, re, sys, threading, traceback, time
 from pathlib import Path
-from config import MARKER_PDF_DIR, get_template_dir, UPDATES_DIR, get_google_api_key
+from config import MARKER_PDF_DIR, get_template_dir, get_series_dir, parse_template_id, UPDATES_DIR, get_google_api_key
 
 def _ensure_import_path():
     updated = str(UPDATES_DIR / "marker-pdf")
@@ -168,12 +168,30 @@ class PipelineRunner:
             else: pages.append(int(p))
         return pages
     def _load_template(self,run,template):
-        td=get_template_dir(template); cp=td/"pdf_config.yaml"
-        if not cp.exists(): raise FileNotFoundError(f"Template not found: {cp}")
-        cfg=run._load_yaml(cp); cfg["_citation_res"]=[re.compile(p) for p in cfg.get("citation_patterns",[])]
-        self._log(f"Template: {template} (from {td})"); return cfg
+        tname, book = parse_template_id(template)
+        sd = get_series_dir(tname)
+        if sd:
+            # Series template: load shared + book overrides
+            cfg = run._load_yaml(sd / "series_config.yaml")
+            if book:
+                td = get_template_dir(tname, book)
+                bp = td / "book_config.yaml"
+                if bp.exists():
+                    cfg.update(run._load_yaml(bp))
+            cfg["_citation_res"] = [re.compile(p) for p in cfg.get("citation_patterns",[])]
+            self._log(f"Template: {template} (series: {sd}, book: {td if book else 'none'})"); return cfg
+        else:
+            td = get_template_dir(tname); cp = td / "pdf_config.yaml"
+            if not cp.exists(): raise FileNotFoundError(f"Template not found: {cp}")
+            cfg = run._load_yaml(cp); cfg["_citation_res"] = [re.compile(p) for p in cfg.get("citation_patterns",[])]
+            self._log(f"Template: {template} (from {td})"); return cfg
     def _load_questions(self,run,template):
-        td=get_template_dir(template); qp=td/"questions_final.yaml"
+        tname, book = parse_template_id(template)
+        if book:
+            td = get_template_dir(tname, book)
+        else:
+            td = get_template_dir(tname)
+        qp = td / "questions_final.yaml"
         if qp.exists():
             qd=run._load_yaml(qp); qc=qd.get("questions",[]); self._log(f"Questions config: {len(qc)} entries"); return qc
         return None

@@ -10,7 +10,7 @@ Usage:
   python run.py path/to/book.pdf                    # full conversion
   python run.py path/to/book.pdf --save-raw         # save Marker output before post-processing
   python run.py raw.md book.pdf --postprocess       # re-run post-processing only (fast)
-  python run.py path/to/book.pdf --template homestead
+  python run.py path/to/book.pdf --template passage --book homestead
   python run.py path/to/book.pdf --page-range 62-200
   python run.py path/to/book.pdf --dump-fonts       # calibration mode
   python run.py path/to/book.pdf --verbose           # show Marker/LLM logging
@@ -25,10 +25,23 @@ def _load_yaml(path):
     import yaml
     with open(path, encoding="utf-8") as f: return yaml.safe_load(f)
 
-def load_template(name):
-    path = SCRIPT_DIR / "templates" / name / "pdf_config.yaml"
-    if not path.exists(): print(f"ERROR: {path}"); sys.exit(1)
-    cfg = _load_yaml(path)
+def load_template(name, book=None):
+    base = SCRIPT_DIR / "templates" / name
+    series_path = base / "series_config.yaml"
+    if series_path.exists():
+        # Series template: shared config + book-specific overrides
+        if not book:
+            print(f"ERROR: Template '{name}' is a series -- specify --book"); sys.exit(1)
+        cfg = _load_yaml(series_path)
+        book_path = base / book / "book_config.yaml"
+        if book_path.exists():
+            book_cfg = _load_yaml(book_path)
+            cfg.update(book_cfg)
+    else:
+        # Flat template (single pdf_config.yaml)
+        path = base / "pdf_config.yaml"
+        if not path.exists(): print(f"ERROR: {path}"); sys.exit(1)
+        cfg = _load_yaml(path)
     cfg["_citation_res"] = [re.compile(p) for p in cfg.get("citation_patterns", [])]
     return cfg
 
@@ -1056,6 +1069,120 @@ def fix_toc_tables(md):
             out.extend(table)
         else: out.append(lines[i]); i += 1
     return '\n'.join(out)
+def fix_section_tables(md):
+    """Extract content from 2-column tables where Marker rendered body text
+    as table rows.  Detects tables where the second column is mostly page
+    numbers or empty cells, extracts the first column, and converts <br>
+    to line breaks.  Only processes tables that appear after the first H1
+    heading in the body (skips TOC tables in front matter)."""
+    lines = md.splitlines(); out = []; i = 0
+    # Find the first body content heading (skip all TOC tables before it)
+    body_start = 0
+    for j, line in enumerate(lines):
+        s = line.strip()
+        # Look for Preface or Chapter headings at any heading level or bold
+        clean = re.sub(r'^#{1,6}\s+', '', s)
+        clean = re.sub(r'\*+', '', clean).strip()
+        if re.match(r'^(Chapter\s|Preface\b)', clean) and len(clean) < 80:
+            body_start = j; break
+    while i < len(lines):
+        if i >= body_start and lines[i].strip().startswith('|') and i+1 < len(lines) and '|---' in lines[i+1]:
+            table = []
+            while i < len(lines) and lines[i].strip().startswith('|'): table.append(lines[i]); i += 1
+            data_rows = [t for t in table if '---' not in t]
+            if not data_rows: out.extend(table); continue
+            # Check if this is a 2-column table with page numbers / empty in col 2
+            is_content_table = True
+            num_or_empty = 0
+            for r in data_rows:
+                cells = r.strip().strip('|').split('|')
+                if len(cells) < 2: is_content_table = False; break
+                c2 = cells[-1].strip()
+                if not c2 or re.match(r'^\d{1,3}$', c2) or re.match(r'^[ivxlc]+$', c2):
+                    num_or_empty += 1
+            if is_content_table and data_rows and num_or_empty >= len(data_rows) * 0.5:
+                for r in data_rows:
+                    cells = r.strip().strip('|').split('|')
+                    cell = cells[0].strip() if cells else ''
+                    cell = re.sub(r'<br\s*/?>', '\n', cell).strip()
+                    if cell:
+                        out.append('')
+                        for cl in cell.split('\n'):
+                            cl = cl.strip()
+                            if cl: out.append(cl)
+                out.append('')
+            else:
+                out.extend(table)
+        else: out.append(lines[i]); i += 1
+    return '\n'.join(out)
+
+def fix_strip_between(md, cfg):
+    """Strip content between configured markers.  Each entry in the
+    strip_between config list removes lines after the first line containing
+    start_after up to (but not including) the first line containing end_before."""
+    rules = cfg.get("strip_between", [])
+    if not rules: return md
+    for rule in rules:
+        sa = rule.get("start_after", ""); eb = rule.get("end_before", "")
+        if not sa or not eb: continue
+        lines = md.splitlines(); start_idx = end_idx = None
+        for i, line in enumerate(lines):
+            if start_idx is None and sa in line: start_idx = i + 1
+            elif start_idx is not None and end_idx is None and eb in line: end_idx = i; break
+        if start_idx is not None and end_idx is not None and end_idx > start_idx:
+            md = '\n'.join(lines[:start_idx] + lines[end_idx:])
+    return md
+
+def fix_content_headings(md, cfg):
+    """Normalize lines matching configurable patterns to specific heading levels.
+    Useful for books where section headings are at body font size and can't
+    be detected by font ratio analysis.  Also handles front matter heading
+    insertion and chapter subtitle detection."""
+    patterns = cfg.get("content_heading_patterns", [])
+    sub_pat = cfg.get("chapter_subtitle_pattern", "")
+    sub_level = cfg.get("chapter_subtitle_level", 2)
+    fm_heading = cfg.get("insert_front_matter_heading", "")
+    fm_end = cfg.get("front_matter_ends_before", "")
+    if not patterns and not sub_pat and not fm_heading: return md
+    compiled = [(re.compile(p["pattern"]), p["level"], p.get("strip_trailing_number", False))
+                for p in patterns]
+    sub_rx = re.compile(sub_pat) if sub_pat else None
+    lines = md.splitlines(); out = []
+    if fm_heading:
+        out.extend([f"# {fm_heading}", ""])
+    for line in lines:
+        s = line.strip()
+        # Strip existing heading markers and bold for matching
+        clean = re.sub(r'^#{1,6}\s+', '', s)
+        clean = re.sub(r'^\*\*(.+?)\*\*$', r'\1', clean).strip()
+        matched = False
+        for rx, level, strip_num in compiled:
+            m = rx.match(clean)
+            if m:
+                heading_text = clean
+                remainder = ""
+                if strip_num:
+                    # Check for trailing page number possibly followed by body text
+                    trail = re.match(r'^(.*?)\s+(\d{1,3})\s+(\*.+)$', heading_text)
+                    if trail:
+                        heading_text = trail.group(1).strip()
+                        remainder = trail.group(3).strip()
+                    else:
+                        heading_text = re.sub(r'\s+\d{1,3}\s*$', '', heading_text)
+                out.append(f"{'#' * level} {heading_text}")
+                if remainder:
+                    out.append("")
+                    out.append(remainder)
+                matched = True
+                break
+        if matched: continue
+        # Chapter subtitle detection (quoted theme lines)
+        if sub_rx and sub_rx.match(clean) and not s.startswith('*'):
+            out.append(f"{'#' * sub_level} {clean}")
+            continue
+        out.append(line)
+    return '\n'.join(out)
+
 def fix_heading_fragments(md):
     lines = md.splitlines(); remove = set()
     for i, line in enumerate(lines):
@@ -1411,10 +1538,14 @@ def fix_questions(md, questions_cfg):
     if not questions_cfg: return md
     from collections import defaultdict
     by_context = defaultdict(list)
+    # Derive prefix from the first question ID (e.g. "Home" from "Home-ParOnePre-...")
+    prefix = 'Home'
     for q in questions_cfg:
         m = re.match(r'^(.+)-(\d+)$', q['id'])
         if not m: continue
         by_context[m.group(1)].append((int(m.group(2)), q['type'], q['id']))
+        if prefix == 'Home':
+            prefix = q['id'].split('-')[0]
     for b in by_context: by_context[b].sort()
 
     lines = md.splitlines(); out = []; ch = {}
@@ -1427,7 +1558,7 @@ def fix_questions(md, questions_cfg):
             lv = len(hm.group(1)); ch[lv] = s
             for l in list(ch.keys()):
                 if l > lv: del ch[l]
-        ctx = '-'.join(['Home'] + [_q_abbrev(ch[l]) for l in sorted(ch.keys())])
+        ctx = '-'.join([prefix] + [_q_abbrev(ch[l]) for l in sorted(ch.keys())])
         lt = _q_classify(s)
         if lt and ctx in by_context:
             tc[ctx][lt] += 1; co = tc[ctx][lt]
@@ -1446,6 +1577,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
                  callout_texts=None, inline_bold=None, heading_order=None, verse_sup=None,
                  questions_cfg=None):
     md = md.replace('\r\n','\n').replace('\r','\n')
+    md = fix_strip_between(md, cfg)
     md = re.sub(r'^!\[.*?\]\(.*?\)\s*$', '', md, flags=re.MULTILINE)
     md = re.sub(r'^-{20,}\s*$', '', md, flags=re.MULTILINE)
     skip_set = {k for k in skip_set if k not in heading_map or any(l == '#' for l in heading_map[k])}
@@ -1463,6 +1595,8 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = fix_hyphenation(md)
     md = fix_empty_tables(md)
     md = fix_toc_tables(md)
+    md = fix_junk_content(md, cfg)
+    md = fix_section_tables(md)
     md = fix_final_review_table(md, cfg)
     md = fix_inline_bold(md, inline_bold or [])
     md = fix_junk_content(md, cfg)
@@ -1477,6 +1611,7 @@ def post_process(md, heading_map, skip_set, bq_set, cit_set, verse_map, cfg,
     md = re.sub(r'^<<\s+\*\*(.+?)\*\*', r'<< \1', md, flags=re.MULTILINE)
     md = fix_front_matter(md, cfg)
     md = fix_heading_hierarchy(md, cfg, heading_order)
+    md = fix_content_headings(md, cfg)
     # Callouts run on final text structure (after heading rearrangement)
     md = fix_callouts(md, callout_texts or [])
     md = re.sub(r'</Callout>\s*<Callout>', ' ', md)
@@ -1537,7 +1672,8 @@ def get_available_gemini_model(api_key):
 def main():
     ap = argparse.ArgumentParser(description="Convert PDF to Markdown.")
     ap.add_argument("input"); ap.add_argument("pdf", nargs="?"); ap.add_argument("output", nargs="?")
-    ap.add_argument("--template", default="homestead"); ap.add_argument("--page-range", default="")
+    ap.add_argument("--template", default="passage"); ap.add_argument("--book", default=None)
+    ap.add_argument("--page-range", default="")
     ap.add_argument("--dump-fonts", action="store_true"); ap.add_argument("--save-raw", action="store_true")
     ap.add_argument("--postprocess", action="store_true")
     ap.add_argument("--verbose", action="store_true", help="Show detailed Marker/LLM logging")
@@ -1558,10 +1694,13 @@ def main():
         if not p.exists(): print(f"ERROR: {p}"); sys.exit(1)
         dump_fonts(p, page_range); return
 
-    cfg = load_template(args.template)
-    print(f"Template: {args.template}")
+    cfg = load_template(args.template, args.book)
+    print(f"Template: {args.template}" + (f" / book: {args.book}" if args.book else ""))
     # Load question tagging config (optional)
-    qpath = SCRIPT_DIR / "templates" / args.template / "questions_final.yaml"
+    if args.book:
+        qpath = SCRIPT_DIR / "templates" / args.template / args.book / "questions_final.yaml"
+    else:
+        qpath = SCRIPT_DIR / "templates" / args.template / "questions_final.yaml"
     qcfg = None
     if qpath.exists():
         qd = _load_yaml(qpath)

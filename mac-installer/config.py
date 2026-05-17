@@ -69,19 +69,48 @@ def patch_marker_font_path():
 
 
 def get_available_templates() -> list[str]:
+    """Return template identifiers. Series templates return 'series/book' format."""
     templates = set()
     for base in [UPDATES_DIR / "marker-pdf" / "templates", _BUNDLED_MARKER_PDF / "templates"]:
-        if base.is_dir():
-            for d in base.iterdir():
-                if d.is_dir() and (d / "pdf_config.yaml").exists():
-                    templates.add(d.name)
+        if not base.is_dir(): continue
+        for d in base.iterdir():
+            if not d.is_dir(): continue
+            if (d / "pdf_config.yaml").exists():
+                # Flat template
+                templates.add(d.name)
+            elif (d / "series_config.yaml").exists():
+                # Series template — list each book within it
+                for bd in d.iterdir():
+                    if bd.is_dir() and (bd / "book_config.yaml").exists():
+                        templates.add(f"{d.name}/{bd.name}")
     return sorted(templates)
 
-def get_template_dir(template_name: str) -> Path:
+def parse_template_id(template_id: str) -> tuple[str, str | None]:
+    """Parse 'series/book' or 'flat_name' into (template, book)."""
+    if "/" in template_id:
+        parts = template_id.split("/", 1)
+        return parts[0], parts[1]
+    return template_id, None
+
+def get_template_dir(template_name: str, book: str | None = None) -> Path:
+    """Return the directory containing the template config."""
+    if book:
+        updated = UPDATES_DIR / "marker-pdf" / "templates" / template_name / book
+        if updated.exists() and (updated / "book_config.yaml").exists():
+            return updated
+        return _BUNDLED_MARKER_PDF / "templates" / template_name / book
     updated = UPDATES_DIR / "marker-pdf" / "templates" / template_name
     if updated.exists() and (updated / "pdf_config.yaml").exists():
         return updated
     return _BUNDLED_MARKER_PDF / "templates" / template_name
+
+def get_series_dir(template_name: str) -> Path | None:
+    """Return the series directory if this is a series template."""
+    for base in [UPDATES_DIR / "marker-pdf" / "templates", _BUNDLED_MARKER_PDF / "templates"]:
+        sp = base / template_name / "series_config.yaml"
+        if sp.exists():
+            return sp.parent
+    return None
 
 def check_models_downloaded() -> bool:
     if not MODEL_CACHE_DIR.exists(): return False

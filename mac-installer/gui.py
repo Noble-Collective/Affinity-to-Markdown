@@ -65,7 +65,7 @@ class ConverterApp:
         ttk.Label(main, text="Template:").grid(row=row, column=0, sticky="w", pady=(0,4))
         templates = get_available_templates()
         templates.append(_NEW_BOOK_SENTINEL)
-        self.template_var = tk.StringVar(value=templates[0] if len(templates) > 1 else "homestead")
+        self.template_var = tk.StringVar(value=templates[0] if templates else "passage/homestead")
         self.template_combo = ttk.Combobox(main, textvariable=self.template_var, values=templates, state="readonly", width=30)
         self.template_combo.grid(row=row, column=1, sticky="w", pady=(0,4), padx=(4,4))
         self.template_combo.bind("<<ComboboxSelected>>", self._on_template_change)
