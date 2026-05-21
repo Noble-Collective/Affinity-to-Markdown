@@ -1,0 +1,93 @@
+# On the Shortness of Life — book-specific config
+# Merged on top of ../series_config.yaml at load time.
+
+# Pattern-based heading normalization for body-size headings that
+# font ratio detection can't catch (section headings are at body-bold).
+content_heading_patterns:
+  - pattern: '^Section \d+:.*'
+    level: 2
+    strip_trailing_number: true
+  - pattern: '^Chapter (One|Two|Three|Four|Five|Six)\b.*'
+    level: 1
+    strip_trailing_number: true
+  - pattern: '^Reflection Questions\b.*'
+    level: 2
+    strip_trailing_number: true
+  - pattern: '^Bibliography\b.*'
+    level: 1
+    strip_trailing_number: true
+  - pattern: '^Preface\b.*'
+    level: 2
+    strip_trailing_number: true
+  - pattern: '^Introduction\s*$'
+    level: 3
+  - pattern: '^Citation Note\s*$'
+    level: 3
+  - pattern: '^Editions\s*$'
+    level: 3
+  - pattern: '^Secondary Literature\s*$'
+    level: 3
+
+# Insert Front Matter heading at the top of the document
+insert_front_matter_heading: "Front Matter"
+front_matter_ends_before: "Chapter One"
+
+# Chapter subtitle themes — quoted lines like '"Title": Description'
+# appear after chapter headings and should become H3.
+# Match both smart quotes and ASCII quotes.
+chapter_subtitle_pattern: '^[\u201c"][^\u201d"]+[\u201d"]:\s+\w.*'
+chapter_subtitle_level: 3
+
+skip_line_patterns:
+  # Standalone page numbers (roman or arabic)
+  - '^\d{1,3}$'
+  - '^[ivxlc]+$'
+  # Duplicate italic chapter theme quotes at end of chapters (ASCII quotes)
+  - '^\*"[^"]+"\*$'
+  # Duplicate plain chapter theme quotes at end of chapters
+  - '^"Tear Yourself Away From the Common Herd"$'
+  # Expanded TOC heading and related artifacts
+  - '^#{0,6}\s*\*{0,2}Expanded Table of Contents\*{0,2}'
+  - '^\*{0,2}Expanded Table of Contents\*{0,2}'
+  - '^\*{0,2}Preface\s+[ivxlc]+\*{0,2}$'
+
+skip_table_markers:
+  - 'Table of Contents'
+  - 'Expanded Table of Contents'
+  - 'Chapter One'
+  - 'Chapter Two'
+  - 'Chapter Three'
+  - 'Chapter Four'
+  - 'Chapter Five'
+  - 'Chapter Six'
+  - 'Reflection Questions'
+
+table_to_list: []
+
+front_matter_corrections:
+  ends_before: "# Chapter One"
+  remove_lines:
+    # Duplicate italic title
+    - '^\*On the Shortness'
+    # TOC headings (table content already stripped by skip_table_markers)
+    - '^#{1,2} Table of Contents'
+    - '^#{1,2} Expanded Table of Contents'
+    # Duplicate "L. Annaeus Seneca" (second occurrence on title page)
+    - '^L\. Annaeus Seneca$'
+    # Duplicate title heading
+    - '^# On the Shortness of Life'
+    - '^On the Shortness of Life$'
+  text_replacements:
+    - match: "> York, Pennsylvania Noble Imprint 2026"
+      replace: "York, Pennsylvania\nNoble Imprint\n2026"
+    # Fix merged copyright/series line
+    - match: "Series: A Library of Classics for Christian Ministry: A Philosophical Shelf © 2026"
+      replace: "Series: A Library of Classics for Christian Ministry: A Philosophical Shelf\n\n© 2026"
+
+# Strip the expanded TOC section
+strip_between:
+  - start_after: 'Bibliography'
+    end_before: '# **Preface**'
+
+# No heading hierarchy pass needed — handled by content_heading_patterns
+# heading_hierarchy is intentionally omitted
