@@ -1,0 +1,145 @@
+# questions_final.yaml - User input areas for On the Shortness of Life
+#
+# IDs: deterministic from heading hierarchy + ordinal number.
+# Post-processor matches by: heading context + type + ordinal.
+# Text is for human review only.
+#
+# Types: numbered
+#
+# Structure: # Chapter N > ## Reflection Questions > numbered items
+
+book: On the Shortness of Life
+prefix: Sho
+
+questions:
+  # Chapter One — 4 questions
+  - id: Sho-ChaOne-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. How does Seneca describe the length and shortness of life?"
+    path: "Chapter One > Reflection Questions"
+  - id: Sho-ChaOne-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. Based on this introduction, how is it that people shorten the length of their lives?"
+    path: "Chapter One > Reflection Questions"
+  - id: Sho-ChaOne-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. What do you make of Seneca's claim that life is long enough if one knows how to use it?"
+    path: "Chapter One > Reflection Questions"
+  - id: Sho-ChaOne-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. What role does vice play in preventing people from realizing the fullness of their lives?"
+    path: "Chapter One > Reflection Questions"
+
+  # Chapter Two — 5 questions
+  - id: Sho-ChaTwo-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. What is Seneca's view of time?"
+    path: "Chapter Two > Reflection Questions"
+  - id: Sho-ChaTwo-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. How do many people use their time?"
+    path: "Chapter Two > Reflection Questions"
+  - id: Sho-ChaTwo-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. How does Seneca describe the fast and fleeting nature of life?"
+    path: "Chapter Two > Reflection Questions"
+  - id: Sho-ChaTwo-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. What does Seneca mean by a life of leisure?"
+    path: "Chapter Two > Reflection Questions"
+  - id: Sho-ChaTwo-RefQue-5
+    type: numbered
+    ordinal: 5
+    text: "5. What is the relationship between learning to live and learning to die?"
+    path: "Chapter Two > Reflection Questions"
+
+  # Chapter Three — 4 questions
+  - id: Sho-ChaThr-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. According to Seneca, what is a busy man?"
+    path: "Chapter Three > Reflection Questions"
+  - id: Sho-ChaThr-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. What is Seneca's understanding of the three phases of life?"
+    path: "Chapter Three > Reflection Questions"
+  - id: Sho-ChaThr-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. How does Seneca describe a wise man in relationship to his death?"
+    path: "Chapter Three > Reflection Questions"
+  - id: Sho-ChaThr-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. What are trifles and curiosities?"
+    path: "Chapter Three > Reflection Questions"
+
+  # Chapter Four — 3 questions
+  - id: Sho-ChaFou-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. Why does Seneca consider philosophy important?"
+    path: "Chapter Four > Reflection Questions"
+  - id: Sho-ChaFou-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. What kind of subject matter does philosophy explore?"
+    path: "Chapter Four > Reflection Questions"
+  - id: Sho-ChaFou-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. How does Seneca describe the great thinkers of the past?"
+    path: "Chapter Four > Reflection Questions"
+
+  # Chapter Five — 4 questions
+  - id: Sho-ChaFiv-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. How do some people come to the end of their lives and realize that they have not lived it meaningfully?"
+    path: "Chapter Five > Reflection Questions"
+  - id: Sho-ChaFiv-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. How do people who will eventually regret their lives think and feel about the past, the present, and the future?"
+    path: "Chapter Five > Reflection Questions"
+  - id: Sho-ChaFiv-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. According to Seneca, how does the pursuit of pleasure cause people to waste their lives?"
+    path: "Chapter Five > Reflection Questions"
+  - id: Sho-ChaFiv-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. How is the pursuit of pleasure elusive?"
+    path: "Chapter Five > Reflection Questions"
+
+  # Chapter Six — 4 questions
+  - id: Sho-ChaSix-RefQue-1
+    type: numbered
+    ordinal: 1
+    text: "1. What is Seneca's final exhortations in this treatise?"
+    path: "Chapter Six > Reflection Questions"
+  - id: Sho-ChaSix-RefQue-2
+    type: numbered
+    ordinal: 2
+    text: "2. What does it mean for a person to retreat to a quiet life?"
+    path: "Chapter Six > Reflection Questions"
+  - id: Sho-ChaSix-RefQue-3
+    type: numbered
+    ordinal: 3
+    text: "3. What warning does Seneca give about envying a man of power, position, and prestige?"
+    path: "Chapter Six > Reflection Questions"
+  - id: Sho-ChaSix-RefQue-4
+    type: numbered
+    ordinal: 4
+    text: "4. How should we think about Seneca's appeal to live a life of leisure?"
+    path: "Chapter Six > Reflection Questions"
