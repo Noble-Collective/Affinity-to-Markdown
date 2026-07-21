@@ -13,11 +13,11 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ~\AppData\Local\pip\Cache
           key: win-pip-${{ hashFiles('windows-installer/requirements.txt') }}
@@ -85,12 +85,12 @@ jobs:
         working-directory: windows-installer
         run: |
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: Windows-Installer
           path: windows-installer/Output/Affinity-PDF-Markdown-Converter_Setup.exe
           retention-days: 30
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: Windows-Portable
@@ -101,11 +101,11 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ~/Library/Caches/pip
           key: mac-pip-${{ hashFiles('mac-installer/requirements.txt') }}
@@ -222,12 +222,12 @@ jobs:
       - name: Clean up keychain
         if: always()
         run: security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: macOS-Installer
           path: mac-installer/dist/Affinity-PDF-Markdown-Converter-*.dmg
           retention-days: 30
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: macOS-App-Bundle
