@@ -1,5 +1,7 @@
 # marker-pdf — PDF to Markdown Converter
 
+> **Open items consolidated (2026-10-27):** this doc's still-open items are tracked in ONE list, `Collective-Shared/plans/2026-10-27-loose-ends.md`. Strike an item there and here when it's done; add new loose ends there.
+
 Converts Noble Collective book PDFs to clean, structured Markdown using [Marker](https://github.com/datalab-to/marker) (ML-based extraction) + PyMuPDF (font-based post-processing) + a structural question-tagging system for interactive app integration.
 
 ---
